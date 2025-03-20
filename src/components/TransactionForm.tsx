@@ -4,38 +4,19 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle 
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
-import { format } from 'date-fns';
-import { CalendarIcon, User } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Transaction, TransactionType, transactionCategories } from '@/types/transaction';
 import { useTransactions } from '@/context/TransactionContext';
+import TransactionTypeTabs from '@/components/transaction/TransactionTypeTabs';
+import TransactionDatePicker from '@/components/transaction/TransactionDatePicker';
+import ReimbursementFields from '@/components/transaction/ReimbursementFields';
+import CreatorField from '@/components/transaction/CreatorField';
+import CategorySelect from '@/components/transaction/CategorySelect';
 
 const TransactionForm: React.FC = () => {
   const { addTransaction } = useTransactions();
@@ -47,6 +28,11 @@ const TransactionForm: React.FC = () => {
   const [isReimbursement, setIsReimbursement] = useState(false);
   const [reimbursedTo, setReimbursedTo] = useState('');
   const [createdBy, setCreatedBy] = useState('');
+
+  const handleTransactionTypeChange = (type: TransactionType) => {
+    setTransactionType(type);
+    setIsReimbursement(false); // Reset reimbursement when changing type
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +47,7 @@ const TransactionForm: React.FC = () => {
       category,
       date,
       type: transactionType,
-      createdBy: createdBy.trim() || undefined, // Add the new field
+      createdBy: createdBy.trim() || undefined,
     };
 
     // Add reimbursement fields if it's a reimbursement
@@ -93,35 +79,16 @@ const TransactionForm: React.FC = () => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Tabs 
-            defaultValue="income" 
-            onValueChange={(value) => {
-              setTransactionType(value as TransactionType);
-              setIsReimbursement(false); // Reset reimbursement when changing type
-            }}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="income">Приход</TabsTrigger>
-              <TabsTrigger value="expense">Расход</TabsTrigger>
-              <TabsTrigger value="reimbursement">Возмещение</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <TransactionTypeTabs 
+            value={transactionType}
+            onChange={handleTransactionTypeChange}
+          />
           
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="createdBy">ФИО сотрудника</Label>
-              <div className="flex items-center space-x-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="createdBy"
-                  placeholder="Введите ФИО"
-                  value={createdBy}
-                  onChange={(e) => setCreatedBy(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-            </div>
+            <CreatorField 
+              value={createdBy}
+              onChange={setCreatedBy}
+            />
 
             <div className="space-y-2">
               <Label htmlFor="amount">Сумма</Label>
@@ -146,74 +113,25 @@ const TransactionForm: React.FC = () => {
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="category">Категория</Label>
-              <Select 
-                value={category} 
-                onValueChange={setCategory}
-                required
-              >
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Выберите категорию" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <CategorySelect 
+              categories={categories}
+              value={category}
+              onChange={setCategory}
+            />
             
             {transactionType === 'expense' && (
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="reimbursement" 
-                  checked={isReimbursement}
-                  onCheckedChange={(checked: boolean) => setIsReimbursement(checked)}
-                />
-                <Label htmlFor="reimbursement" className="cursor-pointer">
-                  Расход из личных средств (требуется возмещение)
-                </Label>
-              </div>
-            )}
-
-            {isReimbursement && (
-              <div className="space-y-2">
-                <Label htmlFor="reimbursedTo">Кому возместить</Label>
-                <Input
-                  id="reimbursedTo"
-                  placeholder="Имя сотрудника"
-                  value={reimbursedTo}
-                  onChange={(e) => setReimbursedTo(e.target.value)}
-                  required={isReimbursement}
-                />
-              </div>
+              <ReimbursementFields 
+                isReimbursement={isReimbursement}
+                onReimbursementChange={setIsReimbursement}
+                reimbursedTo={reimbursedTo}
+                onReimbursedToChange={setReimbursedTo}
+              />
             )}
             
-            <div className="space-y-2">
-              <Label htmlFor="date">Дата</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                    id="date"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, 'PPP') : <span>Выберите дату</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={(date) => date && setDate(date)}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+            <TransactionDatePicker 
+              date={date}
+              onDateChange={(newDate) => newDate && setDate(newDate)}
+            />
           </div>
           
           <Button 
