@@ -1,5 +1,5 @@
 
-export type TransactionType = 'income' | 'expense';
+export type TransactionType = 'income' | 'expense' | 'reimbursement';
 
 export interface Transaction {
   id: string;
@@ -8,6 +8,9 @@ export interface Transaction {
   category: string;
   date: Date;
   type: TransactionType;
+  isReimbursement?: boolean;
+  reimbursedTo?: string;
+  reimbursementStatus?: 'pending' | 'completed';
 }
 
 export const transactionCategories = {
@@ -25,6 +28,14 @@ export const transactionCategories = {
     'Маркетинг',
     'Коммунальные услуги',
     'Налоги',
+    'Другое'
+  ],
+  reimbursement: [
+    'Транспорт',
+    'Командировки',
+    'Оборудование',
+    'Канцелярия',
+    'Клиентские встречи',
     'Другое'
   ]
 };

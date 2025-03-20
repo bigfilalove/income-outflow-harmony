@@ -30,6 +30,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -43,6 +44,8 @@ const TransactionForm: React.FC = () => {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [date, setDate] = useState<Date>(new Date());
+  const [isReimbursement, setIsReimbursement] = useState(false);
+  const [reimbursedTo, setReimbursedTo] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,8 +59,15 @@ const TransactionForm: React.FC = () => {
       description,
       category,
       date,
-      type: transactionType
+      type: transactionType,
     };
+
+    // Add reimbursement fields if it's a reimbursement
+    if (transactionType === 'expense' && isReimbursement) {
+      transaction.isReimbursement = true;
+      transaction.reimbursedTo = reimbursedTo;
+      transaction.reimbursementStatus = 'pending';
+    }
 
     addTransaction(transaction);
     
@@ -66,11 +76,11 @@ const TransactionForm: React.FC = () => {
     setDescription('');
     setCategory('');
     setDate(new Date());
+    setIsReimbursement(false);
+    setReimbursedTo('');
   };
 
-  const categories = transactionType === 'income' 
-    ? transactionCategories.income 
-    : transactionCategories.expense;
+  const categories = transactionCategories[transactionType];
 
   return (
     <Card className="animate-slideUp">
@@ -82,12 +92,16 @@ const TransactionForm: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs 
             defaultValue="income" 
-            onValueChange={(value) => setTransactionType(value as TransactionType)}
+            onValueChange={(value) => {
+              setTransactionType(value as TransactionType);
+              setIsReimbursement(false); // Reset reimbursement when changing type
+            }}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="income">Приход</TabsTrigger>
               <TabsTrigger value="expense">Расход</TabsTrigger>
+              <TabsTrigger value="reimbursement">Возмещение</TabsTrigger>
             </TabsList>
           </Tabs>
           
@@ -133,6 +147,32 @@ const TransactionForm: React.FC = () => {
               </Select>
             </div>
             
+            {transactionType === 'expense' && (
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="reimbursement" 
+                  checked={isReimbursement}
+                  onCheckedChange={(checked: boolean) => setIsReimbursement(checked)}
+                />
+                <Label htmlFor="reimbursement" className="cursor-pointer">
+                  Расход из личных средств (требуется возмещение)
+                </Label>
+              </div>
+            )}
+
+            {isReimbursement && (
+              <div className="space-y-2">
+                <Label htmlFor="reimbursedTo">Кому возместить</Label>
+                <Input
+                  id="reimbursedTo"
+                  placeholder="Имя сотрудника"
+                  value={reimbursedTo}
+                  onChange={(e) => setReimbursedTo(e.target.value)}
+                  required={isReimbursement}
+                />
+              </div>
+            )}
+            
             <div className="space-y-2">
               <Label htmlFor="date">Дата</Label>
               <Popover>
@@ -164,7 +204,11 @@ const TransactionForm: React.FC = () => {
             className="w-full"
             variant={transactionType === 'income' ? 'default' : 'outline'}
           >
-            Добавить {transactionType === 'income' ? 'доход' : 'расход'}
+            {transactionType === 'reimbursement' 
+              ? 'Добавить возмещение' 
+              : transactionType === 'income' 
+                ? 'Добавить доход' 
+                : 'Добавить расход'}
           </Button>
         </form>
       </CardContent>

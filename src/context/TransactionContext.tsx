@@ -9,6 +9,7 @@ interface TransactionContextType {
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
   deleteTransaction: (id: string) => void;
   getTransactionById: (id: string) => Transaction | undefined;
+  updateReimbursementStatus: (id: string, status: 'completed') => void;
 }
 
 const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
@@ -32,9 +33,14 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     
     setTransactions([newTransaction, ...transactions]);
     
+    let toastTitle = transaction.type === 'income' ? 'Доход добавлен' : 'Расход добавлен';
+    if (transaction.isReimbursement) {
+      toastTitle = 'Возмещение добавлено';
+    }
+    
     toast({
-      title: transaction.type === 'income' ? 'Доход добавлен' : 'Расход добавлен',
-      description: `${transaction.description} был успешно добавлен.`
+      title: toastTitle,
+      description: `${transaction.description} было успешно добавлено.`
     });
   };
 
@@ -44,9 +50,14 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     
     setTransactions(transactions.filter(t => t.id !== id));
     
+    let toastTitle = transaction.type === 'income' ? 'Доход удален' : 'Расход удален';
+    if (transaction.isReimbursement) {
+      toastTitle = 'Возмещение удалено';
+    }
+    
     toast({
-      title: transaction.type === 'income' ? 'Доход удален' : 'Расход удален',
-      description: `${transaction.description} был успешно удален.`
+      title: toastTitle,
+      description: `${transaction.description} было успешно удалено.`
     });
   };
 
@@ -54,12 +65,29 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return transactions.find(t => t.id === id);
   };
 
+  const updateReimbursementStatus = (id: string, status: 'completed') => {
+    const transaction = transactions.find(t => t.id === id);
+    if (!transaction || !transaction.isReimbursement) return;
+    
+    const updatedTransactions = transactions.map(t => 
+      t.id === id ? { ...t, reimbursementStatus: status } : t
+    );
+    
+    setTransactions(updatedTransactions);
+    
+    toast({
+      title: 'Статус обновлен',
+      description: `Возмещение для "${transaction.description}" отмечено как выполненное.`
+    });
+  };
+
   return (
     <TransactionContext.Provider value={{ 
       transactions, 
       addTransaction, 
       deleteTransaction,
-      getTransactionById
+      getTransactionById,
+      updateReimbursementStatus
     }}>
       {children}
     </TransactionContext.Provider>
