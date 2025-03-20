@@ -10,15 +10,24 @@ import { LockKeyholeIcon } from 'lucide-react';
 
 const AdminLogin = () => {
   const [password, setPassword] = useState('');
-  const { verifyAdminPassword } = useAuth();
+  const { verifyAdminPassword, users, login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (verifyAdminPassword(password)) {
-      toast.success('Вход выполнен успешно');
-      navigate('/admin');
+      // Находим пользователя с ролью админа для автоматического входа
+      const adminUser = users.find(user => user.role === 'admin');
+      
+      if (adminUser) {
+        // Выполняем логин как админ
+        login(adminUser.id);
+        toast.success('Вход выполнен успешно');
+        navigate('/admin');
+      } else {
+        toast.error('Ошибка: администратор не найден в системе');
+      }
     } else {
       toast.error('Неверный пароль');
     }
