@@ -2,14 +2,34 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types/user';
 
-// Sample users data for demonstration
+// Sample users data with usernames and passwords
 const initialUsers: User[] = [
   {
     id: '1',
     name: 'Администратор',
     email: 'admin@example.com',
+    username: 'admin',
+    password: 'admin123',
     role: 'admin',
     createdAt: new Date('2023-01-01')
+  },
+  {
+    id: '2',
+    name: 'Пользователь',
+    email: 'user@example.com',
+    username: 'user',
+    password: 'user123',
+    role: 'user',
+    createdAt: new Date('2023-01-02')
+  },
+  {
+    id: '3',
+    name: 'Базовый пользователь',
+    email: 'basic@example.com',
+    username: 'basic',
+    password: 'basic123',
+    role: 'basic',
+    createdAt: new Date('2023-01-03')
   }
 ];
 
@@ -19,6 +39,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   adminPassword: string;
   login: (userId: string) => void;
+  loginWithCredentials: (username: string, password: string) => boolean;
   logout: () => void;
   addUser: (user: Omit<User, 'id' | 'createdAt'>) => void;
   removeUser: (userId: string) => void;
@@ -71,6 +92,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithCredentials = (username: string, password: string): boolean => {
+    const user = users.find(u => 
+      u.username.toLowerCase() === username.toLowerCase() && 
+      u.password === password
+    );
+    
+    if (user) {
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      localStorage.setItem('finance-tracker-current-user', user.id);
+      return true;
+    }
+    
+    return false;
+  };
+
   const logout = () => {
     setCurrentUser(null);
     setIsAuthenticated(false);
@@ -109,6 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated,
         adminPassword,
         login,
+        loginWithCredentials,
         logout,
         addUser,
         removeUser,

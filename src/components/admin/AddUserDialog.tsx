@@ -1,19 +1,22 @@
 
 import React from 'react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { User } from '@/types/user';
-import { PlusCircleIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -22,69 +25,102 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-interface AddUserDialogProps {
-  addUser: (user: Omit<User, 'id' | 'createdAt'>) => void;
-}
-
-// Form schema
-const formSchema = z.object({
+const userSchema = z.object({
   name: z.string().min(2, {
     message: 'Имя должно содержать минимум 2 символа',
   }),
   email: z.string().email({
     message: 'Введите корректный email',
   }),
-  role: z.enum(['admin', 'user', 'basic']),
+  username: z.string().min(3, {
+    message: 'Логин должен содержать минимум 3 символа',
+  }),
+  password: z.string().min(6, {
+    message: 'Пароль должен содержать минимум 6 символов',
+  }),
+  role: z.enum(['admin', 'user', 'basic'], {
+    required_error: 'Выберите роль пользователя',
+  }),
 });
 
-// Define the type for the form values based on what addUser expects
-type FormValues = Omit<User, 'id' | 'createdAt'>;
+type UserFormValues = z.infer<typeof userSchema>;
 
-const AddUserDialog: React.FC<AddUserDialogProps> = ({ addUser }) => {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+const AddUserDialog = () => {
+  const { addUser, users } = useAuth();
+  const [open, setOpen] = React.useState(false);
+
+  const form = useForm<UserFormValues>({
+    resolver: zodResolver(userSchema),
     defaultValues: {
       name: '',
       email: '',
+      username: '',
+      password: '',
       role: 'user',
     },
   });
 
-  const onSubmit = (values: FormValues) => {
+  function onSubmit(values: UserFormValues) {
+    // Проверка на уникальность email
+    const emailExists = users.some(user => user.email.toLowerCase() === values.email.toLowerCase());
+    if (emailExists) {
+      form.setError('email', { 
+        type: 'manual', 
+        message: 'Пользователь с таким email уже существует' 
+      });
+      return;
+    }
+
+    // Проверка на уникальность username
+    const usernameExists = users.some(user => user.username.toLowerCase() === values.username.toLowerCase());
+    if (usernameExists) {
+      form.setError('username', { 
+        type: 'manual', 
+        message: 'Пользователь с таким логином уже существует' 
+      });
+      return;
+    }
+
     addUser(values);
     toast.success('Пользователь успешно добавлен');
     form.reset();
-  };
+    setOpen(false);
+  }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full">
-          <PlusCircleIcon className="mr-2 h-4 w-4" /> Добавить пользователя
+        <Button>
+          <Plus className="mr-2 h-4 w-4" />
+          Добавить пользователя
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Добавить пользователя</DialogTitle>
+          <DialogTitle>Добавить нового пользователя</DialogTitle>
           <DialogDescription>
-            Создайте нового пользователя системы
+            Заполните поля для создания нового пользователя системы
           </DialogDescription>
         </DialogHeader>
-        
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Имя</FormLabel>
+                  <FormLabel>Имя пользователя</FormLabel>
                   <FormControl>
-                    <Input placeholder="Введите имя" {...field} />
+                    <Input placeholder="Иван Иванов" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -104,6 +140,34 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ addUser }) => {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Логин</FormLabel>
+                  <FormControl>
+                    <Input placeholder="ivanov" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Пароль</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="******" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <FormField
               control={form.control}
@@ -111,23 +175,28 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ addUser }) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Роль</FormLabel>
-                  <FormControl>
-                    <select
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                      {...field}
-                    >
-                      <option value="user">Пользователь</option>
-                      <option value="admin">Администратор</option>
-                      <option value="basic">Базовый пользователь</option>
-                    </select>
-                  </FormControl>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите роль" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="admin">Администратор</SelectItem>
+                      <SelectItem value="user">Пользователь</SelectItem>
+                      <SelectItem value="basic">Базовый пользователь</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
             <DialogFooter>
-              <Button type="submit">Создать пользователя</Button>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">Отмена</Button>
+              </DialogClose>
+              <Button type="submit">Добавить</Button>
             </DialogFooter>
           </form>
         </Form>
