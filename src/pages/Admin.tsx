@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -39,6 +38,7 @@ import {
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { User } from '@/types/user';
 
 const Admin = () => {
   const { users, addUser, removeUser, updateAdminPassword, adminPassword } = useAuth();
@@ -57,8 +57,11 @@ const Admin = () => {
     role: z.enum(['admin', 'user']),
   });
 
+  // Define the type for the form values
+  type FormValues = z.infer<typeof formSchema>;
+
   // Form for creating a new user
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
@@ -67,7 +70,7 @@ const Admin = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = (values: FormValues) => {
     addUser(values);
     toast.success('Пользователь успешно добавлен');
     form.reset();
