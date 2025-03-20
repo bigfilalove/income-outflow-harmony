@@ -1,0 +1,73 @@
+
+{
+  "transactions": [
+    {
+      "id": "1",
+      "amount": 50000,
+      "description": "Продажа услуг",
+      "category": "Продажи",
+      "date": "2023-07-15T10:30:00.000Z",
+      "type": "income",
+      "isReimbursement": false,
+      "reimbursedTo": null,
+      "reimbursementStatus": null,
+      "createdBy": "Иван Петров",
+      "createdAt": "2023-07-15T10:30:00.000Z"
+    },
+    {
+      "id": "2",
+      "amount": 15000,
+      "description": "Аренда офиса",
+      "category": "Аренда",
+      "date": "2023-07-20T14:00:00.000Z",
+      "type": "expense",
+      "isReimbursement": false,
+      "reimbursedTo": null,
+      "reimbursementStatus": null,
+      "createdBy": "Мария Сидорова",
+      "createdAt": "2023-07-20T14:00:00.000Z"
+    },
+    {
+      "id": "3",
+      "amount": 5000,
+      "description": "Командировочные расходы",
+      "category": "Командировки",
+      "date": "2023-07-25T09:15:00.000Z",
+      "type": "expense",
+      "isReimbursement": true,
+      "reimbursedTo": "Алексей Иванов",
+      "reimbursementStatus": "pending",
+      "createdBy": "Мария Сидорова",
+      "createdAt": "2023-07-25T09:15:00.000Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "1",
+      "name": "Иван Петров",
+      "email": "ivan@example.com",
+      "username": "ivanp",
+      "password": "password123",
+      "role": "admin",
+      "createdAt": "2023-01-15T10:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "name": "Мария Сидорова",
+      "email": "maria@example.com",
+      "username": "marias",
+      "password": "password456",
+      "role": "user",
+      "createdAt": "2023-02-20T11:30:00.000Z"
+    },
+    {
+      "id": "3",
+      "name": "Алексей Иванов",
+      "email": "alexey@example.com",
+      "username": "alexeyi",
+      "password": "password789",
+      "role": "basic",
+      "createdAt": "2023-03-10T09:45:00.000Z"
+    }
+  ]
+}
