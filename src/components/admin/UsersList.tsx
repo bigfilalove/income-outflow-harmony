@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 
 interface UsersListProps {
   users: User[];
@@ -22,6 +23,19 @@ interface UsersListProps {
 }
 
 const UsersList: React.FC<UsersListProps> = ({ users, removeUser }) => {
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return <Badge className="bg-primary/10 text-primary hover:bg-primary/20">Админ</Badge>;
+      case 'user':
+        return <Badge className="bg-secondary/10 text-secondary-foreground hover:bg-secondary/20">Пользователь</Badge>;
+      case 'basic':
+        return <Badge className="bg-muted/80 text-muted-foreground hover:bg-muted">Базовый</Badge>;
+      default:
+        return <Badge>{role}</Badge>;
+    }
+  };
+
   return (
     <div className="space-y-2">
       <h3 className="text-lg font-medium">Список пользователей</h3>
@@ -37,11 +51,7 @@ const UsersList: React.FC<UsersListProps> = ({ users, removeUser }) => {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  user.role === 'admin' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary-foreground'
-                }`}>
-                  {user.role === 'admin' ? 'Админ' : 'Пользователь'}
-                </span>
+                {getRoleBadge(user.role)}
                 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>

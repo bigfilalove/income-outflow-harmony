@@ -38,7 +38,7 @@ const formSchema = z.object({
   email: z.string().email({
     message: 'Введите корректный email',
   }),
-  role: z.enum(['admin', 'user']),
+  role: z.enum(['admin', 'user', 'basic']),
 });
 
 // Define the type for the form values based on what addUser expects
@@ -118,6 +118,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ addUser }) => {
                     >
                       <option value="user">Пользователь</option>
                       <option value="admin">Администратор</option>
+                      <option value="basic">Базовый пользователь</option>
                     </select>
                   </FormControl>
                   <FormMessage />

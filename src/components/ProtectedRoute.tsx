@@ -5,11 +5,13 @@ import { useAuth } from '@/context/AuthContext';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
+  allowBasicUser?: boolean;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
-  requireAdmin = false 
+  requireAdmin = false,
+  allowBasicUser = true
 }) => {
   const { isAuthenticated, currentUser } = useAuth();
 
@@ -19,6 +21,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (requireAdmin && currentUser?.role !== 'admin') {
     return <Navigate to="/" replace />;
+  }
+
+  if (!allowBasicUser && currentUser?.role === 'basic') {
+    return <Navigate to="/transactions-basic" replace />;
   }
 
   return <>{children}</>;

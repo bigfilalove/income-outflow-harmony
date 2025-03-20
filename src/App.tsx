@@ -9,6 +9,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Transactions from "./pages/Transactions";
+import BasicTransactions from "./pages/BasicTransactions";
 import Analytics from "./pages/Analytics";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
@@ -30,17 +31,22 @@ const App = () => (
               <Route path="/admin-login" element={<AdminLogin />} />
               
               <Route path="/" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowBasicUser={false}>
                   <Index />
                 </ProtectedRoute>
               } />
               <Route path="/transactions" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowBasicUser={false}>
                   <Transactions />
                 </ProtectedRoute>
               } />
-              <Route path="/analytics" element={
+              <Route path="/transactions-basic" element={
                 <ProtectedRoute>
+                  <BasicTransactions />
+                </ProtectedRoute>
+              } />
+              <Route path="/analytics" element={
+                <ProtectedRoute allowBasicUser={false}>
                   <Analytics />
                 </ProtectedRoute>
               } />
@@ -50,7 +56,6 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
-              {/* Redirect to login if not logged in */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
