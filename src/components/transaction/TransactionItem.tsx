@@ -5,7 +5,8 @@ import {
   ArrowUpCircle, 
   MoreVertical, 
   Trash2,
-  RefreshCw
+  RefreshCw,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -63,6 +64,9 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
             {transaction.category} • {formatDateShort(transaction.date)}
             {transaction.isReimbursement && transaction.reimbursedTo && (
               <> • Сотрудник: {transaction.reimbursedTo}</>
+            )}
+            {transaction.createdBy && (
+              <> • <User className="h-3 w-3 inline mb-0.5" /> {transaction.createdBy}</>
             )}
           </div>
           {transaction.isReimbursement && (

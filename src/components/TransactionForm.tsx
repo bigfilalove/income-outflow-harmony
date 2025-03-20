@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Transaction, TransactionType, transactionCategories } from '@/types/transaction';
 import { useTransactions } from '@/context/TransactionContext';
@@ -46,6 +46,7 @@ const TransactionForm: React.FC = () => {
   const [date, setDate] = useState<Date>(new Date());
   const [isReimbursement, setIsReimbursement] = useState(false);
   const [reimbursedTo, setReimbursedTo] = useState('');
+  const [createdBy, setCreatedBy] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +61,7 @@ const TransactionForm: React.FC = () => {
       category,
       date,
       type: transactionType,
+      createdBy: createdBy.trim() || undefined, // Add the new field
     };
 
     // Add reimbursement fields if it's a reimbursement
@@ -78,6 +80,7 @@ const TransactionForm: React.FC = () => {
     setDate(new Date());
     setIsReimbursement(false);
     setReimbursedTo('');
+    setCreatedBy('');
   };
 
   const categories = transactionCategories[transactionType];
@@ -106,6 +109,20 @@ const TransactionForm: React.FC = () => {
           </Tabs>
           
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="createdBy">ФИО сотрудника</Label>
+              <div className="flex items-center space-x-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="createdBy"
+                  placeholder="Введите ФИО"
+                  value={createdBy}
+                  onChange={(e) => setCreatedBy(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="amount">Сумма</Label>
               <Input

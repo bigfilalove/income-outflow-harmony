@@ -11,6 +11,7 @@ export interface Transaction {
   isReimbursement?: boolean;
   reimbursedTo?: string;
   reimbursementStatus?: 'pending' | 'completed';
+  createdBy?: string; // New field for the person who created the transaction
 }
 
 export const transactionCategories = {
