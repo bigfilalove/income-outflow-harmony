@@ -1,5 +1,6 @@
 
 export type TransactionType = 'income' | 'expense' | 'reimbursement';
+export type ReimbursementStatus = 'pending' | 'completed';
 
 export interface Transaction {
   id: string;
@@ -10,8 +11,23 @@ export interface Transaction {
   type: TransactionType;
   isReimbursement?: boolean;
   reimbursedTo?: string;
-  reimbursementStatus?: 'pending' | 'completed';
-  createdBy?: string; // New field for the person who created the transaction
+  reimbursementStatus?: ReimbursementStatus;
+  createdBy?: string;
+  createdAt?: Date;
+}
+
+export interface ServerTransaction {
+  id: string;
+  amount: number;
+  description: string;
+  category: string;
+  date: string;
+  type: TransactionType;
+  isReimbursement: boolean;
+  reimbursedTo: string | null;
+  reimbursementStatus: ReimbursementStatus | null;
+  createdBy: string | null;
+  createdAt: string;
 }
 
 export const transactionCategories = {

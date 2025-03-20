@@ -8,13 +8,13 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { useTransactions } from '@/context/TransactionContext';
-import { Transaction } from '@/types/transaction';
 import TransactionItem from './TransactionItem';
 import TransactionSearch from './TransactionSearch';
 import TransactionFilter, { FilterType } from './TransactionFilter';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const TransactionList: React.FC = () => {
-  const { transactions, deleteTransaction, updateReimbursementStatus } = useTransactions();
+  const { transactions, isLoading, deleteTransaction, updateReimbursementStatus } = useTransactions();
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
 
@@ -48,22 +48,38 @@ const TransactionList: React.FC = () => {
         <TransactionSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {filteredTransactions.length === 0 ? (
-            <div className="text-center py-6 text-muted-foreground">
-              Транзакции не найдены
-            </div>
-          ) : (
-            filteredTransactions.map((transaction) => (
-              <TransactionItem 
-                key={transaction.id} 
-                transaction={transaction}
-                onDelete={deleteTransaction}
-                onUpdateStatus={updateReimbursementStatus}
-              />
-            ))
-          )}
-        </div>
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="p-4 border rounded-lg">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredTransactions.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground">
+                Транзакции не найдены
+              </div>
+            ) : (
+              filteredTransactions.map((transaction) => (
+                <TransactionItem 
+                  key={transaction.id} 
+                  transaction={transaction}
+                  onDelete={deleteTransaction}
+                  onUpdateStatus={updateReimbursementStatus}
+                />
+              ))
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

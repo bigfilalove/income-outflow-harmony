@@ -1,15 +1,18 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Transaction } from '@/types/transaction';
-import { sampleTransactions } from '@/data/sampleData';
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/sonner";
+import { fetchTransactions, createTransaction, deleteTransaction as apiDeleteTransaction, updateTransactionStatus } from '@/services/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface TransactionContextType {
   transactions: Transaction[];
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
-  deleteTransaction: (id: string) => void;
+  isLoading: boolean;
+  error: Error | null;
+  addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
   getTransactionById: (id: string) => Transaction | undefined;
-  updateReimbursementStatus: (id: string, status: 'completed') => void;
+  updateReimbursementStatus: (id: string, status: 'completed') => Promise<void>;
 }
 
 const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
@@ -23,67 +26,119 @@ export const useTransactions = () => {
 };
 
 export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [transactions, setTransactions] = useState<Transaction[]>(sampleTransactions);
+  const queryClient = useQueryClient();
+  
+  // Fetch transactions query
+  const { 
+    data: transactions = [], 
+    isLoading, 
+    error 
+  } = useQuery({
+    queryKey: ['transactions'],
+    queryFn: fetchTransactions,
+  });
 
-  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
-    const newTransaction = {
-      ...transaction,
-      id: Math.random().toString(36).substring(2, 11)
-    };
-    
-    setTransactions([newTransaction, ...transactions]);
-    
-    let toastTitle = transaction.type === 'income' ? 'Доход добавлен' : 'Расход добавлен';
-    if (transaction.isReimbursement) {
-      toastTitle = 'Возмещение добавлено';
+  // Add transaction mutation
+  const addTransactionMutation = useMutation({
+    mutationFn: createTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+
+  // Delete transaction mutation
+  const deleteTransactionMutation = useMutation({
+    mutationFn: apiDeleteTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+
+  // Update reimbursement status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: 'completed' }) => 
+      updateTransactionStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+
+  const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
+    try {
+      await addTransactionMutation.mutateAsync(transaction);
+      
+      let toastTitle = transaction.type === 'income' ? 'Доход добавлен' : 'Расход добавлен';
+      if (transaction.isReimbursement) {
+        toastTitle = 'Возмещение добавлено';
+      }
+      
+      toast({
+        title: toastTitle,
+        description: `${transaction.description} было успешно добавлено.`
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось добавить транзакцию.',
+        variant: 'destructive'
+      });
     }
-    
-    toast({
-      title: toastTitle,
-      description: `${transaction.description} было успешно добавлено.`
-    });
   };
 
-  const deleteTransaction = (id: string) => {
+  const deleteTransaction = async (id: string) => {
     const transaction = transactions.find(t => t.id === id);
     if (!transaction) return;
     
-    setTransactions(transactions.filter(t => t.id !== id));
-    
-    let toastTitle = transaction.type === 'income' ? 'Доход удален' : 'Расход удален';
-    if (transaction.isReimbursement) {
-      toastTitle = 'Возмещение удалено';
+    try {
+      await deleteTransactionMutation.mutateAsync(id);
+      
+      let toastTitle = transaction.type === 'income' ? 'Доход удален' : 'Расход удален';
+      if (transaction.isReimbursement) {
+        toastTitle = 'Возмещение удалено';
+      }
+      
+      toast({
+        title: toastTitle,
+        description: `${transaction.description} было успешно удалено.`
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось удалить транзакцию.',
+        variant: 'destructive'
+      });
     }
-    
-    toast({
-      title: toastTitle,
-      description: `${transaction.description} было успешно удалено.`
-    });
   };
 
   const getTransactionById = (id: string) => {
     return transactions.find(t => t.id === id);
   };
 
-  const updateReimbursementStatus = (id: string, status: 'completed') => {
+  const updateReimbursementStatus = async (id: string, status: 'completed') => {
     const transaction = transactions.find(t => t.id === id);
     if (!transaction || !transaction.isReimbursement) return;
     
-    const updatedTransactions = transactions.map(t => 
-      t.id === id ? { ...t, reimbursementStatus: status } : t
-    );
-    
-    setTransactions(updatedTransactions);
-    
-    toast({
-      title: 'Статус обновлен',
-      description: `Возмещение для "${transaction.description}" отмечено как выполненное.`
-    });
+    try {
+      await updateStatusMutation.mutateAsync({ id, status });
+      
+      toast({
+        title: 'Статус обновлен',
+        description: `Возмещение для "${transaction.description}" отмечено как выполненное.`
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось обновить статус возмещения.',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
     <TransactionContext.Provider value={{ 
       transactions, 
+      isLoading,
+      error: error as Error | null,
       addTransaction, 
       deleteTransaction,
       getTransactionById,
