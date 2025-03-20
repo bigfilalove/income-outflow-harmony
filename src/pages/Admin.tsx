@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -46,7 +47,7 @@ const Admin = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const navigate = useNavigate();
 
-  // Create user form schema
+  // Create user form schema with required fields to match User type
   const formSchema = z.object({
     name: z.string().min(2, {
       message: 'Имя должно содержать минимум 2 символа',
@@ -57,8 +58,8 @@ const Admin = () => {
     role: z.enum(['admin', 'user']),
   });
 
-  // Define the type for the form values
-  type FormValues = z.infer<typeof formSchema>;
+  // Define the type for the form values based on what addUser expects
+  type FormValues = Omit<User, 'id' | 'createdAt'>;
 
   // Form for creating a new user
   const form = useForm<FormValues>({
