@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { User } from '@/types/user';
 import {
   Dialog,
   DialogContent,
@@ -54,8 +55,12 @@ const userSchema = z.object({
 
 type UserFormValues = z.infer<typeof userSchema>;
 
-const AddUserDialog = () => {
-  const { addUser, users } = useAuth();
+interface AddUserDialogProps {
+  addUser: (user: Omit<User, 'id' | 'createdAt'>) => void;
+}
+
+const AddUserDialog: React.FC<AddUserDialogProps> = ({ addUser }) => {
+  const { users } = useAuth();
   const [open, setOpen] = React.useState(false);
 
   const form = useForm<UserFormValues>({
@@ -90,7 +95,15 @@ const AddUserDialog = () => {
       return;
     }
 
-    addUser(values);
+    // Now passing properly typed values to addUser
+    addUser({
+      name: values.name,
+      email: values.email,
+      username: values.username,
+      password: values.password,
+      role: values.role
+    });
+    
     toast.success('Пользователь успешно добавлен');
     form.reset();
     setOpen(false);
