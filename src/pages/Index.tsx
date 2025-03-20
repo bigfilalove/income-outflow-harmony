@@ -3,7 +3,7 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import Dashboard from '@/components/Dashboard';
 import TransactionForm from '@/components/TransactionForm';
-import TransactionList from '@/components/TransactionList';
+import TransactionList from '@/components/transaction/TransactionList';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {

@@ -7,8 +7,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { CalendarIcon, FileSpreadsheet, FilePdf, Download } from 'lucide-react';
+import { CalendarIcon, FileSpreadsheet, Download } from 'lucide-react';
+import { File } from 'lucide-react'; // Use 'File' instead of 'FilePdf'
 import { useTransactions } from '@/context/TransactionContext';
+import * as XLSX from 'xlsx'; // Import XLSX properly
+import { saveAs } from 'file-saver'; // Import saveAs properly
 import {
   filterTransactionsByDateRange,
   generateExcelReport,
@@ -227,7 +230,7 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
             onClick={handlePdfDownload}
             disabled={reportType === 'period' && (!startDate || !endDate)}
           >
-            <FilePdf className="h-4 w-4 mr-2" />
+            <File className="h-4 w-4 mr-2" />
             PDF
           </Button>
         </div>
