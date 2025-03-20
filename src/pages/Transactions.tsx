@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
-import TransactionList from '@/components/TransactionList';
+import TransactionList from '@/components/transaction/TransactionList';
 import TransactionForm from '@/components/TransactionForm';
 import ReportDownloadDialog from '@/components/ReportDownloadDialog';
 import { useAuth } from '@/context/AuthContext';
