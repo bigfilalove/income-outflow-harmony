@@ -2,6 +2,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import FinanceSummary from '@/components/FinanceSummary';
+import ReportDownloadDialog from '@/components/ReportDownloadDialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTransactions } from '@/context/TransactionContext';
 import { formatCurrency } from '@/lib/formatters';
@@ -42,7 +43,10 @@ const Analytics = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container py-6 space-y-8">
-        <h1 className="text-3xl font-bold tracking-tight">Аналитика</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">Аналитика</h1>
+          <ReportDownloadDialog reportType="analytics" />
+        </div>
         
         <div className="grid gap-6 md:grid-cols-3">
           <Card className="animate-slideUp">

@@ -3,6 +3,7 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import TransactionList from '@/components/TransactionList';
 import TransactionForm from '@/components/TransactionForm';
+import ReportDownloadDialog from '@/components/ReportDownloadDialog';
 import { useAuth } from '@/context/AuthContext';
 
 const Transactions = () => {
@@ -19,6 +20,12 @@ const Transactions = () => {
               {currentUser.name} ({currentUser.role === 'admin' ? 'Администратор' : 'Пользователь'})
             </div>
           )}
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <ReportDownloadDialog reportType="transactions" />
+          <ReportDownloadDialog reportType="reimbursements" />
+          <ReportDownloadDialog reportType="period" />
         </div>
         
         <div className="grid gap-6 md:grid-cols-3">
