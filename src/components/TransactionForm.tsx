@@ -17,6 +17,7 @@ import TransactionDatePicker from '@/components/transaction/TransactionDatePicke
 import ReimbursementFields from '@/components/transaction/ReimbursementFields';
 import CreatorField from '@/components/transaction/CreatorField';
 import CategorySelect from '@/components/transaction/CategorySelect';
+import CompanySelect from '@/components/transaction/CompanySelect';
 
 const TransactionForm: React.FC = () => {
   const { addTransaction } = useTransactions();
@@ -28,6 +29,7 @@ const TransactionForm: React.FC = () => {
   const [isReimbursement, setIsReimbursement] = useState(false);
   const [reimbursedTo, setReimbursedTo] = useState('');
   const [createdBy, setCreatedBy] = useState('');
+  const [company, setCompany] = useState('');
 
   const handleTransactionTypeChange = (type: TransactionType) => {
     setTransactionType(type);
@@ -48,6 +50,7 @@ const TransactionForm: React.FC = () => {
       date,
       type: transactionType,
       createdBy: createdBy.trim() || undefined,
+      company: company || undefined,
     };
 
     // Add reimbursement fields if it's a reimbursement
@@ -67,6 +70,7 @@ const TransactionForm: React.FC = () => {
     setIsReimbursement(false);
     setReimbursedTo('');
     setCreatedBy('');
+    setCompany('');
   };
 
   const categories = transactionCategories[transactionType];
@@ -88,6 +92,11 @@ const TransactionForm: React.FC = () => {
             <CreatorField 
               value={createdBy}
               onChange={setCreatedBy}
+            />
+
+            <CompanySelect
+              value={company}
+              onChange={setCompany}
             />
 
             <div className="space-y-2">

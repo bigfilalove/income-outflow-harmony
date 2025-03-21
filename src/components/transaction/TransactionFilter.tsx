@@ -1,15 +1,17 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Filter } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
+import { companies } from '@/types/transaction';
 
-export type FilterType = 'all' | 'income' | 'expense' | 'reimbursement' | 'pending';
+export type FilterType = 'all' | 'income' | 'expense' | 'reimbursement' | 'pending' | string;
 
 interface TransactionFilterProps {
   setFilter: (filter: FilterType) => void;
@@ -19,11 +21,12 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({ setFilter }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Filter className="h-4 w-4" />
+        <Button variant="outline" size="sm" className="h-8">
+          <span>Фильтр</span>
+          <ChevronDown className="ml-2 h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setFilter('all')}>
           Все транзакции
         </DropdownMenuItem>
@@ -34,11 +37,20 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({ setFilter }) => {
           Только расходы
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setFilter('reimbursement')}>
-          Только возмещения
+          Возмещения расходов
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setFilter('pending')}>
           Ожидающие возмещения
         </DropdownMenuItem>
+        
+        <DropdownMenuSeparator />
+        <div className="px-2 py-1 text-xs text-muted-foreground">Компании</div>
+        
+        {companies.map(company => (
+          <DropdownMenuItem key={company} onClick={() => setFilter(`company:${company}`)}>
+            {company}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

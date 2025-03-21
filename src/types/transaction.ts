@@ -14,6 +14,7 @@ export interface Transaction {
   reimbursementStatus?: ReimbursementStatus;
   createdBy?: string;
   createdAt?: Date;
+  company?: string; // Добавлено поле компании
 }
 
 export interface ServerTransaction {
@@ -28,6 +29,7 @@ export interface ServerTransaction {
   reimbursementStatus: ReimbursementStatus | null;
   createdBy: string | null;
   createdAt: string;
+  company: string | null; // Добавлено поле компании
 }
 
 export const transactionCategories = {
@@ -56,3 +58,14 @@ export const transactionCategories = {
     'Другое'
   ]
 };
+
+// Список доступных компаний
+export const companies = [
+  'ООО "Технологии будущего"',
+  'ЗАО "Инновации"',
+  'ИП Иванов',
+  'ООО "Строй-Мастер"',
+  'ООО "Финансовые решения"',
+  'ООО "Логистик Плюс"',
+  'Другая'
+];

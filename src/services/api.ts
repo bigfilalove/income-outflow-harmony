@@ -1,4 +1,3 @@
-
 import { ServerTransaction, Transaction } from '@/types/transaction';
 import { User, ServerUser } from '@/types/user';
 
@@ -39,6 +38,7 @@ export const mapClientToServer = (clientTx: Omit<Transaction, 'id'>): Omit<Serve
     reimbursedTo: clientTx.reimbursedTo ?? null,
     reimbursementStatus: clientTx.reimbursementStatus ?? null,
     createdBy: clientTx.createdBy ?? null,
+    company: clientTx.company ?? null, // Добавлено поле компании
   };
 };
 

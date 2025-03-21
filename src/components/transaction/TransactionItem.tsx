@@ -6,7 +6,8 @@ import {
   MoreVertical, 
   Trash2,
   RefreshCw,
-  User
+  User,
+  Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -67,6 +68,9 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
             )}
             {transaction.createdBy && (
               <> • <User className="h-3 w-3 inline mb-0.5" /> {transaction.createdBy}</>
+            )}
+            {transaction.company && (
+              <> • <Building2 className="h-3 w-3 inline mb-0.5" /> {transaction.company}</>
             )}
           </div>
           {transaction.isReimbursement && (

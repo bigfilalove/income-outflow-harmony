@@ -12,7 +12,8 @@
       "reimbursedTo": null,
       "reimbursementStatus": null,
       "createdBy": "Иван Петров",
-      "createdAt": "2023-07-15T10:30:00.000Z"
+      "createdAt": "2023-07-15T10:30:00.000Z",
+      "company": "ООО \"Технологии будущего\""
     },
     {
       "id": "2",
@@ -25,7 +26,8 @@
       "reimbursedTo": null,
       "reimbursementStatus": null,
       "createdBy": "Мария Сидорова",
-      "createdAt": "2023-07-20T14:00:00.000Z"
+      "createdAt": "2023-07-20T14:00:00.000Z",
+      "company": "ЗАО \"Инновации\""
     },
     {
       "id": "3",
@@ -38,7 +40,8 @@
       "reimbursedTo": "Алексей Иванов",
       "reimbursementStatus": "pending",
       "createdBy": "Мария Сидорова",
-      "createdAt": "2023-07-25T09:15:00.000Z"
+      "createdAt": "2023-07-25T09:15:00.000Z",
+      "company": "ООО \"Строй-Мастер\""
     }
   ],
   "users": [
