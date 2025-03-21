@@ -30,3 +30,10 @@ export interface KpiDashboardData {
   liquidityTrend: KpiTrendData[];
   turnoverTrend: KpiTrendData[];
 }
+
+// Add kpi to the ReportType
+declare module '@/components/ReportDownloadDialog' {
+  export interface ReportDownloadDialogProps {
+    reportType: 'transactions' | 'reimbursements' | 'period' | 'kpi';
+  }
+}

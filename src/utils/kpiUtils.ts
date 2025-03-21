@@ -1,4 +1,3 @@
-
 import { Transaction } from "@/types/transaction";
 import { KpiDashboardData, KpiMetric, KpiTrendData } from "@/types/kpi";
 import { PredictionData } from "@/services/api/predictions";
@@ -255,7 +254,7 @@ const calculateLiquidityKpis = (
   // Cash flow trend using predictions
   const cashFlowTrend = predictionData
     ? {
-        direction: predictionData.predictedIncome >= predictionData.predictedExpense ? 'up' : 'down' as const,
+        direction: predictionData.predictedIncome >= predictionData.predictedExpense ? 'up' as const : 'down' as const,
         value: `${Math.abs(predictionData.predictedIncome - predictionData.predictedExpense).toFixed(0)} ₽`,
         positive: predictionData.predictedIncome >= predictionData.predictedExpense
       }

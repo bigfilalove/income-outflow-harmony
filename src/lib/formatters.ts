@@ -12,6 +12,17 @@ export function formatCurrency(amount: number): string {
 }
 
 /**
+ * Format a number as percentage
+ */
+export function formatPercentage(value: number): string {
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  }).format(value / 100);
+}
+
+/**
  * Format a date as a readable string
  */
 export function formatDate(date: Date): string {

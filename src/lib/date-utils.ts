@@ -2,6 +2,12 @@
 import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
+// Get short month name
+export const getMonthNameShort = (monthIndex: number): string => {
+  const date = new Date(2000, monthIndex, 1);
+  return format(date, 'MMM', { locale: ru });
+};
+
 // Получить начало месяца
 export const getStartOfMonth = (date: Date): Date => {
   return startOfMonth(date);
