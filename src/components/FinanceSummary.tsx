@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useTransactions } from '@/context/TransactionContext';
+import { useTransactions } from '@/context/transaction';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getCategoryData, getMonthlyData } from '@/utils/chartUtils';

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { CalendarIcon, FileSpreadsheet, Download } from 'lucide-react';
 import { File } from 'lucide-react'; // Use 'File' instead of 'FilePdf'
-import { useTransactions } from '@/context/TransactionContext';
+import { useTransactions } from '@/context/transaction';
 import * as XLSX from 'xlsx'; // Import XLSX properly
 import { saveAs } from 'file-saver'; // Import saveAs properly
 import {

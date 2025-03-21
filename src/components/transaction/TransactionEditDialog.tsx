@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { TransactionType, Transaction } from '@/types/transaction';
-import { useTransactions } from '@/context/TransactionContext';
+import { useTransactions } from '@/context/transaction';
 import TransactionTypeTabs from './TransactionTypeTabs';
 import TransactionDatePicker from './TransactionDatePicker';
 import ReimbursementFields from './ReimbursementFields';

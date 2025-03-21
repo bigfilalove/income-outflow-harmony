@@ -1,7 +1,7 @@
 
 import { useMemo } from 'react';
 import { useBudgets } from '@/context/BudgetContext';
-import { useTransactions } from '@/context/TransactionContext';
+import { useTransactions } from '@/context/transaction';
 import { BudgetPeriod, BudgetSummary, BudgetVariance } from '@/types/budget';
 import { getStartOfMonth, getEndOfMonth } from '@/lib/date-utils';
 

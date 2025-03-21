@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import TransactionForm from '@/components/TransactionForm';
 import { Card, CardContent } from '@/components/ui/card';
 import { Transaction } from '@/types/transaction';
-import { useTransactions } from '@/context/TransactionContext';
+import { useTransactions } from '@/context/transaction';
 import { formatCurrency, formatDateShort } from '@/lib/formatters';
 import { Badge } from '@/components/ui/badge';
 import { RefreshCw } from 'lucide-react';

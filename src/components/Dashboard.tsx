@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { BarChart3, ArrowDownCircle, ArrowUpCircle, TrendingUp } from 'lucide-react';
-import { useTransactions } from '@/context/TransactionContext';
+import { useTransactions } from '@/context/transaction';
 import { formatCurrency } from '@/lib/formatters';
 import StatCard from './StatCard';
 import { useIsMobile } from '@/hooks/use-mobile';

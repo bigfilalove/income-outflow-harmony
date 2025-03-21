@@ -7,7 +7,7 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
-import { useTransactions } from '@/context/TransactionContext';
+import { useTransactions } from '@/context/transaction';
 import TransactionItem from './TransactionItem';
 import TransactionSearch from './TransactionSearch';
 import TransactionFilter, { FilterType } from './TransactionFilter';

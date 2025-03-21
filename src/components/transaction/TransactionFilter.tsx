@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { FilterIcon } from 'lucide-react';
-import { useTransactions } from '@/context/TransactionContext';
+import { useTransactions } from '@/context/transaction';
 import { getCompanies, getProjects } from '@/types/transaction';
 
 export type FilterType = 
