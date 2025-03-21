@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import ReimbursementFields from './ReimbursementFields';
 import CreatorField from './CreatorField';
 import CategorySelect from './CategorySelect';
 import CompanySelect from './CompanySelect';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TransactionEditDialogProps {
   transaction: Transaction | null;
@@ -25,6 +27,7 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
   onClose 
 }) => {
   const { updateTransaction } = useTransactions();
+  const isMobile = useIsMobile();
   
   const [transactionType, setTransactionType] = useState<TransactionType>('income');
   const [amount, setAmount] = useState('');
@@ -103,17 +106,17 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={`${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : 'sm:max-w-md max-h-[80vh] overflow-y-auto'}`}>
         <DialogHeader>
           <DialogTitle>Редактировать транзакцию</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <TransactionTypeTabs 
             value={transactionType}
             onChange={handleTransactionTypeChange}
           />
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             <CreatorField 
               value={createdBy}
               onChange={setCreatedBy}
@@ -124,7 +127,7 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
               onChange={setCompany}
             />
 
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label htmlFor="amount">Сумма</Label>
               <Input
                 id="amount"
@@ -136,7 +139,7 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
               />
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label htmlFor="description">Описание</Label>
               <Input
                 id="description"
@@ -168,7 +171,7 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
             />
           </div>
           
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-2 pt-2 sticky bottom-0 bg-background">
             <Button variant="outline" type="button" onClick={onClose}>
               Отмена
             </Button>

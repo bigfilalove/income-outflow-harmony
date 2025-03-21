@@ -14,12 +14,15 @@ import TransactionFilter, { FilterType } from './TransactionFilter';
 import TransactionEditDialog from './TransactionEditDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Transaction } from '@/types/transaction';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const TransactionList: React.FC = () => {
   const { transactions, isLoading, deleteTransaction, updateReimbursementStatus } = useTransactions();
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const isMobile = useIsMobile();
 
   const filteredTransactions = transactions.filter(t => {
     const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -65,47 +68,68 @@ const TransactionList: React.FC = () => {
           <TransactionSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="p-4 border rounded-lg">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-24" />
+          <div className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="p-4 border rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <Skeleton className="h-6 w-16" />
                     </div>
-                    <Skeleton className="h-6 w-16" />
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredTransactions.length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground">
-                  Транзакции не найдены
-                </div>
-              ) : (
-                filteredTransactions.map((transaction) => (
-                  <TransactionItem 
-                    key={transaction.id} 
-                    transaction={transaction}
-                    onDelete={deleteTransaction}
-                    onEdit={handleEdit}
-                    onUpdateStatus={updateReimbursementStatus}
-                  />
-                ))
-              )}
-            </div>
-          )}
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredTransactions.length === 0 ? (
+                  <div className="text-center py-6 text-muted-foreground">
+                    Транзакции не найдены
+                  </div>
+                ) : (
+                  filteredTransactions.map((transaction) => (
+                    <TransactionItem 
+                      key={transaction.id} 
+                      transaction={transaction}
+                      onDelete={deleteTransaction}
+                      onEdit={handleEdit}
+                      onUpdateStatus={updateReimbursementStatus}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      <TransactionEditDialog 
-        transaction={editingTransaction}
-        isOpen={!!editingTransaction}
-        onClose={handleCloseEditDialog}
-      />
+      {isMobile ? (
+        <Sheet open={!!editingTransaction} onOpenChange={handleCloseEditDialog}>
+          <SheetContent side="bottom" className="h-[90vh] pt-6">
+            <SheetHeader>
+              <SheetTitle>Редактировать транзакцию</SheetTitle>
+            </SheetHeader>
+            {editingTransaction && (
+              <div className="mt-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+                <TransactionEditDialog 
+                  transaction={editingTransaction}
+                  isOpen={true}
+                  onClose={handleCloseEditDialog}
+                />
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <TransactionEditDialog 
+          transaction={editingTransaction}
+          isOpen={!!editingTransaction}
+          onClose={handleCloseEditDialog}
+        />
+      )}
     </>
   );
 };
