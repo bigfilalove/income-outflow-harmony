@@ -8,16 +8,30 @@ This is a finance management application for tracking income, expenses, and reim
 ### Prerequisites
 - Node.js installed on your machine
 - npm (comes with Node.js)
+- MongoDB installed locally (or a MongoDB Atlas account)
 
 ### Running the Application
 
-1. **Start the Mock API Server**
+1. **Configure MongoDB**
+   Create a .env file from .env.example and configure your MongoDB connection string.
    ```
-   node start-mock-server.js
+   cp .env.example .env
    ```
-   This will start a JSON server on port 3001 with sample data.
+   Edit the .env file with your MongoDB connection details.
 
-2. **In a separate terminal, start the application**
+2. **Seed the Database (Optional)**
+   ```
+   node src/server/seed.js
+   ```
+   This will populate your MongoDB with initial sample data.
+
+3. **Start the Express Server**
+   ```
+   node start-mongo-server.js
+   ```
+   This will start an Express server connected to MongoDB on port 3001.
+
+4. **In a separate terminal, start the application**
    ```
    npm run dev
    ```
@@ -29,10 +43,11 @@ This is a finance management application for tracking income, expenses, and reim
 - View financial analytics
 - User management for admins
 - JWT Authentication for API security
+- MongoDB as database backend
 
 ## API Endpoints
 
-The mock server provides the following endpoints:
+The server provides the following endpoints:
 
 ### Authentication Endpoints
 - `POST /auth/login` - Login with username/password, returns JWT token
@@ -40,14 +55,12 @@ The mock server provides the following endpoints:
 
 ### Protected Endpoints (require JWT token)
 - `GET /transactions` - Get all transactions
-- `GET /transactions/:id` - Get a specific transaction
 - `POST /transactions` - Create a new transaction
 - `DELETE /transactions/:id` - Delete a transaction
 - `PATCH /transactions/:id/status` - Update a transaction's reimbursement status
 
-### Public Endpoints
-- `GET /users` - Get all users
-- `GET /users/:id` - Get a specific user
+### Admin Endpoints
+- `GET /users` - Get all users (admin only)
 
 ## Authentication
 
@@ -67,5 +80,6 @@ This project uses:
 - Tailwind CSS
 - shadcn/ui components
 - React Query for data fetching
-- JSON Server for the mock API
+- Express for the API server
+- MongoDB for the database
 - JWT for API authentication

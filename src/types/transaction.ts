@@ -18,7 +18,8 @@ export interface Transaction {
 }
 
 export interface ServerTransaction {
-  id: string;
+  _id?: string; // MongoDB id
+  id?: string; // For backwards compatibility
   amount: number;
   description: string;
   category: string;

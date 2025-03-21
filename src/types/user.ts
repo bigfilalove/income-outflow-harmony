@@ -10,7 +10,8 @@ export interface User {
 }
 
 export interface ServerUser {
-  id: string;
+  _id?: string; // MongoDB id
+  id?: string; // For backwards compatibility
   name: string;
   email: string;
   username: string;
