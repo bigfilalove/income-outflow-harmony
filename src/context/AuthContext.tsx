@@ -109,10 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return false;
     } catch (error) {
-      toast("Ошибка входа", {
-        description: "Не удалось войти в систему. Проверьте логин и пароль.",
-        variant: "destructive"
-      });
+      toast.error("Не удалось войти в систему. Проверьте логин и пароль.");
       return false;
     }
   };
@@ -136,10 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return false;
     } catch (error) {
-      toast("Ошибка", {
-        description: "Не удалось создать пользователя",
-        variant: "destructive"
-      });
+      toast.error("Не удалось создать пользователя");
       return false;
     }
   };
