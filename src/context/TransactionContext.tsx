@@ -1,9 +1,11 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext } from 'react';
 import { Transaction } from '@/types/transaction';
 import { toast } from "sonner";
 import { fetchTransactions, createTransaction, deleteTransaction as apiDeleteTransaction, updateTransactionStatus } from '@/services/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from './AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface TransactionContextType {
   transactions: Transaction[];
@@ -27,6 +29,20 @@ export const useTransactions = () => {
 
 export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = useQueryClient();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  
+  // Handle authentication errors
+  const handleAuthError = (error: any) => {
+    if (error?.message?.includes('401') || error?.message?.includes('Authentication')) {
+      toast({
+        title: "Ошибка аутентификации",
+        description: "Ваша сессия истекла. Пожалуйста, войдите снова.",
+      });
+      logout();
+      navigate('/login');
+    }
+  };
   
   // Fetch transactions query
   const { 
@@ -36,6 +52,9 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   } = useQuery({
     queryKey: ['transactions'],
     queryFn: fetchTransactions,
+    onError: (error) => {
+      handleAuthError(error);
+    }
   });
 
   // Add transaction mutation
@@ -44,6 +63,9 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
+    onError: (error) => {
+      handleAuthError(error);
+    }
   });
 
   // Delete transaction mutation
@@ -52,6 +74,9 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
+    onError: (error) => {
+      handleAuthError(error);
+    }
   });
 
   // Update reimbursement status mutation
@@ -61,6 +86,9 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
+    onError: (error) => {
+      handleAuthError(error);
+    }
   });
 
   const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
@@ -80,7 +108,6 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       toast({
         title: 'Ошибка',
         description: 'Не удалось добавить транзакцию.',
-        variant: 'destructive'
       });
     }
   };
@@ -105,7 +132,6 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       toast({
         title: 'Ошибка',
         description: 'Не удалось удалить транзакцию.',
-        variant: 'destructive'
       });
     }
   };
@@ -129,7 +155,6 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       toast({
         title: 'Ошибка',
         description: 'Не удалось обновить статус возмещения.',
-        variant: 'destructive'
       });
     }
   };

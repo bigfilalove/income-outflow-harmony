@@ -1,6 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types/user';
+import { loginUser, registerUser, logoutUser } from '@/services/api';
+import { toast } from 'sonner';
 
 // Sample users data with usernames and passwords
 const initialUsers: User[] = [
@@ -39,9 +41,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   adminPassword: string;
   login: (userId: string) => void;
-  loginWithCredentials: (username: string, password: string) => boolean;
+  loginWithCredentials: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-  addUser: (user: Omit<User, 'id' | 'createdAt'>) => void;
+  addUser: (user: Omit<User, 'id' | 'createdAt'>) => Promise<boolean>;
   removeUser: (userId: string) => void;
   updateAdminPassword: (newPassword: string) => void;
   verifyAdminPassword: (password: string) => boolean;
@@ -74,7 +76,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Check for saved authentication on mount
   useEffect(() => {
     const savedUserId = localStorage.getItem('finance-tracker-current-user');
-    if (savedUserId) {
+    const token = localStorage.getItem('finance-tracker-token');
+    
+    if (savedUserId && token) {
       const user = users.find(u => u.id === savedUserId);
       if (user) {
         setCurrentUser(user);
@@ -92,35 +96,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithCredentials = (username: string, password: string): boolean => {
-    const user = users.find(u => 
-      u.username.toLowerCase() === username.toLowerCase() && 
-      u.password === password
-    );
-    
-    if (user) {
-      setCurrentUser(user);
-      setIsAuthenticated(true);
-      localStorage.setItem('finance-tracker-current-user', user.id);
-      return true;
+  const loginWithCredentials = async (username: string, password: string): Promise<boolean> => {
+    try {
+      const result = await loginUser(username, password);
+      
+      if (result) {
+        const { user, token } = result;
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+        localStorage.setItem('finance-tracker-current-user', user.id);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      toast({
+        title: "Ошибка входа",
+        description: "Не удалось войти в систему. Проверьте логин и пароль.",
+        variant: "destructive"
+      });
+      return false;
     }
-    
-    return false;
   };
 
   const logout = () => {
     setCurrentUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('finance-tracker-current-user');
+    logoutUser(); // Clear token from localStorage
   };
 
-  const addUser = (userData: Omit<User, 'id' | 'createdAt'>) => {
-    const newUser: User = {
-      ...userData,
-      id: crypto.randomUUID(),
-      createdAt: new Date(),
-    };
-    setUsers(prev => [...prev, newUser]);
+  const addUser = async (userData: Omit<User, 'id' | 'createdAt'>): Promise<boolean> => {
+    try {
+      const result = await registerUser(userData);
+      
+      if (result) {
+        const { user } = result;
+        setUsers(prev => [...prev, user]);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось создать пользователя",
+        variant: "destructive"
+      });
+      return false;
+    }
   };
 
   const removeUser = (userId: string) => {

@@ -1,7 +1,22 @@
 
 import { ServerTransaction, Transaction } from '@/types/transaction';
+import { User, ServerUser } from '@/types/user';
 
-const API_URL = 'https://your-api-url.com/api'; // Replace with your actual API URL
+const API_URL = 'http://localhost:3001'; // URL for the JSON Server
+
+// Get token from localStorage
+const getToken = (): string | null => {
+  return localStorage.getItem('finance-tracker-token');
+};
+
+// Create auth headers
+const createAuthHeaders = (): HeadersInit => {
+  const token = getToken();
+  return {
+    'Content-Type': 'application/json',
+    ...token ? { 'Authorization': `Bearer ${token}` } : {}
+  };
+};
 
 // Helper to convert server transaction to client transaction
 export const mapServerToClient = (serverTx: ServerTransaction): Transaction => {
@@ -27,12 +42,98 @@ export const mapClientToServer = (clientTx: Omit<Transaction, 'id'>): Omit<Serve
   };
 };
 
+// Authentication methods
+export const loginUser = async (username: string, password: string): Promise<{ user: User, token: string } | null> => {
+  try {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Login failed');
+    }
+    
+    const data = await response.json();
+    
+    // Store token in localStorage
+    localStorage.setItem('finance-tracker-token', data.token);
+    
+    return {
+      user: {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        username: data.username,
+        password: '',  // Do not store password in client
+        role: data.role,
+        createdAt: new Date(data.createdAt || Date.now())
+      },
+      token: data.token
+    };
+  } catch (error) {
+    console.error('Error logging in:', error);
+    return null;
+  }
+};
+
+export const registerUser = async (userData: { 
+  name: string, 
+  email: string, 
+  username: string, 
+  password: string, 
+  role?: 'admin' | 'user' | 'basic' 
+}): Promise<{ user: User, token: string } | null> => {
+  try {
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Registration failed');
+    }
+    
+    const data = await response.json();
+    
+    // Store token in localStorage
+    localStorage.setItem('finance-tracker-token', data.token);
+    
+    return {
+      user: {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        username: data.username,
+        password: '',  // Do not store password in client
+        role: data.role,
+        createdAt: new Date(data.createdAt || Date.now())
+      },
+      token: data.token
+    };
+  } catch (error) {
+    console.error('Error registering:', error);
+    return null;
+  }
+};
+
+export const logoutUser = (): void => {
+  localStorage.removeItem('finance-tracker-token');
+};
+
+// Transaction methods with authentication
 export const fetchTransactions = async (): Promise<Transaction[]> => {
   try {
-    const response = await fetch(`${API_URL}/transactions`);
+    const response = await fetch(`${API_URL}/transactions`, {
+      headers: createAuthHeaders()
+    });
+    
     if (!response.ok) {
       throw new Error('Failed to fetch transactions');
     }
+    
     const data: ServerTransaction[] = await response.json();
     return data.map(mapServerToClient);
   } catch (error) {
@@ -45,9 +146,7 @@ export const createTransaction = async (transaction: Omit<Transaction, 'id'>): P
   try {
     const response = await fetch(`${API_URL}/transactions`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: createAuthHeaders(),
       body: JSON.stringify(mapClientToServer(transaction)),
     });
     
@@ -67,6 +166,7 @@ export const deleteTransaction = async (id: string): Promise<boolean> => {
   try {
     const response = await fetch(`${API_URL}/transactions/${id}`, {
       method: 'DELETE',
+      headers: createAuthHeaders()
     });
     
     if (!response.ok) {
@@ -84,9 +184,7 @@ export const updateTransactionStatus = async (id: string, status: 'completed'): 
   try {
     const response = await fetch(`${API_URL}/transactions/${id}/status`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: createAuthHeaders(),
       body: JSON.stringify({ reimbursementStatus: status }),
     });
     
