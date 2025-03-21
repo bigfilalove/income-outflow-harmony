@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useAnalytics } from '@/hooks/use-analytics';
 import { formatCurrency } from '@/lib/formatters';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,8 +7,20 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Badge } from '@/components/ui/badge';
 import { Landmark } from 'lucide-react';
 
-const ProjectAnalytics: React.FC = () => {
-  const { projectTotals } = useAnalytics();
+// Define the ProjectTotal interface
+interface ProjectTotal {
+  project: string;
+  income: number;
+  expense: number;
+  total: number;
+}
+
+// Define the props interface for ProjectAnalytics
+interface ProjectAnalyticsProps {
+  projectTotals: ProjectTotal[];
+}
+
+const ProjectAnalytics: React.FC<ProjectAnalyticsProps> = ({ projectTotals }) => {
   const hasProjects = projectTotals.some(p => p.project !== 'Не указан');
 
   if (!hasProjects) {
