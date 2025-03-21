@@ -1,6 +1,5 @@
 
-// Re-export all API functions for backward compatibility
-export * from './config';
-export * from './mappers';
+// Re-export all API functions
 export * from './auth';
 export * from './transactions';
+export * from './predictions';

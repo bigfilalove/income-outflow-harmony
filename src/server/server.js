@@ -184,6 +184,96 @@ app.patch('/transactions/:id/status', authenticate, async (req, res) => {
   }
 });
 
+// Prediction Routes (Protected)
+app.get('/predictions', authenticate, async (req, res) => {
+  try {
+    // Get all transactions for the last 6 months
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    
+    const transactions = await Transaction.find({
+      date: { $gte: sixMonthsAgo }
+    }).sort({ date: -1 });
+    
+    // Calculate current balance
+    const allTransactions = await Transaction.find();
+    const income = allTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const expense = allTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const currentBalance = income - expense;
+    
+    // Perform predictions
+    // Group transactions by month
+    const transactionsByMonth = {};
+    
+    transactions.forEach(transaction => {
+      const date = new Date(transaction.date);
+      const monthYear = `${date.getMonth()}-${date.getFullYear()}`;
+      
+      if (!transactionsByMonth[monthYear]) {
+        transactionsByMonth[monthYear] = [];
+      }
+      
+      transactionsByMonth[monthYear].push(transaction);
+    });
+    
+    // Calculate income and expense per month
+    const monthlyData = Object.keys(transactionsByMonth).map(monthYear => {
+      const monthTransactions = transactionsByMonth[monthYear];
+      const income = monthTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+      const expense = monthTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      return { monthYear, income, expense };
+    });
+    
+    // Simple linear prediction for next month
+    const nextMonthIncome = monthlyData.length > 0 
+      ? Math.round(monthlyData.reduce((sum, m) => sum + m.income, 0) / monthlyData.length)
+      : 0;
+      
+    const nextMonthExpense = monthlyData.length > 0
+      ? Math.round(monthlyData.reduce((sum, m) => sum + m.expense, 0) / monthlyData.length)
+      : 0;
+      
+    // Calculate predicted balance
+    const predictedBalance = currentBalance + nextMonthIncome - nextMonthExpense;
+    
+    // Get top expense categories
+    const categoryTotals = {};
+    transactions
+      .filter(t => t.type === 'expense')
+      .forEach(t => {
+        categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
+      });
+    
+    const topExpenseCategories = Object.entries(categoryTotals)
+      .map(([category, total]) => ({
+        category,
+        amount: Math.round(Number(total) / 6) // Average monthly expense per category
+      }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+    
+    res.json({
+      currentBalance,
+      predictedIncome: nextMonthIncome,
+      predictedExpense: nextMonthExpense,
+      predictedBalance,
+      topExpenseCategories
+    });
+  } catch (error) {
+    console.error('Prediction error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // User Routes (For admin purposes)
 app.get('/users', authenticate, async (req, res) => {
   // Only admin can access users list
@@ -205,3 +295,4 @@ app.listen(PORT, () => {
   console.log(`Auth endpoints: http://localhost:${PORT}/auth/login and http://localhost:${PORT}/auth/register`);
   console.log(`Protected endpoints: http://localhost:${PORT}/transactions (requires authentication)`);
 });
+
