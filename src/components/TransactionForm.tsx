@@ -18,6 +18,7 @@ import ReimbursementFields from '@/components/transaction/ReimbursementFields';
 import CreatorField from '@/components/transaction/CreatorField';
 import CategorySelect from '@/components/transaction/CategorySelect';
 import CompanySelect from '@/components/transaction/CompanySelect';
+import { toast } from "sonner";
 
 const TransactionForm: React.FC = () => {
   const { addTransaction } = useTransactions();
@@ -30,18 +31,24 @@ const TransactionForm: React.FC = () => {
   const [reimbursedTo, setReimbursedTo] = useState('');
   const [createdBy, setCreatedBy] = useState('');
   const [company, setCompany] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleTransactionTypeChange = (type: TransactionType) => {
     setTransactionType(type);
     setIsReimbursement(false); // Reset reimbursement when changing type
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!amount || !description || !category) {
+      toast("Ошибка", {
+        description: "Пожалуйста, заполните все обязательные поля"
+      });
       return;
     }
+
+    setIsSubmitting(true);
 
     const transaction: Omit<Transaction, 'id'> = {
       amount: parseFloat(amount),
@@ -60,17 +67,23 @@ const TransactionForm: React.FC = () => {
       transaction.reimbursementStatus = 'pending';
     }
 
-    addTransaction(transaction);
-    
-    // Reset form
-    setAmount('');
-    setDescription('');
-    setCategory('');
-    setDate(new Date());
-    setIsReimbursement(false);
-    setReimbursedTo('');
-    setCreatedBy('');
-    setCompany('');
+    try {
+      await addTransaction(transaction);
+      
+      // Reset form
+      setAmount('');
+      setDescription('');
+      setCategory('');
+      setDate(new Date());
+      setIsReimbursement(false);
+      setReimbursedTo('');
+      setCreatedBy('');
+      setCompany('');
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const categories = transactionCategories[transactionType];
@@ -147,12 +160,14 @@ const TransactionForm: React.FC = () => {
             type="submit" 
             className="w-full"
             variant={transactionType === 'income' ? 'default' : 'outline'}
+            disabled={isSubmitting}
           >
-            {transactionType === 'reimbursement' 
-              ? 'Добавить возмещение' 
-              : transactionType === 'income' 
-                ? 'Добавить доход' 
-                : 'Добавить расход'}
+            {isSubmitting ? 'Добавление...' : 
+              transactionType === 'reimbursement' 
+                ? 'Добавить возмещение' 
+                : transactionType === 'income' 
+                  ? 'Добавить доход' 
+                  : 'Добавить расход'}
           </Button>
         </form>
       </CardContent>

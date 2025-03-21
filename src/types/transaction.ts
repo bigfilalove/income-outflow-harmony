@@ -14,7 +14,7 @@ export interface Transaction {
   reimbursementStatus?: ReimbursementStatus;
   createdBy?: string;
   createdAt?: Date;
-  company?: string; // Добавлено поле компании
+  company?: string;
 }
 
 export interface ServerTransaction {
@@ -29,7 +29,7 @@ export interface ServerTransaction {
   reimbursementStatus: ReimbursementStatus | null;
   createdBy: string | null;
   createdAt: string;
-  company: string | null; // Добавлено поле компании
+  company: string | null;
 }
 
 export const transactionCategories = {
@@ -83,7 +83,14 @@ export const getCompanies = (): string[] => {
   return companies;
 };
 
+// Custom event to notify components about company list changes
+const dispatchCompaniesUpdated = () => {
+  window.dispatchEvent(new Event('companiesUpdated'));
+};
+
 // Функция для сохранения списка компаний в локальное хранилище
 export const saveCompanies = (updatedCompanies: string[]): void => {
   localStorage.setItem('companies', JSON.stringify(updatedCompanies));
+  // Dispatch event to notify components in the same tab
+  dispatchCompaniesUpdated();
 };

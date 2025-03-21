@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext } from 'react';
 import { Transaction } from '@/types/transaction';
 import { toast } from "sonner";
@@ -94,7 +93,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
     try {
-      await addTransactionMutation.mutateAsync(transaction);
+      const result = await addTransactionMutation.mutateAsync(transaction);
       
       let toastTitle = transaction.type === 'income' ? 'Доход добавлен' : 'Расход добавлен';
       if (transaction.isReimbursement) {
@@ -104,11 +103,34 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       toast(toastTitle, {
         description: `${transaction.description} было успешно добавлено.`
       });
+      
+      // If transaction has a company, trigger a company update
+      if (transaction.company && !getCompanies().includes(transaction.company)) {
+        // This ensures that any new companies used in transactions get added to the stored list
+        console.log("Dispatching company updated event");
+        window.dispatchEvent(new Event('companiesUpdated'));
+      }
+      
+      return result;
     } catch (error) {
       toast("Ошибка", {
         description: 'Не удалось добавить транзакцию.'
       });
+      throw error;
     }
+  };
+
+  // Helper function to get companies (used locally)
+  const getCompanies = (): string[] => {
+    const storedCompanies = localStorage.getItem('companies');
+    if (storedCompanies) {
+      try {
+        return JSON.parse(storedCompanies);
+      } catch {
+        return [];
+      }
+    }
+    return [];
   };
 
   const deleteTransaction = async (id: string) => {

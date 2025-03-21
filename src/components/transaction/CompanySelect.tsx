@@ -17,21 +17,32 @@ interface CompanySelectProps {
 
 const CompanySelect: React.FC<CompanySelectProps> = ({ value, onChange }) => {
   const [companies, setCompanies] = useState<string[]>([]);
+  
+  const updateCompanies = () => {
+    setCompanies(getCompanies());
+  };
 
   useEffect(() => {
-    // Загружаем актуальный список компаний
-    setCompanies(getCompanies());
+    // Load companies on mount
+    updateCompanies();
     
-    // Обновляем список при изменении в localStorage
+    // Update companies list when localStorage changes
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'companies') {
-        setCompanies(getCompanies());
+        updateCompanies();
       }
     };
     
+    // Listen for storage events from other tabs
     window.addEventListener('storage', handleStorageChange);
+    
+    // Custom event for same-tab updates
+    const handleLocalUpdate = () => updateCompanies();
+    window.addEventListener('companiesUpdated', handleLocalUpdate);
+    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('companiesUpdated', handleLocalUpdate);
     };
   }, []);
 
