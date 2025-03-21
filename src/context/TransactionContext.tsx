@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Transaction } from '@/types/transaction';
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { fetchTransactions, createTransaction, deleteTransaction as apiDeleteTransaction, updateTransactionStatus } from '@/services/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
