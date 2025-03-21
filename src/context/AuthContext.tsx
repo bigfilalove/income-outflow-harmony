@@ -62,17 +62,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return savedPassword || '123456';
   });
 
-  // Sync users with localStorage
   useEffect(() => {
     localStorage.setItem('finance-tracker-users', JSON.stringify(users));
   }, [users]);
 
-  // Sync admin password with localStorage
   useEffect(() => {
     localStorage.setItem('finance-tracker-admin-password', adminPassword);
   }, [adminPassword]);
 
-  // Check for saved authentication on mount
   useEffect(() => {
     const savedUserId = localStorage.getItem('finance-tracker-current-user');
     const token = localStorage.getItem('finance-tracker-token');
