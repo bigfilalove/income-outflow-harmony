@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { Budget, BudgetPeriod } from '@/types/budget';
 import { toast } from "sonner";
 import { fetchBudgets, createBudget, updateBudget, deleteBudget as apiDeleteBudget } from '@/services/api';
@@ -51,6 +51,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   } = useQuery({
     queryKey: ['budgets'],
     queryFn: () => fetchBudgets(),
+    retry: 1,
     meta: {
       onError: (error: any) => {
         handleAuthError(error);

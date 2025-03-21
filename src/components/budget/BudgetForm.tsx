@@ -28,7 +28,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
 }) => {
   const { addBudget, updateBudget } = useBudgets();
   const [categories, setCategories] = useState<CategoryList>(getTransactionCategories());
-  const [companies] = useState(getCompanies());
+  const [companies] = useState(getCompanies().filter(company => company.value !== ''));
   const years = getYearsList();
   const months = getMonthsList();
   const quarters = getQuartersList();
@@ -54,7 +54,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
       year: currentYear,
       month: currentMonth,
       type: defaultType,
-      company: '',
+      company: undefined,
     },
   });
   

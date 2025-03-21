@@ -7,6 +7,16 @@ import BudgetAnalysis from '@/components/budget/BudgetAnalysis';
 import { useAuth } from '@/context/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileBarChart, PieChart } from 'lucide-react';
+import { ErrorBoundary } from 'react-error-boundary';
+
+function ErrorFallback({ error }: { error: Error }) {
+  return (
+    <div className="p-6 bg-red-50 rounded-lg border border-red-200">
+      <h2 className="text-lg font-semibold text-red-800">Что-то пошло не так</h2>
+      <p className="text-sm text-red-600 mt-2">{error.message}</p>
+    </div>
+  );
+}
 
 const Budgeting = () => {
   const { currentUser } = useAuth();
@@ -24,33 +34,41 @@ const Budgeting = () => {
           )}
         </div>
         
-        <Tabs defaultValue="budgets" className="w-full">
-          <TabsList className="grid w-full md:w-[400px] grid-cols-2">
-            <TabsTrigger value="budgets" className="flex items-center">
-              <PieChart className="h-4 w-4 mr-2" />
-              Бюджеты
-            </TabsTrigger>
-            <TabsTrigger value="analysis" className="flex items-center">
-              <FileBarChart className="h-4 w-4 mr-2" />
-              Факт vs План
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="budgets" className="space-y-6 mt-6">
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="md:col-span-2">
-                <BudgetList />
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Tabs defaultValue="budgets" className="w-full">
+            <TabsList className="grid w-full md:w-[400px] grid-cols-2">
+              <TabsTrigger value="budgets" className="flex items-center">
+                <PieChart className="h-4 w-4 mr-2" />
+                Бюджеты
+              </TabsTrigger>
+              <TabsTrigger value="analysis" className="flex items-center">
+                <FileBarChart className="h-4 w-4 mr-2" />
+                Факт vs План
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="budgets" className="space-y-6 mt-6">
+              <div className="grid gap-6 md:grid-cols-3">
+                <div className="md:col-span-2">
+                  <ErrorBoundary FallbackComponent={ErrorFallback}>
+                    <BudgetList />
+                  </ErrorBoundary>
+                </div>
+                <div>
+                  <ErrorBoundary FallbackComponent={ErrorFallback}>
+                    <BudgetForm />
+                  </ErrorBoundary>
+                </div>
               </div>
-              <div>
-                <BudgetForm />
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="analysis" className="space-y-6 mt-6">
-            <BudgetAnalysis />
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+            
+            <TabsContent value="analysis" className="space-y-6 mt-6">
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <BudgetAnalysis />
+              </ErrorBoundary>
+            </TabsContent>
+          </Tabs>
+        </ErrorBoundary>
       </main>
     </div>
   );
