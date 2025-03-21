@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useBudgets } from '@/context/BudgetContext';
-import { getTransactionCategories } from '@/types/transaction';
+import { getTransactionCategories, CategoryList } from '@/types/transaction';
 import { getCompanies } from '@/types/transaction';
 import { getMonthsList, getQuartersList, getYearsList } from '@/lib/date-utils';
 import { BudgetPeriod } from '@/types/budget';
@@ -27,7 +27,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
   defaultType = 'expense'
 }) => {
   const { addBudget, updateBudget } = useBudgets();
-  const [categories, setCategories] = useState(getTransactionCategories());
+  const [categories, setCategories] = useState<CategoryList>(getTransactionCategories());
   const [companies] = useState(getCompanies());
   const years = getYearsList();
   const months = getMonthsList();

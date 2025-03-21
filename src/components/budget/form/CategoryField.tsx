@@ -4,10 +4,11 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Control } from 'react-hook-form';
 import { FormValues } from './types';
+import { CategoryList } from '@/types/transaction';
 
 interface CategoryFieldProps {
   control: Control<FormValues>;
-  categories: Record<string, string[]>;
+  categories: CategoryList;
   selectedType: 'expense' | 'income';
 }
 
