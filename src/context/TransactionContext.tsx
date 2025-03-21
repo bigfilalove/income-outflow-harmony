@@ -1,5 +1,6 @@
+
 import React, { createContext, useContext } from 'react';
-import { Transaction } from '@/types/transaction';
+import { Transaction, getCompanies, saveCompanies } from '@/types/transaction';
 import { toast } from "sonner";
 import { fetchTransactions, createTransaction, deleteTransaction as apiDeleteTransaction, updateTransactionStatus } from '@/services/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -91,9 +92,9 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   });
 
-  const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
+  const addTransaction = async (transaction: Omit<Transaction, 'id'>): Promise<void> => {
     try {
-      const result = await addTransactionMutation.mutateAsync(transaction);
+      await addTransactionMutation.mutateAsync(transaction);
       
       let toastTitle = transaction.type === 'income' ? 'Доход добавлен' : 'Расход добавлен';
       if (transaction.isReimbursement) {
@@ -107,11 +108,13 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // If transaction has a company, trigger a company update
       if (transaction.company && !getCompanies().includes(transaction.company)) {
         // This ensures that any new companies used in transactions get added to the stored list
+        const companies = getCompanies();
+        companies.push(transaction.company);
+        saveCompanies(companies);
+        
         console.log("Dispatching company updated event");
         window.dispatchEvent(new Event('companiesUpdated'));
       }
-      
-      return result;
     } catch (error) {
       toast("Ошибка", {
         description: 'Не удалось добавить транзакцию.'
@@ -120,20 +123,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  // Helper function to get companies (used locally)
-  const getCompanies = (): string[] => {
-    const storedCompanies = localStorage.getItem('companies');
-    if (storedCompanies) {
-      try {
-        return JSON.parse(storedCompanies);
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  };
-
-  const deleteTransaction = async (id: string) => {
+  const deleteTransaction = async (id: string): Promise<void> => {
     const transaction = transactions.find(t => t.id === id);
     if (!transaction) return;
     
@@ -159,7 +149,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return transactions.find(t => t.id === id);
   };
 
-  const updateReimbursementStatus = async (id: string, status: 'completed') => {
+  const updateReimbursementStatus = async (id: string, status: 'completed'): Promise<void> => {
     const transaction = transactions.find(t => t.id === id);
     if (!transaction || !transaction.isReimbursement) return;
     
