@@ -42,6 +42,32 @@ export const createTransaction = async (transaction: Omit<Transaction, 'id'>): P
   }
 };
 
+export const importTransactions = async (transactions: Omit<Transaction, 'id'>[]): Promise<{
+  total: number;
+  success: number;
+  failed: number;
+  errors: Array<{ transaction: string; error: string }>;
+} | null> => {
+  try {
+    const response = await fetch(`${API_URL}/transactions/import`, {
+      method: 'POST',
+      headers: createAuthHeaders(),
+      body: JSON.stringify({
+        transactions: transactions.map(mapClientToServer)
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to import transactions');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error importing transactions:', error);
+    return null;
+  }
+};
+
 export const updateTransaction = async (transaction: Transaction): Promise<Transaction | null> => {
   try {
     const response = await fetch(`${API_URL}/transactions/${transaction.id}`, {
