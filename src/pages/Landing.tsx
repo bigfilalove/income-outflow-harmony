@@ -15,7 +15,7 @@ const Landing = () => {
           <h1 className="text-2xl font-bold">Finance App</h1>
           <div className="space-x-4">
             {isAuthenticated ? (
-              <Button onClick={() => navigate('/')}>
+              <Button onClick={() => navigate('/transactions')}>
                 Перейти в приложение
               </Button>
             ) : (
