@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import UsersManagement from '@/components/admin/UsersManagement';
 import PasswordManagement from '@/components/admin/PasswordManagement';
 import CompaniesManagement from '@/components/admin/CompaniesManagement';
+import CategoriesManagement from '@/components/admin/CategoriesManagement';
 import { getCompanies, saveCompanies } from '@/types/transaction';
 
 const Admin = () => {
@@ -43,6 +44,10 @@ const Admin = () => {
             companies={companies} 
             updateCompanies={handleUpdateCompanies} 
           />
+        </div>
+
+        <div className="mt-8">
+          <CategoriesManagement />
         </div>
       </main>
     </div>

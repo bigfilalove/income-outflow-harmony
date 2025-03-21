@@ -59,6 +59,12 @@ export const transactionCategories = {
   ]
 };
 
+export interface CategoryList {
+  income: string[];
+  expense: string[];
+  reimbursement: string[];
+}
+
 // Список доступных компаний (значение по умолчанию)
 export const companies = [
   'ООО "Технологии будущего"',
@@ -69,6 +75,16 @@ export const companies = [
   'ООО "Логистик Плюс"',
   'Другая'
 ];
+
+// Custom event to notify components about company list changes
+const dispatchCompaniesUpdated = () => {
+  window.dispatchEvent(new Event('companiesUpdated'));
+};
+
+// Custom event to notify components about category list changes
+const dispatchCategoriesUpdated = () => {
+  window.dispatchEvent(new Event('categoriesUpdated'));
+};
 
 // Функция для получения актуального списка компаний из локального хранилища
 export const getCompanies = (): string[] => {
@@ -83,14 +99,28 @@ export const getCompanies = (): string[] => {
   return companies;
 };
 
-// Custom event to notify components about company list changes
-const dispatchCompaniesUpdated = () => {
-  window.dispatchEvent(new Event('companiesUpdated'));
-};
-
 // Функция для сохранения списка компаний в локальное хранилище
 export const saveCompanies = (updatedCompanies: string[]): void => {
   localStorage.setItem('companies', JSON.stringify(updatedCompanies));
   // Dispatch event to notify components in the same tab
   dispatchCompaniesUpdated();
+};
+
+// Get categories from local storage or use default
+export const getTransactionCategories = (): CategoryList => {
+  const storedCategories = localStorage.getItem('transactionCategories');
+  if (storedCategories) {
+    try {
+      return JSON.parse(storedCategories);
+    } catch (error) {
+      console.error('Error parsing categories:', error);
+    }
+  }
+  return transactionCategories;
+};
+
+// Save categories to local storage
+export const saveCategories = (updatedCategories: CategoryList): void => {
+  localStorage.setItem('transactionCategories', JSON.stringify(updatedCategories));
+  dispatchCategoriesUpdated();
 };
