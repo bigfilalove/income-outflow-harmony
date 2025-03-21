@@ -20,6 +20,7 @@ import NotFound from './pages/NotFound';
 import Landing from './pages/Landing';
 import BasicTransactions from './pages/BasicTransactions';
 import FinancialReports from './pages/FinancialReports';
+import AdminLogin from './pages/AdminLogin';
 
 function App() {
   const { theme } = useTheme();
@@ -48,6 +49,7 @@ function App() {
                   <Route path="/" element={<Landing />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/admin-login" element={<AdminLogin />} />
                   <Route path="/transactions" element={
                     <ProtectedRoute>
                       <Transactions />

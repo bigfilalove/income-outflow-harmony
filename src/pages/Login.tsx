@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { loginWithCredentials } = useAuth();
+  const { loginWithCredentials, currentUser } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,7 +24,14 @@ const Login = () => {
       const success = await loginWithCredentials(username, password);
       if (success) {
         toast.success(`Добро пожаловать!`);
-        navigate('/');
+        // Перенаправляем на страницу транзакций вместо главной
+        if (currentUser?.role === 'admin' || currentUser?.role === 'user') {
+          navigate('/transactions');
+        } else if (currentUser?.role === 'basic') {
+          navigate('/basic-transactions');
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
