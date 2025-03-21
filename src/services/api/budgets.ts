@@ -38,12 +38,24 @@ export const createBudget = async (budget: Omit<Budget, 'id'>): Promise<Budget> 
 
 // Update a budget
 export const updateBudget = async (id: string, budget: Partial<Budget>): Promise<Budget> => {
-  // Create a new object for server budget to avoid modifying the original budget
-  const serverBudget: Partial<ServerBudget> = {...budget};
+  // Create a new object for server budget without the properties from the original budget
+  const serverBudget: Partial<Omit<ServerBudget, 'id' | '_id'>> = {};
+  
+  // Copy all properties except createdAt
+  if (budget.category !== undefined) serverBudget.category = budget.category;
+  if (budget.amount !== undefined) serverBudget.amount = budget.amount;
+  if (budget.period !== undefined) serverBudget.period = budget.period;
+  if (budget.year !== undefined) serverBudget.year = budget.year;
+  if (budget.month !== undefined) serverBudget.month = budget.month;
+  if (budget.type !== undefined) serverBudget.type = budget.type;
+  if (budget.createdBy !== undefined) serverBudget.createdBy = budget.createdBy;
+  if (budget.company !== undefined) serverBudget.company = budget.company;
   
   // Convert Date object to string if it exists
-  if (budget.createdAt && budget.createdAt instanceof Date) {
-    serverBudget.createdAt = budget.createdAt.toISOString();
+  if (budget.createdAt) {
+    serverBudget.createdAt = budget.createdAt instanceof Date 
+      ? budget.createdAt.toISOString() 
+      : budget.createdAt;
   }
   
   const data = await put<ServerBudget>(`/budgets/${id}`, serverBudget);
