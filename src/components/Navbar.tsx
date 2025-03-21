@@ -49,33 +49,22 @@ const Navbar = () => {
               <Link to="/" className={`${isActive('/') ? activeClass : ''} flex items-center text-lg font-medium`}>
                 Обзор
               </Link>
-              
+              <Link to="/transactions" className={`${isActive('/transactions') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                Транзакции
+              </Link>
+              <Link to="/analytics" className={`${isActive('/analytics') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                Аналитика
+              </Link>
+              <Link to="/budgeting" className={`${isActive('/budgeting') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                Бюджеты
+              </Link>
+              <Link to="/financial-reports" className={`${isActive('/financial-reports') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                Отчеты
+              </Link>
               {currentUser.role === 'admin' && (
-                <>
-                  <Link to="/transactions" className={`${isActive('/transactions') ? activeClass : ''} flex items-center text-lg font-medium`}>
-                    Транзакции
-                  </Link>
-                  <Link to="/analytics" className={`${isActive('/analytics') ? activeClass : ''} flex items-center text-lg font-medium`}>
-                    Аналитика
-                  </Link>
-                  <Link to="/budgeting" className={`${isActive('/budgeting') ? activeClass : ''} flex items-center text-lg font-medium`}>
-                    Бюджеты
-                  </Link>
-                  <Link to="/financial-reports" className={`${isActive('/financial-reports') ? activeClass : ''} flex items-center text-lg font-medium`}>
-                    Отчеты
-                  </Link>
-                  <Link to="/admin" className={`${isActive('/admin') ? activeClass : ''} flex items-center text-lg font-medium`}>
-                    Управление
-                  </Link>
-                </>
-              )}
-              
-              {currentUser.role === 'user' && (
-                <>
-                  <Link to="/basic-transactions" className={`${isActive('/basic-transactions') ? activeClass : ''} flex items-center text-lg font-medium`}>
-                    Транзакции
-                  </Link>
-                </>
+                <Link to="/admin" className={`${isActive('/admin') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                  Управление
+                </Link>
               )}
             </div>
           )}
