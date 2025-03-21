@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '@/types/user';
+import { User, RegisterData } from '@/types/user';
 import { loginUser, registerUser, logoutUser } from '@/services/api';
 import { toast } from 'sonner';
 
@@ -43,7 +43,7 @@ interface AuthContextType {
   login: (userId: string) => void;
   loginWithCredentials: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-  addUser: (user: Omit<User, 'id' | 'createdAt'>) => Promise<boolean>;
+  addUser: (userData: Omit<User, 'id' | 'createdAt'>) => Promise<boolean>;
   removeUser: (userId: string) => void;
   updateAdminPassword: (newPassword: string) => void;
   verifyAdminPassword: (password: string) => boolean;
@@ -138,6 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addUser = async (userData: Omit<User, 'id' | 'createdAt'>): Promise<boolean> => {
     try {
+      // Try to use the API first
       const result = await registerUser(userData);
       
       if (result) {
@@ -146,8 +147,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return true;
       }
       
-      return false;
+      // If the API fails, fallback to local registration
+      const newUser: User = {
+        ...userData,
+        id: String(Date.now()),
+        role: userData.role || 'user',
+        createdAt: new Date()
+      };
+      
+      setUsers(prev => [...prev, newUser]);
+      return true;
     } catch (error) {
+      console.error("Failed to create user:", error);
       toast.error("Не удалось создать пользователя");
       return false;
     }

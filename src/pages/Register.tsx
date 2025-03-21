@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { addUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -35,7 +35,12 @@ const Register = () => {
     
     try {
       setIsLoading(true);
-      const success = await register(formData.name, formData.email, formData.username, formData.password);
+      const success = await addUser({
+        name: formData.name,
+        email: formData.email,
+        username: formData.username,
+        password: formData.password
+      });
       
       if (success) {
         toast.success('Регистрация успешна');

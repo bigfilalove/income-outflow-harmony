@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useTransactions } from '@/context/transaction';
-import { cn } from '@/lib/utils';  // Add this import
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,7 +11,12 @@ import 'jspdf-autotable';
 import { utils, writeFileXLSX } from 'xlsx';
 import { saveAs } from 'file-saver';
 
-const ProfitLossReport = () => {
+interface ProfitLossReportProps {
+  startDate?: Date;
+  endDate?: Date;
+}
+
+const ProfitLossReport: React.FC<ProfitLossReportProps> = ({ startDate, endDate }) => {
   const { transactions } = useTransactions();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [reportData, setReportData] = useState<{ month: string; income: number; expense: number; profit: number; }[]>([]);
@@ -70,7 +76,7 @@ const ProfitLossReport = () => {
     const wb = utils.book_new();
     const ws = utils.json_to_sheet(reportData);
     utils.book_append_sheet(wb, ws, "Profit & Loss");
-    const wopts = { bookType: 'xlsx', type: 'array' as const };
+    const wopts = { bookType: 'xlsx' as const, type: 'array' as const };
     const wbout = writeFileXLSX(wb, 'profit_loss_report.xlsx', wopts);
 
     const blob = new Blob([wbout], { type: 'application/octet-stream' });
