@@ -8,47 +8,51 @@ const { authenticate } = require('../middleware/auth');
 router.use(authenticate);
 
 // Get all transactions
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const transactions = await Transaction.find().sort({ date: -1 });
     res.json(transactions);
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    next(error);
   }
 });
 
 // Create a new transaction
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   try {
     const transaction = await Transaction.create(req.body);
     res.status(201).json(transaction);
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    next(error);
   }
 });
 
 // Delete a transaction
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     const transaction = await Transaction.findByIdAndDelete(req.params.id);
     if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
+      const error = new Error('Transaction not found');
+      error.statusCode = 404;
+      throw error;
     }
     res.json({ message: 'Transaction deleted' });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    next(error);
   }
 });
 
 // Update transaction status
-router.patch('/:id/status', async (req, res) => {
+router.patch('/:id/status', async (req, res, next) => {
   const { reimbursementStatus } = req.body;
   
   try {
     const transaction = await Transaction.findById(req.params.id);
     
     if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
+      const error = new Error('Transaction not found');
+      error.statusCode = 404;
+      throw error;
     }
     
     transaction.reimbursementStatus = reimbursementStatus;
@@ -56,7 +60,7 @@ router.patch('/:id/status', async (req, res) => {
     
     res.json(transaction);
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    next(error);
   }
 });
 

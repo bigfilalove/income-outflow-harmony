@@ -2,6 +2,8 @@
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const logger = require('./middleware/logger');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 require('dotenv').config();
 
 // Import route files
@@ -19,6 +21,12 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(logger);
+
+// Application health check
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', uptime: process.uptime() });
+});
 
 // Routes
 app.use('/auth', authRoutes);
@@ -26,9 +34,24 @@ app.use('/transactions', transactionRoutes);
 app.use('/predictions', predictionRoutes);
 app.use('/users', userRoutes);
 
+// Error handling middleware (must be after routes)
+app.use(notFoundHandler); // Handle 404 errors
+app.use(errorHandler); // Handle all other errors
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`API is available at http://localhost:${PORT}`);
   console.log(`Auth endpoints: http://localhost:${PORT}/auth/login and http://localhost:${PORT}/auth/register`);
   console.log(`Protected endpoints: http://localhost:${PORT}/transactions (requires authentication)`);
 });
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error('UNHANDLED REJECTION! Shutting down...');
+  console.error(err.name, err.message);
+  // Give the server time to finish current requests before shutting down
+  server.close(() => {
+    process.exit(1);
+  });
+});
+

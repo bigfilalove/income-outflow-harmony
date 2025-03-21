@@ -7,25 +7,31 @@ const User = require('../models/User');
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-123';
 
 // Login endpoint
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next) => {
   const { username, password } = req.body;
   
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Username and password are required' });
-  }
-  
   try {
+    if (!username || !password) {
+      const error = new Error('Username and password are required');
+      error.statusCode = 400;
+      throw error;
+    }
+    
     const user = await User.findOne({ username });
     
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      const error = new Error('Invalid credentials');
+      error.statusCode = 401;
+      throw error;
     }
     
     // Check password using the comparePassword method
     const isMatch = await user.comparePassword(password);
     
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      const error = new Error('Invalid credentials');
+      error.statusCode = 401;
+      throw error;
     }
     
     // Create token
@@ -49,24 +55,27 @@ router.post('/login', async (req, res) => {
       token
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Server error' });
+    next(error);
   }
 });
 
 // Register endpoint
-router.post('/register', async (req, res) => {
+router.post('/register', async (req, res, next) => {
   const { name, email, username, password, role = 'basic' } = req.body;
   
-  if (!name || !email || !username || !password) {
-    return res.status(400).json({ error: 'All fields are required' });
-  }
-  
   try {
+    if (!name || !email || !username || !password) {
+      const error = new Error('All fields are required');
+      error.statusCode = 400;
+      throw error;
+    }
+    
     // Check if user already exists
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      return res.status(409).json({ error: 'Username already exists' });
+      const error = new Error('Username already exists');
+      error.statusCode = 409;
+      throw error;
     }
     
     // Create new user (password will be hashed by pre-save hook)
@@ -99,8 +108,7 @@ router.post('/register', async (req, res) => {
       token
     });
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Server error' });
+    next(error);
   }
 });
 

@@ -8,7 +8,7 @@ const { authenticate } = require('../middleware/auth');
 router.use(authenticate);
 
 // Get predictions
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     // Get all transactions for the last 6 months
     const sixMonthsAgo = new Date();
@@ -17,6 +17,16 @@ router.get('/', async (req, res) => {
     const transactions = await Transaction.find({
       date: { $gte: sixMonthsAgo }
     }).sort({ date: -1 });
+    
+    if (transactions.length === 0) {
+      return res.json({
+        currentBalance: 0,
+        predictedIncome: 0,
+        predictedExpense: 0,
+        predictedBalance: 0,
+        topExpenseCategories: []
+      });
+    }
     
     // Calculate current balance
     const allTransactions = await Transaction.find();
@@ -92,8 +102,7 @@ router.get('/', async (req, res) => {
       topExpenseCategories
     });
   } catch (error) {
-    console.error('Prediction error:', error);
-    res.status(500).json({ error: 'Server error' });
+    next(error);
   }
 });
 
