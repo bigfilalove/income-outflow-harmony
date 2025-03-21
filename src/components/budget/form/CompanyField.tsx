@@ -28,7 +28,7 @@ const CompanyField: React.FC<CompanyFieldProps> = ({ control, companies }) => {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="">Все компании</SelectItem>
+              <SelectItem value="all">Все компании</SelectItem>
               {companies.map((company) => (
                 <SelectItem key={company} value={company}>
                   {company}

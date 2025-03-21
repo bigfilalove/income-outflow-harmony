@@ -46,7 +46,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
       year: initialData.year,
       month: initialData.month,
       type: initialData.type,
-      company: initialData.company || undefined,
+      company: initialData.company || "all",
     } : {
       category: '',
       amount: 0,
@@ -54,7 +54,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
       year: currentYear,
       month: currentMonth,
       type: defaultType,
-      company: undefined,
+      company: "all",
     },
   });
   
@@ -78,8 +78,14 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
   // Обработчик отправки формы
   const onSubmit = async (values: FormValues) => {
     try {
+      // Convert "all" to null for company field
+      const companyValue = values.company === "all" ? null : values.company;
+      
       if (initialData) {
-        await updateBudget(initialData.id, values);
+        await updateBudget(initialData.id, {
+          ...values,
+          company: companyValue
+        });
       } else {
         // Fix: Ensure all required properties are included
         await addBudget({
@@ -89,7 +95,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
           year: values.year,
           month: values.month,
           type: values.type,
-          company: values.company || null,
+          company: companyValue,
           createdAt: new Date(),
           createdBy: null,
         });
@@ -104,7 +110,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
           year: values.year,
           month: values.month,
           type: values.type,
-          company: values.company,
+          company: "all",
         });
       }
       
