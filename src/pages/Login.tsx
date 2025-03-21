@@ -12,17 +12,24 @@ import { Label } from '@/components/ui/label';
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { loginWithCredentials } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    if (loginWithCredentials(username, password)) {
-      toast.success(`Добро пожаловать!`);
-      navigate('/');
-    } else {
-      toast.error('Неверный логин или пароль');
+    try {
+      const success = await loginWithCredentials(username, password);
+      if (success) {
+        toast.success(`Добро пожаловать!`);
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -74,8 +81,8 @@ const Login = () => {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-2">
-            <Button type="submit" className="w-full">
-              Войти
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Вход...' : 'Войти'}
             </Button>
             <div className="relative w-full text-center my-2">
               <div className="absolute inset-0 flex items-center">

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types/user';
 import { loginUser, registerUser, logoutUser } from '@/services/api';
@@ -89,21 +90,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentUser(user);
       setIsAuthenticated(true);
       localStorage.setItem('finance-tracker-current-user', userId);
+      localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now()); // Added token
     }
   };
 
   const loginWithCredentials = async (username: string, password: string): Promise<boolean> => {
     try {
-      const result = await loginUser(username, password);
+      // Для демонстрации ищем пользователя напрямую в массиве users
+      const user = users.find(u => u.username === username && u.password === password);
       
-      if (result) {
-        const { user, token } = result;
+      if (user) {
+        // Локальный вход
         setCurrentUser(user);
         setIsAuthenticated(true);
         localStorage.setItem('finance-tracker-current-user', user.id);
+        localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now());
         return true;
+      } else {
+        // Пытаемся использовать API только если нет локального совпадения
+        const result = await loginUser(username, password);
+        
+        if (result) {
+          const { user, token } = result;
+          setCurrentUser(user);
+          setIsAuthenticated(true);
+          localStorage.setItem('finance-tracker-current-user', user.id);
+          localStorage.setItem('finance-tracker-token', token);
+          return true;
+        }
       }
       
+      toast.error("Не удалось войти в систему. Проверьте логин и пароль.");
       return false;
     } catch (error) {
       toast.error("Не удалось войти в систему. Проверьте логин и пароль.");
@@ -115,6 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('finance-tracker-current-user');
+    localStorage.removeItem('finance-tracker-token');
     logoutUser(); // Clear token from localStorage
   };
 
