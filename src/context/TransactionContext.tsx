@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext } from 'react';
-import { Transaction, getCompanies, saveCompanies } from '@/types/transaction';
+import { Transaction, getCompanies, saveCompanies, getProjects, saveProjects } from '@/types/transaction';
 import { toast } from "sonner";
 import { fetchTransactions, createTransaction, deleteTransaction as apiDeleteTransaction, updateTransactionStatus, updateTransaction as apiUpdateTransaction } from '@/services/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -127,6 +127,16 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         console.log("Dispatching company updated event");
         window.dispatchEvent(new Event('companiesUpdated'));
       }
+      
+      // If transaction has a project, trigger a project update
+      if (transaction.project && !getProjects().includes(transaction.project)) {
+        const projects = getProjects();
+        projects.push(transaction.project);
+        saveProjects(projects);
+        
+        console.log("Dispatching project updated event");
+        window.dispatchEvent(new Event('projectsUpdated'));
+      }
     } catch (error) {
       toast("Ошибка", {
         description: 'Не удалось добавить транзакцию.'
@@ -155,6 +165,15 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         saveCompanies(companies);
         
         window.dispatchEvent(new Event('companiesUpdated'));
+      }
+      
+      // If transaction has a new project, update the projects list
+      if (transaction.project && !getProjects().includes(transaction.project)) {
+        const projects = getProjects();
+        projects.push(transaction.project);
+        saveProjects(projects);
+        
+        window.dispatchEvent(new Event('projectsUpdated'));
       }
     } catch (error) {
       toast("Ошибка", {

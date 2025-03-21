@@ -18,6 +18,7 @@ import ReimbursementFields from '@/components/transaction/ReimbursementFields';
 import CreatorField from '@/components/transaction/CreatorField';
 import CategorySelect from '@/components/transaction/CategorySelect';
 import CompanySelect from '@/components/transaction/CompanySelect';
+import ProjectSelect from '@/components/transaction/ProjectSelect';
 import { toast } from "sonner";
 import { Loader2 } from 'lucide-react';
 
@@ -32,6 +33,7 @@ const TransactionForm: React.FC = () => {
   const [reimbursedTo, setReimbursedTo] = useState('');
   const [createdBy, setCreatedBy] = useState('');
   const [company, setCompany] = useState('');
+  const [project, setProject] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleTransactionTypeChange = (type: TransactionType) => {
@@ -59,6 +61,7 @@ const TransactionForm: React.FC = () => {
       type: transactionType,
       createdBy: createdBy.trim() || undefined,
       company: company || undefined,
+      project: project || undefined,
     };
 
     // Add reimbursement fields if it's a reimbursement
@@ -80,6 +83,7 @@ const TransactionForm: React.FC = () => {
       setReimbursedTo('');
       setCreatedBy('');
       setCompany('');
+      setProject('');
     } catch (error) {
       console.error("Error adding transaction:", error);
     } finally {
@@ -111,6 +115,11 @@ const TransactionForm: React.FC = () => {
             <CompanySelect
               value={company}
               onChange={setCompany}
+            />
+
+            <ProjectSelect
+              value={project}
+              onChange={setProject}
             />
 
             <div className="space-y-2">

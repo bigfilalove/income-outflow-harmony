@@ -1,4 +1,3 @@
-
 export type TransactionType = 'income' | 'expense' | 'reimbursement';
 export type ReimbursementStatus = 'pending' | 'completed';
 
@@ -15,6 +14,7 @@ export interface Transaction {
   createdBy?: string;
   createdAt?: Date;
   company?: string;
+  project?: string;
 }
 
 export interface ServerTransaction {
@@ -31,6 +31,7 @@ export interface ServerTransaction {
   createdBy: string | null;
   createdAt: string;
   company: string | null;
+  project: string | null;
 }
 
 export const transactionCategories = {
@@ -66,7 +67,6 @@ export interface CategoryList {
   reimbursement: string[];
 }
 
-// Список доступных компаний (значение по умолчанию)
 export const companies = [
   'ООО "Технологии будущего"',
   'ЗАО "Инновации"',
@@ -77,17 +77,28 @@ export const companies = [
   'Другая'
 ];
 
-// Custom event to notify components about company list changes
+export const projects = [
+  'Разработка сайта',
+  'Мобильное приложение',
+  'Редизайн',
+  'Маркетинговая кампания',
+  'Исследование рынка',
+  'Внутренняя автоматизация',
+  'Другой'
+];
+
 const dispatchCompaniesUpdated = () => {
   window.dispatchEvent(new Event('companiesUpdated'));
 };
 
-// Custom event to notify components about category list changes
 const dispatchCategoriesUpdated = () => {
   window.dispatchEvent(new Event('categoriesUpdated'));
 };
 
-// Функция для получения актуального списка компаний из локального хранилища
+const dispatchProjectsUpdated = () => {
+  window.dispatchEvent(new Event('projectsUpdated'));
+};
+
 export const getCompanies = (): string[] => {
   const storedCompanies = localStorage.getItem('companies');
   if (storedCompanies) {
@@ -100,14 +111,11 @@ export const getCompanies = (): string[] => {
   return companies;
 };
 
-// Функция для сохранения списка компаний в локальное хранилище
 export const saveCompanies = (updatedCompanies: string[]): void => {
   localStorage.setItem('companies', JSON.stringify(updatedCompanies));
-  // Dispatch event to notify components in the same tab
   dispatchCompaniesUpdated();
 };
 
-// Get categories from local storage or use default
 export const getTransactionCategories = (): CategoryList => {
   const storedCategories = localStorage.getItem('transactionCategories');
   if (storedCategories) {
@@ -120,8 +128,24 @@ export const getTransactionCategories = (): CategoryList => {
   return transactionCategories;
 };
 
-// Save categories to local storage
 export const saveCategories = (updatedCategories: CategoryList): void => {
   localStorage.setItem('transactionCategories', JSON.stringify(updatedCategories));
   dispatchCategoriesUpdated();
+};
+
+export const getProjects = (): string[] => {
+  const storedProjects = localStorage.getItem('projects');
+  if (storedProjects) {
+    try {
+      return JSON.parse(storedProjects);
+    } catch (error) {
+      console.error('Error parsing projects:', error);
+    }
+  }
+  return projects;
+};
+
+export const saveProjects = (updatedProjects: string[]): void => {
+  localStorage.setItem('projects', JSON.stringify(updatedProjects));
+  dispatchProjectsUpdated();
 };

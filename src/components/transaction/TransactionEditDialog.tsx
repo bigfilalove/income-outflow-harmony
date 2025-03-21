@@ -13,6 +13,7 @@ import ReimbursementFields from './ReimbursementFields';
 import CreatorField from './CreatorField';
 import CategorySelect from './CategorySelect';
 import CompanySelect from './CompanySelect';
+import ProjectSelect from './ProjectSelect';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TransactionEditDialogProps {
@@ -38,6 +39,7 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
   const [reimbursedTo, setReimbursedTo] = useState('');
   const [createdBy, setCreatedBy] = useState('');
   const [company, setCompany] = useState('');
+  const [project, setProject] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Load transaction data when dialog opens
@@ -52,6 +54,7 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
       setReimbursedTo(transaction.reimbursedTo || '');
       setCreatedBy(transaction.createdBy || '');
       setCompany(transaction.company || '');
+      setProject(transaction.project || '');
     }
   }, [transaction]);
   
@@ -78,6 +81,7 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
       type: transactionType,
       createdBy: createdBy.trim() || undefined,
       company: company || undefined,
+      project: project || undefined,
     };
     
     // Add reimbursement fields if it's a reimbursement
@@ -125,6 +129,11 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
             <CompanySelect
               value={company}
               onChange={setCompany}
+            />
+
+            <ProjectSelect
+              value={project}
+              onChange={setProject}
             />
 
             <div className="space-y-1">

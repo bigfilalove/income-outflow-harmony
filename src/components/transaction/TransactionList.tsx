@@ -28,7 +28,8 @@ const TransactionList: React.FC = () => {
     const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          t.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (t.reimbursedTo && t.reimbursedTo.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         (t.company && t.company.toLowerCase().includes(searchTerm.toLowerCase()));
+                         (t.company && t.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (t.project && t.project.toLowerCase().includes(searchTerm.toLowerCase()));
     
     let matchesFilter = false;
     if (filter === 'all') {
@@ -39,6 +40,10 @@ const TransactionList: React.FC = () => {
       // Фильтрация по компании
       const companyFilter = filter.replace('company:', '');
       matchesFilter = t.company === companyFilter;
+    } else if (filter.startsWith('project:')) {
+      // Фильтрация по проекту
+      const projectFilter = filter.replace('project:', '');
+      matchesFilter = t.project === projectFilter;
     } else {
       matchesFilter = t.type === filter || (filter === 'reimbursement' && !!t.isReimbursement);
     }

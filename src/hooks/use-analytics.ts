@@ -14,6 +14,13 @@ interface CompanyTotal {
   total: number;
 }
 
+interface ProjectTotal {
+  project: string;
+  income: number;
+  expense: number;
+  total: number;
+}
+
 export function useAnalytics() {
   const { transactions } = useTransactions();
 
@@ -74,6 +81,36 @@ export function useAnalytics() {
         .sort((a, b) => b.total - a.total);
     })();
 
+    // Get project data
+    const projectTotals: ProjectTotal[] = (() => {
+      const projects: Record<string, { income: number; expense: number; total: number }> = {};
+      
+      transactions.forEach(t => {
+        const projectName = t.project || 'Не указан';
+        
+        if (!projects[projectName]) {
+          projects[projectName] = { income: 0, expense: 0, total: 0 };
+        }
+        
+        if (t.type === 'income') {
+          projects[projectName].income += t.amount;
+          projects[projectName].total += t.amount;
+        } else if (t.type === 'expense') {
+          projects[projectName].expense += t.amount;
+          projects[projectName].total -= t.amount;
+        }
+      });
+      
+      return Object.entries(projects)
+        .map(([project, data]) => ({
+          project,
+          income: data.income,
+          expense: data.expense,
+          total: data.total
+        }))
+        .sort((a, b) => b.total - a.total);
+    })();
+
     const topIncomeCategories = getCategoryTotal('income');
     const topExpenseCategories = getCategoryTotal('expense');
 
@@ -84,7 +121,8 @@ export function useAnalytics() {
       efficiency,
       topIncomeCategories,
       topExpenseCategories,
-      companyTotals
+      companyTotals,
+      projectTotals
     };
   }, [transactions]);
 }

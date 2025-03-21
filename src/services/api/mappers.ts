@@ -16,7 +16,8 @@ export const mapServerToClient = (serverTransaction: ServerTransaction): Transac
     reimbursementStatus: serverTransaction.reimbursementStatus || undefined,
     createdBy: serverTransaction.createdBy || undefined,
     createdAt: serverTransaction.createdAt ? new Date(serverTransaction.createdAt) : undefined,
-    company: serverTransaction.company || undefined
+    company: serverTransaction.company || undefined,
+    project: serverTransaction.project || undefined
   };
 };
 
@@ -33,7 +34,8 @@ export const mapClientToServer = (clientTransaction: Omit<Transaction, 'id'>): O
     reimbursementStatus: clientTransaction.reimbursementStatus || null,
     createdBy: clientTransaction.createdBy || null,
     createdAt: clientTransaction.createdAt ? clientTransaction.createdAt.toISOString() : new Date().toISOString(),
-    company: clientTransaction.company || null
+    company: clientTransaction.company || null,
+    project: clientTransaction.project || null
   };
 };
 

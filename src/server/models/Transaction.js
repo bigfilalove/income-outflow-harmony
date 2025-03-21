@@ -12,7 +12,8 @@ const transactionSchema = new mongoose.Schema({
   reimbursementStatus: { type: String, enum: ['pending', 'completed', null], default: null },
   createdBy: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
-  company: { type: String, default: null }
+  company: { type: String, default: null },
+  project: { type: String, default: null }
 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);
