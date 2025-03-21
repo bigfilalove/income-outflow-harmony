@@ -45,7 +45,7 @@ export function useAnalytics() {
     };
 
     // Get company data
-    const companyTotals: CompanyTotal[] = useMemo(() => {
+    const companyTotals: CompanyTotal[] = (() => {
       const companies: Record<string, { income: number; expense: number; total: number }> = {};
       
       transactions.forEach(t => {
@@ -72,7 +72,7 @@ export function useAnalytics() {
           total: data.total
         }))
         .sort((a, b) => b.total - a.total);
-    }, [transactions]);
+    })();
 
     const topIncomeCategories = getCategoryTotal('income');
     const topExpenseCategories = getCategoryTotal('expense');
