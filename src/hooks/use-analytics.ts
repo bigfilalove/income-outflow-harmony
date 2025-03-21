@@ -7,6 +7,13 @@ interface CategoryTotal {
   total: number;
 }
 
+interface CompanyTotal {
+  company: string;
+  income: number;
+  expense: number;
+  total: number;
+}
+
 export function useAnalytics() {
   const { transactions } = useTransactions();
 
@@ -37,6 +44,36 @@ export function useAnalytics() {
         .sort((a, b) => b.total - a.total);
     };
 
+    // Get company data
+    const companyTotals: CompanyTotal[] = useMemo(() => {
+      const companies: Record<string, { income: number; expense: number; total: number }> = {};
+      
+      transactions.forEach(t => {
+        const companyName = t.company || 'Не указана';
+        
+        if (!companies[companyName]) {
+          companies[companyName] = { income: 0, expense: 0, total: 0 };
+        }
+        
+        if (t.type === 'income') {
+          companies[companyName].income += t.amount;
+          companies[companyName].total += t.amount;
+        } else if (t.type === 'expense') {
+          companies[companyName].expense += t.amount;
+          companies[companyName].total -= t.amount;
+        }
+      });
+      
+      return Object.entries(companies)
+        .map(([company, data]) => ({
+          company,
+          income: data.income,
+          expense: data.expense,
+          total: data.total
+        }))
+        .sort((a, b) => b.total - a.total);
+    }, [transactions]);
+
     const topIncomeCategories = getCategoryTotal('income');
     const topExpenseCategories = getCategoryTotal('expense');
 
@@ -46,7 +83,8 @@ export function useAnalytics() {
       balance,
       efficiency,
       topIncomeCategories,
-      topExpenseCategories
+      topExpenseCategories,
+      companyTotals
     };
   }, [transactions]);
 }

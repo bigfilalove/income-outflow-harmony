@@ -77,7 +77,8 @@ export const prepareTransactionDataForExcel = (transactions: Transaction[]) => {
     'Тип': t.type === 'income' ? 'Доход' : t.type === 'expense' ? 'Расход' : 'Возмещение',
     'Возмещение сотруднику': t.reimbursedTo || 'Н/Д',
     'Статус': t.reimbursementStatus ? 
-      (t.reimbursementStatus === 'pending' ? 'Ожидает' : 'Выполнено') : 'Н/Д'
+      (t.reimbursementStatus === 'pending' ? 'Ожидает' : 'Выполнено') : 'Н/Д',
+    'Компания': t.company || 'Не указана'
   }));
 };
 
@@ -91,7 +92,8 @@ export const prepareReimbursementDataForExcel = (transactions: Transaction[]) =>
     'Сумма': formatCurrency(t.amount),
     'Дата': formatDateShort(t.date),
     'Сотрудник': t.reimbursedTo || 'Неизвестно',
-    'Статус': t.reimbursementStatus === 'pending' ? 'Ожидает' : 'Выполнено'
+    'Статус': t.reimbursementStatus === 'pending' ? 'Ожидает' : 'Выполнено',
+    'Компания': t.company || 'Не указана'
   }));
 };
 
@@ -105,7 +107,8 @@ export const prepareTransactionDataForPdf = (transactions: Transaction[]) => {
     t.type === 'income' ? 'Доход' : t.type === 'expense' ? 'Расход' : 'Возмещение',
     t.reimbursedTo || 'Н/Д',
     t.reimbursementStatus ? 
-      (t.reimbursementStatus === 'pending' ? 'Ожидает' : 'Выполнено') : 'Н/Д'
+      (t.reimbursementStatus === 'pending' ? 'Ожидает' : 'Выполнено') : 'Н/Д',
+    t.company || 'Не указана'
   ]);
 };
 
@@ -119,7 +122,8 @@ export const prepareReimbursementDataForPdf = (transactions: Transaction[]) => {
     formatCurrency(t.amount),
     formatDateShort(t.date),
     t.reimbursedTo || 'Неизвестно',
-    t.reimbursementStatus === 'pending' ? 'Ожидает' : 'Выполнено'
+    t.reimbursementStatus === 'pending' ? 'Ожидает' : 'Выполнено',
+    t.company || 'Не указана'
   ]);
 };
 
@@ -149,6 +153,32 @@ export const prepareAnalyticsDataForExcel = (transactions: Transaction[]) => {
     return acc;
   }, {} as Record<string, number>);
   
+  // Calculate company totals
+  const companyData = transactions.reduce((acc, t) => {
+    const companyName = t.company || 'Не указана';
+    if (!acc[companyName]) {
+      acc[companyName] = { income: 0, expense: 0, total: 0 };
+    }
+    
+    if (t.type === 'income') {
+      acc[companyName].income += t.amount;
+      acc[companyName].total += t.amount;
+    } else if (t.type === 'expense') {
+      acc[companyName].expense += t.amount;
+      acc[companyName].total -= t.amount;
+    }
+    
+    return acc;
+  }, {} as Record<string, { income: number; expense: number; total: number }>);
+  
+  // Create company report data
+  const companyBreakdown = Object.entries(companyData).map(([company, data]) => ({
+    'Компания': company,
+    'Доходы': formatCurrency(data.income),
+    'Расходы': formatCurrency(data.expense),
+    'Баланс': formatCurrency(data.total)
+  }));
+  
   // Create report data
   const summary = [
     { 'Показатель': 'Общий доход', 'Значение': formatCurrency(totalIncome) },
@@ -169,7 +199,7 @@ export const prepareAnalyticsDataForExcel = (transactions: Transaction[]) => {
     };
   });
   
-  return { summary, categoryBreakdown };
+  return { summary, categoryBreakdown, companyBreakdown };
 };
 
 // Prepare analytics data for PDF format

@@ -5,6 +5,7 @@ import FinanceSummary from '@/components/FinanceSummary';
 import ReportDownloadDialog from '@/components/ReportDownloadDialog';
 import FinancialOverview from '@/components/analytics/FinancialOverview';
 import TopCategories from '@/components/analytics/TopCategories';
+import CompanyAnalytics from '@/components/analytics/CompanyAnalytics';
 import { useAnalytics } from '@/hooks/use-analytics';
 
 const Analytics = () => {
@@ -14,7 +15,8 @@ const Analytics = () => {
     balance,
     efficiency,
     topIncomeCategories,
-    topExpenseCategories
+    topExpenseCategories,
+    companyTotals
   } = useAnalytics();
 
   return (
@@ -38,6 +40,10 @@ const Analytics = () => {
             topIncomeCategories={topIncomeCategories}
             topExpenseCategories={topExpenseCategories}
           />
+        </div>
+        
+        <div className="grid gap-6 md:grid-cols-3">
+          <CompanyAnalytics companyTotals={companyTotals} />
         </div>
         
         <FinanceSummary />

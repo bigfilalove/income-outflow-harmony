@@ -62,7 +62,7 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
         generateExcelReport(reimbursementData, 'Возмещения', 'reimbursements-report');
         break;
       case 'analytics':
-        const { summary, categoryBreakdown } = prepareAnalyticsDataForExcel(transactions);
+        const { summary, categoryBreakdown, companyBreakdown } = prepareAnalyticsDataForExcel(transactions);
         const workbook = XLSX.utils.book_new();
         
         // Summary sheet
@@ -72,6 +72,10 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
         // Category breakdown sheet
         const categoryWs = XLSX.utils.json_to_sheet(categoryBreakdown);
         XLSX.utils.book_append_sheet(workbook, categoryWs, 'Категории');
+        
+        // Company breakdown sheet
+        const companyWs = XLSX.utils.json_to_sheet(companyBreakdown);
+        XLSX.utils.book_append_sheet(workbook, companyWs, 'Компании');
         
         // Save file
         const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
@@ -98,7 +102,7 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
       case 'transactions':
         const transactionData = prepareTransactionDataForPdf(transactions);
         const transactionHeaders = [
-          'Описание', 'Категория', 'Сумма', 'Дата', 'Тип', 'Сотрудник', 'Статус'
+          'Описание', 'Категория', 'Сумма', 'Дата', 'Тип', 'Сотрудник', 'Статус', 'Компания'
         ];
         generatePdfReport(
           'Отчет по транзакциям',
@@ -110,7 +114,7 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
       case 'reimbursements':
         const reimbursementData = prepareReimbursementDataForPdf(transactions);
         const reimbursementHeaders = [
-          'Описание', 'Категория', 'Сумма', 'Дата', 'Сотрудник', 'Статус'
+          'Описание', 'Категория', 'Сумма', 'Дата', 'Сотрудник', 'Статус', 'Компания'
         ];
         generatePdfReport(
           'Отчет по возмещениям',
@@ -128,6 +132,23 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
           analyticsData,
           'analytics-report'
         );
+        
+        // Create an additional PDF for companies
+        const { companyBreakdown } = prepareAnalyticsDataForExcel(transactions);
+        const companyData = companyBreakdown.map(item => [
+          item['Компания'],
+          item['Доходы'],
+          item['Расходы'],
+          item['Баланс']
+        ]);
+        
+        const companyHeaders = ['Компания', 'Доходы', 'Расходы', 'Баланс'];
+        generatePdfReport(
+          'Отчет по компаниям',
+          companyHeaders,
+          companyData,
+          'companies-report'
+        );
         break;
       case 'period':
         if (startDate && endDate) {
@@ -138,7 +159,7 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
           );
           const periodData = prepareTransactionDataForPdf(filteredTransactions);
           const periodHeaders = [
-            'Описание', 'Категория', 'Сумма', 'Дата', 'Тип', 'Сотрудник', 'Статус'
+            'Описание', 'Категория', 'Сумма', 'Дата', 'Тип', 'Сотрудник', 'Статус', 'Компания'
           ];
           const periodName = `${format(startDate, 'dd.MM.yyyy')}-${format(endDate, 'dd.MM.yyyy')}`;
           generatePdfReport(
