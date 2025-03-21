@@ -1,6 +1,6 @@
-
 import { Transaction, ServerTransaction } from '@/types/transaction';
 import { User, ServerUser } from '@/types/user';
+import { ServerBudget, Budget } from '@/types/budget';
 
 // Convert server transaction to client transaction
 export const mapServerToClient = (serverTransaction: ServerTransaction): Transaction => {
@@ -61,3 +61,17 @@ export const mapClientUserToServer = (clientUser: Partial<User>): Partial<Server
     createdAt: clientUser.createdAt ? clientUser.createdAt.toISOString() : new Date().toISOString()
   };
 };
+
+// Маппинг бюджета с сервера на клиент
+export const mapServerBudgetToClient = (serverBudget: ServerBudget): Budget => ({
+  id: serverBudget._id || serverBudget.id || '',
+  category: serverBudget.category,
+  amount: serverBudget.amount,
+  period: serverBudget.period,
+  year: serverBudget.year,
+  month: serverBudget.month,
+  type: serverBudget.type,
+  createdBy: serverBudget.createdBy || null,
+  createdAt: new Date(serverBudget.createdAt),
+  company: serverBudget.company || null
+});

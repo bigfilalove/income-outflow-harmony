@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
@@ -10,7 +9,8 @@ import {
   LogOut,
   LogIn,
   Shield,
-  User
+  User,
+  FileBarChart
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,11 +31,18 @@ const Navbar = () => {
   const { isAuthenticated, currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
-  const navItems = [
-    { path: '/', label: 'Панель', icon: <LayoutDashboard className="h-5 w-5 mr-2" /> },
-    { path: '/transactions', label: 'Транзакции', icon: <ListOrdered className="h-5 w-5 mr-2" /> },
-    { path: '/analytics', label: 'Аналитика', icon: <BarChart3 className="h-5 w-5 mr-2" /> },
-  ];
+  const getNavItems = () => {
+    const navItems = [
+      { label: 'Главная', path: '/' },
+      { label: 'Транзакции', path: '/transactions' },
+      { label: 'Аналитика', path: '/analytics' },
+      { label: 'Бюджетирование', path: '/budgeting', icon: <FileBarChart className="h-4 w-4 mr-2" /> },
+    ];
+    
+    return navItems;
+  };
+
+  const navItems = getNavItems();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);

@@ -1,57 +1,75 @@
 
+// Импорты и настройки
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const connectDB = require('./config/db');
+const dotenv = require('dotenv');
+const path = require('path');
+
+// Подключение middleware
 const logger = require('./middleware/logger');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
-require('dotenv').config();
 
-// Import route files
+// Подключение маршрутов
 const authRoutes = require('./routes/auth');
-const transactionRoutes = require('./routes/transactions');
-const predictionRoutes = require('./routes/predictions');
-const userRoutes = require('./routes/users');
+const transactionsRoutes = require('./routes/transactions');
+const predictionsRoutes = require('./routes/predictions');
+const usersRoutes = require('./routes/users');
+const budgetsRoutes = require('./routes/budgets');
+
+// Загрузка переменных окружения
+dotenv.config();
+
+// Инициализация Express
+const app = express();
+const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB
-connectDB();
-
-const app = express();
-const PORT = process.env.PORT || 3001;
+require('./config/db');
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(logger);
 
-// Application health check
+// Маршруты API
+app.use('/api/auth', authRoutes);
+app.use('/api/transactions', transactionsRoutes);
+app.use('/api/predictions', predictionsRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/budgets', budgetsRoutes);
+
+// Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', uptime: process.uptime() });
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Routes
-app.use('/auth', authRoutes);
-app.use('/transactions', transactionRoutes);
-app.use('/predictions', predictionRoutes);
-app.use('/users', userRoutes);
+// Статические файлы для production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../../dist')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../../dist', 'index.html'));
+  });
+}
 
-// Error handling middleware (must be after routes)
-app.use(notFoundHandler); // Handle 404 errors
-app.use(errorHandler); // Handle all other errors
+// 404 handler
+app.use(notFoundHandler);
 
+// Error handler
+app.use(errorHandler);
+
+// Запуск сервера
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`API is available at http://localhost:${PORT}`);
-  console.log(`Auth endpoints: http://localhost:${PORT}/auth/login and http://localhost:${PORT}/auth/register`);
-  console.log(`Protected endpoints: http://localhost:${PORT}/transactions (requires authentication)`);
 });
 
-// Handle unhandled promise rejections
+// Обработка необработанных отклонений промисов
 process.on('unhandledRejection', (err) => {
   console.error('UNHANDLED REJECTION! Shutting down...');
   console.error(err.name, err.message);
-  // Give the server time to finish current requests before shutting down
-  server.close(() => {
-    process.exit(1);
-  });
+  console.error(err.stack);
+  process.exit(1);
 });
 
+module.exports = app;
