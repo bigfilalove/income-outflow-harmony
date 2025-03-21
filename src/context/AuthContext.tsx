@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types/user';
 import { loginUser, registerUser, logoutUser } from '@/services/api';
@@ -110,8 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return false;
     } catch (error) {
-      toast({
-        title: "Ошибка входа",
+      toast("Ошибка входа", {
         description: "Не удалось войти в систему. Проверьте логин и пароль.",
         variant: "destructive"
       });
@@ -138,8 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return false;
     } catch (error) {
-      toast({
-        title: "Ошибка",
+      toast("Ошибка", {
         description: "Не удалось создать пользователя",
         variant: "destructive"
       });

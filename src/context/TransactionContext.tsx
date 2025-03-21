@@ -35,9 +35,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Handle authentication errors
   const handleAuthError = (error: any) => {
     if (error?.message?.includes('401') || error?.message?.includes('Authentication')) {
-      toast({
-        title: "Ошибка аутентификации",
-        description: "Ваша сессия истекла. Пожалуйста, войдите снова.",
+      toast("Ошибка аутентификации", {
+        description: "Ваша сессия истекла. Пожалуйста, войдите снова."
       });
       logout();
       navigate('/login');
@@ -52,8 +51,10 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   } = useQuery({
     queryKey: ['transactions'],
     queryFn: fetchTransactions,
-    onError: (error) => {
-      handleAuthError(error);
+    meta: {
+      onError: (error: any) => {
+        handleAuthError(error);
+      }
     }
   });
 
@@ -100,14 +101,12 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         toastTitle = 'Возмещение добавлено';
       }
       
-      toast({
-        title: toastTitle,
+      toast(toastTitle, {
         description: `${transaction.description} было успешно добавлено.`
       });
     } catch (error) {
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось добавить транзакцию.',
+      toast("Ошибка", {
+        description: 'Не удалось добавить транзакцию.'
       });
     }
   };
@@ -124,14 +123,12 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         toastTitle = 'Возмещение удалено';
       }
       
-      toast({
-        title: toastTitle,
+      toast(toastTitle, {
         description: `${transaction.description} было успешно удалено.`
       });
     } catch (error) {
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось удалить транзакцию.',
+      toast("Ошибка", {
+        description: 'Не удалось удалить транзакцию.'
       });
     }
   };
@@ -147,14 +144,12 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       await updateStatusMutation.mutateAsync({ id, status });
       
-      toast({
-        title: 'Статус обновлен',
+      toast("Статус обновлен", {
         description: `Возмещение для "${transaction.description}" отмечено как выполненное.`
       });
     } catch (error) {
-      toast({
-        title: 'Ошибка',
-        description: 'Не удалось обновить статус возмещения.',
+      toast("Ошибка", {
+        description: 'Не удалось обновить статус возмещения.'
       });
     }
   };
