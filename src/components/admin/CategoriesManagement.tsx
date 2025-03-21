@@ -5,7 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Edit, Save, X, Trash } from 'lucide-react';
-import { transactionCategories, saveCategories, getCategories } from '@/types/transaction';
+import { 
+  transactionCategories, 
+  saveCategories, 
+  getTransactionCategories 
+} from '@/types/transaction';
 import { toast } from 'sonner';
 
 interface CategoriesManagementProps {
