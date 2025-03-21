@@ -101,8 +101,15 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
       if (initialData) {
         await updateBudget(initialData.id, values);
       } else {
+        // Fix: Ensure all required properties are included
         await addBudget({
-          ...values,
+          category: values.category,
+          amount: values.amount,
+          period: values.period,
+          year: values.year,
+          month: values.month,
+          type: values.type,
+          company: values.company || null,
           createdAt: new Date(),
           createdBy: null,
         });

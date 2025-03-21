@@ -17,3 +17,60 @@ export const createAuthHeaders = (): HeadersInit => {
     ...token ? { 'Authorization': `Bearer ${token}` } : {}
   };
 };
+
+// HTTP request helpers
+export const get = async <T>(endpoint: string): Promise<T> => {
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    method: 'GET',
+    headers: createAuthHeaders()
+  });
+  
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || `HTTP error ${response.status}`);
+  }
+  
+  return await response.json();
+};
+
+export const post = async <T>(endpoint: string, data: any): Promise<T> => {
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    method: 'POST',
+    headers: createAuthHeaders(),
+    body: JSON.stringify(data)
+  });
+  
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || `HTTP error ${response.status}`);
+  }
+  
+  return await response.json();
+};
+
+export const put = async <T>(endpoint: string, data: any): Promise<T> => {
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    method: 'PUT',
+    headers: createAuthHeaders(),
+    body: JSON.stringify(data)
+  });
+  
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || `HTTP error ${response.status}`);
+  }
+  
+  return await response.json();
+};
+
+export const del = async (endpoint: string): Promise<void> => {
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    method: 'DELETE',
+    headers: createAuthHeaders()
+  });
+  
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || `HTTP error ${response.status}`);
+  }
+};
