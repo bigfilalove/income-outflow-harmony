@@ -46,9 +46,16 @@ app.post('/auth/login', async (req, res) => {
   }
   
   try {
-    const user = await User.findOne({ username, password });
+    const user = await User.findOne({ username });
     
     if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    // Check password using the comparePassword method
+    const isMatch = await user.comparePassword(password);
+    
+    if (!isMatch) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
@@ -73,6 +80,7 @@ app.post('/auth/login', async (req, res) => {
       token
     });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -91,7 +99,7 @@ app.post('/auth/register', async (req, res) => {
       return res.status(409).json({ error: 'Username already exists' });
     }
     
-    // Create new user
+    // Create new user (password will be hashed by pre-save hook)
     const newUser = await User.create({
       name,
       email,
@@ -121,6 +129,7 @@ app.post('/auth/register', async (req, res) => {
       token
     });
   } catch (error) {
+    console.error('Registration error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

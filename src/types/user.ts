@@ -18,4 +18,5 @@ export interface ServerUser {
   password: string;
   role: 'admin' | 'user' | 'basic';
   createdAt: string;
+  comparePassword?: (candidatePassword: string) => Promise<boolean>;
 }
