@@ -6,19 +6,27 @@ import UsersManagement from '@/components/admin/UsersManagement';
 import PasswordManagement from '@/components/admin/PasswordManagement';
 import CompaniesManagement from '@/components/admin/CompaniesManagement';
 import CategoriesManagement from '@/components/admin/CategoriesManagement';
-import { getCompanies, saveCompanies } from '@/types/transaction';
+import ProjectsManagement from '@/components/admin/ProjectsManagement';
+import { getCompanies, saveCompanies, getProjects, saveProjects } from '@/types/transaction';
 
 const Admin = () => {
   const { users, addUser, removeUser, updateAdminPassword, adminPassword } = useAuth();
   const [companies, setCompanies] = useState<string[]>([]);
+  const [projects, setProjects] = useState<string[]>([]);
 
   useEffect(() => {
     setCompanies(getCompanies());
+    setProjects(getProjects());
   }, []);
 
   const handleUpdateCompanies = (updatedCompanies: string[]) => {
     setCompanies(updatedCompanies);
     saveCompanies(updatedCompanies);
+  };
+
+  const handleUpdateProjects = (updatedProjects: string[]) => {
+    setProjects(updatedProjects);
+    saveProjects(updatedProjects);
   };
 
   return (
@@ -39,10 +47,14 @@ const Admin = () => {
           />
         </div>
         
-        <div className="mt-8">
+        <div className="grid gap-6 md:grid-cols-2 mt-8">
           <CompaniesManagement 
             companies={companies} 
             updateCompanies={handleUpdateCompanies} 
+          />
+          <ProjectsManagement
+            projects={projects}
+            updateProjects={handleUpdateProjects}
           />
         </div>
 

@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -7,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getProjects } from '@/types/transaction';
 
 interface ProjectSelectProps {
   value: string;
@@ -14,16 +14,39 @@ interface ProjectSelectProps {
   projects?: { id: string, name: string }[] | string[];
 }
 
-const ProjectSelect: React.FC<ProjectSelectProps> = ({ value, onChange, projects }) => {
-  // Default projects list if none provided
-  const defaultProjects = [
-    { id: "1", name: "Проект 1" },
-    { id: "2", name: "Проект 2" },
-    { id: "3", name: "Проект 3" }
-  ];
+const ProjectSelect: React.FC<ProjectSelectProps> = ({ value, onChange, projects: propProjects }) => {
+  const [projectsList, setProjectsList] = useState<string[]>([]);
+  
+  useEffect(() => {
+    // If projects are provided via props, use them
+    if (propProjects) {
+      if (typeof propProjects[0] === 'string') {
+        setProjectsList(propProjects as string[]);
+      } else {
+        // Handle object format projects if needed
+        const projectNames = (propProjects as { id: string, name: string }[]).map(p => p.name);
+        setProjectsList(projectNames);
+      }
+    } else {
+      // Otherwise fetch from localStorage
+      setProjectsList(getProjects());
+    }
+  }, [propProjects]);
 
-  // Use provided projects or default to predefined list
-  const projectsToUse = projects || defaultProjects;
+  // Listen for projects updates from other components
+  useEffect(() => {
+    const handleProjectsUpdate = () => {
+      if (!propProjects) {
+        setProjectsList(getProjects());
+      }
+    };
+    
+    window.addEventListener('projectsUpdated', handleProjectsUpdate);
+    
+    return () => {
+      window.removeEventListener('projectsUpdated', handleProjectsUpdate);
+    };
+  }, [propProjects]);
 
   return (
     <Select value={value} onValueChange={onChange}>
@@ -31,22 +54,11 @@ const ProjectSelect: React.FC<ProjectSelectProps> = ({ value, onChange, projects
         <SelectValue placeholder="Выберите проект" />
       </SelectTrigger>
       <SelectContent>
-        {Array.isArray(projectsToUse) && projectsToUse.map((project, index) => {
-          // Handle both object format and string format
-          if (typeof project === 'string') {
-            return (
-              <SelectItem key={index} value={project}>
-                {project}
-              </SelectItem>
-            );
-          } else {
-            return (
-              <SelectItem key={project.id} value={project.id}>
-                {project.name}
-              </SelectItem>
-            );
-          }
-        })}
+        {projectsList.map((project, index) => (
+          <SelectItem key={index} value={project}>
+            {project}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );
