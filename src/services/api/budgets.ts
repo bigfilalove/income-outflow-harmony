@@ -38,10 +38,13 @@ export const createBudget = async (budget: Omit<Budget, 'id'>): Promise<Budget> 
 
 // Update a budget
 export const updateBudget = async (id: string, budget: Partial<Budget>): Promise<Budget> => {
-  const serverBudget: Partial<ServerBudget> = {
-    ...budget,
-    ...(budget.createdAt ? { createdAt: budget.createdAt.toISOString() } : {})
-  };
+  // Create a new object for server budget to avoid modifying the original budget
+  const serverBudget: Partial<ServerBudget> = {...budget};
+  
+  // Convert Date object to string if it exists
+  if (budget.createdAt && budget.createdAt instanceof Date) {
+    serverBudget.createdAt = budget.createdAt.toISOString();
+  }
   
   const data = await put<ServerBudget>(`/budgets/${id}`, serverBudget);
   return mapServerBudgetToBudget(data);
