@@ -23,9 +23,9 @@ import {
   prepareAnalyticsDataForPdf
 } from '@/utils/reportUtils';
 
-type ReportType = 'transactions' | 'reimbursements' | 'analytics' | 'period';
+export type ReportType = 'transactions' | 'reimbursements' | 'analytics' | 'period' | 'kpi';
 
-interface ReportDownloadDialogProps {
+export interface ReportDownloadDialogProps {
   reportType: ReportType;
 }
 
@@ -45,6 +45,8 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
         return 'Скачать аналитический отчет';
       case 'period':
         return 'Скачать отчет за период';
+      case 'kpi':
+        return 'Скачать отчет KPI';
       default:
         return 'Скачать отчет';
     }
@@ -92,6 +94,19 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
           const periodName = `${format(startDate, 'dd.MM.yyyy')}-${format(endDate, 'dd.MM.yyyy')}`;
           generateExcelReport(periodData, 'Транзакции за период', `period-report-${periodName}`);
         }
+        break;
+      case 'kpi':
+        const { summary, categoryBreakdown, companyBreakdown } = prepareAnalyticsDataForExcel(transactions);
+        const workbook = XLSX.utils.book_new();
+        
+        // Summary sheet
+        const summaryWs = XLSX.utils.json_to_sheet(summary);
+        XLSX.utils.book_append_sheet(workbook, summaryWs, 'KPI Сводка');
+        
+        // Save file
+        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
+        saveAs(blob, 'kpi-report.xlsx');
         break;
     }
   };
@@ -169,6 +184,16 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
           );
         }
         break;
+      case 'kpi':
+        const kpiData = prepareAnalyticsDataForPdf(transactions);
+        const kpiHeaders = ['Показатель', 'Значение'];
+        generatePdfReport(
+          'Отчет по KPI',
+          kpiHeaders,
+          kpiData,
+          'kpi-report'
+        );
+        break;
     }
   };
   
@@ -181,6 +206,7 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
           {reportType === 'reimbursements' && 'Скачать возмещения'}
           {reportType === 'analytics' && 'Скачать аналитику'}
           {reportType === 'period' && 'Отчет за период'}
+          {reportType === 'kpi' && 'Скачать KPI'}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
