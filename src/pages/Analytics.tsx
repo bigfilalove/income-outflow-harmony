@@ -6,8 +6,20 @@ import TopCategories from '@/components/analytics/TopCategories';
 import CompanyAnalytics from '@/components/analytics/CompanyAnalytics';
 import ProjectAnalytics from '@/components/analytics/ProjectAnalytics';
 import ReportDownloadDialog from '@/components/ReportDownloadDialog';
+import { useAnalytics } from '@/hooks/use-analytics';
 
 const Analytics = () => {
+  const {
+    totalIncome,
+    totalExpense,
+    balance,
+    efficiency,
+    topIncomeCategories,
+    topExpenseCategories,
+    companyTotals,
+    projectTotals
+  } = useAnalytics();
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -19,14 +31,22 @@ const Analytics = () => {
           </div>
         </div>
         
-        <FinancialOverview />
+        <FinancialOverview 
+          totalIncome={totalIncome}
+          totalExpense={totalExpense}
+          balance={balance}
+          efficiency={efficiency}
+        />
         
         <div className="grid gap-6 md:grid-cols-2">
-          <TopCategories />
-          <CompanyAnalytics />
+          <TopCategories 
+            topIncomeCategories={topIncomeCategories}
+            topExpenseCategories={topExpenseCategories}
+          />
+          <CompanyAnalytics companyTotals={companyTotals} />
         </div>
         
-        <ProjectAnalytics />
+        <ProjectAnalytics projectTotals={projectTotals} />
       </main>
     </div>
   );
