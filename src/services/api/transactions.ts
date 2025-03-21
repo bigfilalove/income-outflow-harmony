@@ -42,6 +42,26 @@ export const createTransaction = async (transaction: Omit<Transaction, 'id'>): P
   }
 };
 
+export const updateTransaction = async (transaction: Transaction): Promise<Transaction | null> => {
+  try {
+    const response = await fetch(`${API_URL}/transactions/${transaction.id}`, {
+      method: 'PUT',
+      headers: createAuthHeaders(),
+      body: JSON.stringify(mapClientToServer(transaction)),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to update transaction');
+    }
+    
+    const data = await response.json();
+    return mapServerToClient(data);
+  } catch (error) {
+    console.error('Error updating transaction:', error);
+    return null;
+  }
+};
+
 export const deleteTransaction = async (id: string): Promise<boolean> => {
   try {
     const response = await fetch(`${API_URL}/transactions/${id}`, {

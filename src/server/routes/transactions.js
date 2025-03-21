@@ -27,6 +27,27 @@ router.post('/', async (req, res, next) => {
   }
 });
 
+// Update a transaction
+router.put('/:id', async (req, res, next) => {
+  try {
+    const transaction = await Transaction.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    
+    if (!transaction) {
+      const error = new Error('Transaction not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    
+    res.json(transaction);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Delete a transaction
 router.delete('/:id', async (req, res, next) => {
   try {

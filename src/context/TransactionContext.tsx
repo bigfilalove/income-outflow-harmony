@@ -2,7 +2,7 @@
 import React, { createContext, useContext } from 'react';
 import { Transaction, getCompanies, saveCompanies } from '@/types/transaction';
 import { toast } from "sonner";
-import { fetchTransactions, createTransaction, deleteTransaction as apiDeleteTransaction, updateTransactionStatus } from '@/services/api';
+import { fetchTransactions, createTransaction, deleteTransaction as apiDeleteTransaction, updateTransactionStatus, updateTransaction as apiUpdateTransaction } from '@/services/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ interface TransactionContextType {
   isLoading: boolean;
   error: Error | null;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
+  updateTransaction: (transaction: Transaction) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
   getTransactionById: (id: string) => Transaction | undefined;
   updateReimbursementStatus: (id: string, status: 'completed') => Promise<void>;
@@ -61,6 +62,17 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Add transaction mutation
   const addTransactionMutation = useMutation({
     mutationFn: createTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+    onError: (error) => {
+      handleAuthError(error);
+    }
+  });
+
+  // Update transaction mutation
+  const updateTransactionMutation = useMutation({
+    mutationFn: apiUpdateTransaction,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
@@ -123,6 +135,35 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const updateTransaction = async (transaction: Transaction): Promise<void> => {
+    try {
+      await updateTransactionMutation.mutateAsync(transaction);
+      
+      let toastTitle = transaction.type === 'income' ? 'Доход обновлен' : 'Расход обновлен';
+      if (transaction.isReimbursement) {
+        toastTitle = 'Возмещение обновлено';
+      }
+      
+      toast(toastTitle, {
+        description: `${transaction.description} было успешно обновлено.`
+      });
+      
+      // If transaction has a new company, update the companies list
+      if (transaction.company && !getCompanies().includes(transaction.company)) {
+        const companies = getCompanies();
+        companies.push(transaction.company);
+        saveCompanies(companies);
+        
+        window.dispatchEvent(new Event('companiesUpdated'));
+      }
+    } catch (error) {
+      toast("Ошибка", {
+        description: 'Не удалось обновить транзакцию.'
+      });
+      throw error;
+    }
+  };
+
   const deleteTransaction = async (id: string): Promise<void> => {
     const transaction = transactions.find(t => t.id === id);
     if (!transaction) return;
@@ -171,7 +212,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       transactions, 
       isLoading,
       error: error as Error | null,
-      addTransaction, 
+      addTransaction,
+      updateTransaction,
       deleteTransaction,
       getTransactionById,
       updateReimbursementStatus

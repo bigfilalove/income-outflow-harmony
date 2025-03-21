@@ -11,12 +11,15 @@ import { useTransactions } from '@/context/TransactionContext';
 import TransactionItem from './TransactionItem';
 import TransactionSearch from './TransactionSearch';
 import TransactionFilter, { FilterType } from './TransactionFilter';
+import TransactionEditDialog from './TransactionEditDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Transaction } from '@/types/transaction';
 
 const TransactionList: React.FC = () => {
   const { transactions, isLoading, deleteTransaction, updateReimbursementStatus } = useTransactions();
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const filteredTransactions = transactions.filter(t => {
     const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -40,53 +43,70 @@ const TransactionList: React.FC = () => {
     return matchesSearch && matchesFilter;
   });
 
+  const handleEdit = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+  };
+
+  const handleCloseEditDialog = () => {
+    setEditingTransaction(null);
+  };
+
   return (
-    <Card className="animate-slideUp">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Транзакции</CardTitle>
-            <CardDescription>История всех операций</CardDescription>
+    <>
+      <Card className="animate-slideUp">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Транзакции</CardTitle>
+              <CardDescription>История всех операций</CardDescription>
+            </div>
+            <TransactionFilter setFilter={setFilter} />
           </div>
-          <TransactionFilter setFilter={setFilter} />
-        </div>
-        <TransactionSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="p-4 border rounded-lg">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-24" />
+          <TransactionSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="p-4 border rounded-lg">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-6 w-16" />
                   </div>
-                  <Skeleton className="h-6 w-16" />
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredTransactions.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground">
-                Транзакции не найдены
-              </div>
-            ) : (
-              filteredTransactions.map((transaction) => (
-                <TransactionItem 
-                  key={transaction.id} 
-                  transaction={transaction}
-                  onDelete={deleteTransaction}
-                  onUpdateStatus={updateReimbursementStatus}
-                />
-              ))
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredTransactions.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  Транзакции не найдены
+                </div>
+              ) : (
+                filteredTransactions.map((transaction) => (
+                  <TransactionItem 
+                    key={transaction.id} 
+                    transaction={transaction}
+                    onDelete={deleteTransaction}
+                    onEdit={handleEdit}
+                    onUpdateStatus={updateReimbursementStatus}
+                  />
+                ))
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <TransactionEditDialog 
+        transaction={editingTransaction}
+        isOpen={!!editingTransaction}
+        onClose={handleCloseEditDialog}
+      />
+    </>
   );
 };
 

@@ -7,7 +7,8 @@ import {
   Trash2,
   RefreshCw,
   User,
-  Building2
+  Building2,
+  Pencil
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,12 +25,14 @@ import { cn } from '@/lib/utils';
 interface TransactionItemProps {
   transaction: Transaction;
   onDelete: (id: string) => void;
+  onEdit: (transaction: Transaction) => void;
   onUpdateStatus?: (id: string, status: 'completed') => void;
 }
 
 const TransactionItem: React.FC<TransactionItemProps> = ({ 
   transaction, 
   onDelete,
+  onEdit,
   onUpdateStatus
 }) => {
   const getTypeIcon = () => {
@@ -97,6 +100,10 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onEdit(transaction)}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Редактировать
+            </DropdownMenuItem>
             {transaction.isReimbursement && transaction.reimbursementStatus === 'pending' && onUpdateStatus && (
               <DropdownMenuItem onClick={() => onUpdateStatus(transaction.id, 'completed')}>
                 <RefreshCw className="h-4 w-4 mr-2" />
