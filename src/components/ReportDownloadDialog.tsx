@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -62,7 +63,7 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
         const reimbursementData = prepareReimbursementDataForExcel(transactions);
         generateExcelReport(reimbursementData, 'Возмещения', 'reimbursements-report');
         break;
-      case 'analytics':
+      case 'analytics': {
         const { summary, categoryBreakdown, companyBreakdown } = prepareAnalyticsDataForExcel(transactions);
         const workbook = XLSX.utils.book_new();
         
@@ -83,6 +84,7 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
         const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
         saveAs(blob, 'analytics-report.xlsx');
         break;
+      }
       case 'period':
         if (startDate && endDate) {
           const filteredTransactions = filterTransactionsByDateRange(
@@ -95,19 +97,20 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
           generateExcelReport(periodData, 'Транзакции за период', `period-report-${periodName}`);
         }
         break;
-      case 'kpi':
-        const { summary, categoryBreakdown, companyBreakdown } = prepareAnalyticsDataForExcel(transactions);
-        const workbook = XLSX.utils.book_new();
+      case 'kpi': {
+        const analyticsData = prepareAnalyticsDataForExcel(transactions);
+        const kpiWorkbook = XLSX.utils.book_new();
         
         // Summary sheet
-        const summaryWs = XLSX.utils.json_to_sheet(summary);
-        XLSX.utils.book_append_sheet(workbook, summaryWs, 'KPI Сводка');
+        const kpiSummaryWs = XLSX.utils.json_to_sheet(analyticsData.summary);
+        XLSX.utils.book_append_sheet(kpiWorkbook, kpiSummaryWs, 'KPI Сводка');
         
         // Save file
-        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-        const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
-        saveAs(blob, 'kpi-report.xlsx');
+        const kpiExcelBuffer = XLSX.write(kpiWorkbook, { bookType: 'xlsx', type: 'array' });
+        const kpiBlob = new Blob([kpiExcelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
+        saveAs(kpiBlob, 'kpi-report.xlsx');
         break;
+      }
     }
   };
   
@@ -148,8 +151,8 @@ const ReportDownloadDialog: React.FC<ReportDownloadDialogProps> = ({ reportType 
         );
         
         // Create an additional PDF for companies
-        const { companyBreakdown } = prepareAnalyticsDataForExcel(transactions);
-        const companyData = companyBreakdown.map(item => [
+        const companyResult = prepareAnalyticsDataForExcel(transactions);
+        const companyData = companyResult.companyBreakdown.map(item => [
           item['Компания'],
           item['Доходы'],
           item['Расходы'],

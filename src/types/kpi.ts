@@ -31,9 +31,5 @@ export interface KpiDashboardData {
   turnoverTrend: KpiTrendData[];
 }
 
-// Add kpi to the ReportType
-declare module '@/components/ReportDownloadDialog' {
-  export interface ReportDownloadDialogProps {
-    reportType: 'transactions' | 'reimbursements' | 'period' | 'kpi';
-  }
-}
+// Removing the module declaration since we're now exporting ReportType 
+// directly from ReportDownloadDialog.tsx
