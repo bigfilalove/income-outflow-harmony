@@ -1,45 +1,69 @@
 
-import { ServerBudget, Budget } from '@/types/budget';
-import { get, post, put, del } from './config';
-import { mapServerBudgetToClient } from './mappers';
+import { Budget, BudgetPeriod, ServerBudget } from '@/types/budget';
+import { API_URL, createAuthHeaders, get, post, put, del } from './config';
 
-// Получить все бюджеты с возможностью фильтрации
-export const fetchBudgets = async (filters?: {
-  period?: string;
-  year?: number;
-  month?: number;
-  type?: string;
-  company?: string;
-}): Promise<Budget[]> => {
-  const queryParams = new URLSearchParams();
+// Fetch budgets with optional filtering
+export const fetchBudgets = async (
+  period?: BudgetPeriod,
+  year?: number,
+  month?: number,
+  type?: 'income' | 'expense',
+  company?: string
+): Promise<Budget[]> => {
+  let queryParams = new URLSearchParams();
   
-  // Добавляем фильтры в query параметры
-  if (filters) {
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined) {
-        queryParams.append(key, value.toString());
-      }
-    });
-  }
+  if (period) queryParams.append('period', period);
+  if (year) queryParams.append('year', year.toString());
+  if (month) queryParams.append('month', month.toString());
+  if (type) queryParams.append('type', type);
+  if (company) queryParams.append('company', company);
   
   const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
-  const response = await get<ServerBudget[]>(`/budgets${query}`);
-  return response.map(mapServerBudgetToClient);
+  
+  const data = await get<ServerBudget[]>(`/budgets${query}`);
+  
+  return data.map(mapServerBudgetToBudget);
 };
 
-// Создать новый бюджет
+// Create a new budget
 export const createBudget = async (budget: Omit<Budget, 'id'>): Promise<Budget> => {
-  const response = await post<ServerBudget>('/budgets', budget);
-  return mapServerBudgetToClient(response);
+  const serverBudget: Omit<ServerBudget, 'id' | '_id'> = {
+    ...budget,
+    createdAt: new Date().toISOString()
+  };
+  
+  const data = await post<ServerBudget>('/budgets', serverBudget);
+  return mapServerBudgetToBudget(data);
 };
 
-// Обновить существующий бюджет
+// Update a budget
 export const updateBudget = async (id: string, budget: Partial<Budget>): Promise<Budget> => {
-  const response = await put<ServerBudget>(`/budgets/${id}`, budget);
-  return mapServerBudgetToClient(response);
+  const serverBudget: Partial<ServerBudget> = {
+    ...budget,
+    ...(budget.createdAt ? { createdAt: budget.createdAt.toISOString() } : {})
+  };
+  
+  const data = await put<ServerBudget>(`/budgets/${id}`, serverBudget);
+  return mapServerBudgetToBudget(data);
 };
 
-// Удалить бюджет
+// Delete a budget
 export const deleteBudget = async (id: string): Promise<void> => {
   await del(`/budgets/${id}`);
+};
+
+// Transform server budget to client budget
+const mapServerBudgetToBudget = (serverBudget: ServerBudget): Budget => {
+  return {
+    id: serverBudget._id || serverBudget.id || '',
+    category: serverBudget.category,
+    amount: serverBudget.amount,
+    period: serverBudget.period,
+    year: serverBudget.year,
+    month: serverBudget.month,
+    type: serverBudget.type,
+    createdBy: serverBudget.createdBy,
+    createdAt: new Date(serverBudget.createdAt),
+    company: serverBudget.company
+  };
 };
