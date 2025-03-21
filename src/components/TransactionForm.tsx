@@ -19,6 +19,7 @@ import CreatorField from '@/components/transaction/CreatorField';
 import CategorySelect from '@/components/transaction/CategorySelect';
 import CompanySelect from '@/components/transaction/CompanySelect';
 import { toast } from "sonner";
+import { Loader2 } from 'lucide-react';
 
 const TransactionForm: React.FC = () => {
   const { addTransaction } = useTransactions();
@@ -162,12 +163,18 @@ const TransactionForm: React.FC = () => {
             variant={transactionType === 'income' ? 'default' : 'outline'}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Добавление...' : 
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Добавление...
+              </>
+            ) : (
               transactionType === 'reimbursement' 
                 ? 'Добавить возмещение' 
                 : transactionType === 'income' 
                   ? 'Добавить доход' 
-                  : 'Добавить расход'}
+                  : 'Добавить расход'
+            )}
           </Button>
         </form>
       </CardContent>
