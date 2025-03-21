@@ -7,6 +7,9 @@ import CompanyAnalytics from '@/components/analytics/CompanyAnalytics';
 import ProjectAnalytics from '@/components/analytics/ProjectAnalytics';
 import ReportDownloadDialog from '@/components/ReportDownloadDialog';
 import { useAnalytics } from '@/hooks/use-analytics';
+import { Button } from '@/components/ui/button';
+import { ChartPie, BarChart3 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Analytics = () => {
   const {
@@ -28,6 +31,12 @@ const Analytics = () => {
           <h1 className="text-3xl font-bold tracking-tight">Аналитика</h1>
           <div className="flex gap-2">
             <ReportDownloadDialog reportType="analytics" />
+            <Link to="/advanced-analytics">
+              <Button variant="outline" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span>Продвинутая аналитика</span>
+              </Button>
+            </Link>
           </div>
         </div>
         

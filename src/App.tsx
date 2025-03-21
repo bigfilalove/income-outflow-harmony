@@ -14,6 +14,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Transactions from './pages/Transactions';
 import Analytics from './pages/Analytics';
+import AdvancedAnalytics from './pages/AdvancedAnalytics';
 import Budgeting from './pages/Budgeting';
 import Admin from './pages/Admin';
 import NotFound from './pages/NotFound';
@@ -62,6 +63,11 @@ function App() {
                   <Route path="/analytics" element={
                     <ProtectedRoute>
                       <Analytics />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/advanced-analytics" element={
+                    <ProtectedRoute>
+                      <AdvancedAnalytics />
                     </ProtectedRoute>
                   } />
                   <Route path="/budgeting" element={

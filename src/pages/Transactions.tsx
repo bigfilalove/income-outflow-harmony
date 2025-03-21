@@ -7,6 +7,9 @@ import ReportDownloadDialog from '@/components/ReportDownloadDialog';
 import FinancialReportDialog from '@/components/reports/FinancialReportDialog';
 import ImportTransactionsDialog from '@/components/transaction/ImportTransactionsDialog';
 import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { BarChart3 } from 'lucide-react';
 
 const Transactions = () => {
   const { currentUser } = useAuth();
@@ -30,6 +33,12 @@ const Transactions = () => {
           <ReportDownloadDialog reportType="period" />
           <FinancialReportDialog />
           <ImportTransactionsDialog />
+          <Link to="/advanced-analytics">
+            <Button variant="outline" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span>Продвинутая аналитика</span>
+            </Button>
+          </Link>
         </div>
         
         <div className="grid gap-6 md:grid-cols-3">
