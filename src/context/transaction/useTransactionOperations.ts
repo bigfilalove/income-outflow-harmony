@@ -1,64 +1,17 @@
 
-import React, { createContext, useContext } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Transaction, getCompanies, saveCompanies, getProjects, saveProjects } from '@/types/transaction';
 import { toast } from "sonner";
-import { fetchTransactions, createTransaction, deleteTransaction as apiDeleteTransaction, updateTransactionStatus, updateTransaction as apiUpdateTransaction } from '@/services/api';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from './AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { 
+  createTransaction, 
+  deleteTransaction as apiDeleteTransaction, 
+  updateTransactionStatus, 
+  updateTransaction as apiUpdateTransaction 
+} from '@/services/api';
 
-interface TransactionContextType {
-  transactions: Transaction[];
-  isLoading: boolean;
-  error: Error | null;
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
-  updateTransaction: (transaction: Transaction) => Promise<void>;
-  deleteTransaction: (id: string) => Promise<void>;
-  getTransactionById: (id: string) => Transaction | undefined;
-  updateReimbursementStatus: (id: string, status: 'completed') => Promise<void>;
-}
-
-const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
-
-export const useTransactions = () => {
-  const context = useContext(TransactionContext);
-  if (!context) {
-    throw new Error('useTransactions must be used within a TransactionProvider');
-  }
-  return context;
-};
-
-export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const useTransactionOperations = (handleAuthError: (error: any) => void) => {
   const queryClient = useQueryClient();
-  const { logout } = useAuth();
-  const navigate = useNavigate();
   
-  // Handle authentication errors
-  const handleAuthError = (error: any) => {
-    if (error?.message?.includes('401') || error?.message?.includes('Authentication')) {
-      toast("Ошибка аутентификации", {
-        description: "Ваша сессия истекла. Пожалуйста, войдите снова."
-      });
-      logout();
-      navigate('/login');
-    }
-  };
-  
-  // Fetch transactions query
-  const { 
-    data: transactions = [], 
-    isLoading, 
-    error 
-  } = useQuery({
-    queryKey: ['transactions'],
-    queryFn: fetchTransactions,
-    meta: {
-      onError: (error: any) => {
-        handleAuthError(error);
-      }
-    }
-  });
-
   // Add transaction mutation
   const addTransactionMutation = useMutation({
     mutationFn: createTransaction,
@@ -183,7 +136,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const deleteTransaction = async (id: string): Promise<void> => {
+  const deleteTransaction = async (id: string, transactions: Transaction[]): Promise<void> => {
     const transaction = transactions.find(t => t.id === id);
     if (!transaction) return;
     
@@ -205,11 +158,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const getTransactionById = (id: string) => {
-    return transactions.find(t => t.id === id);
-  };
-
-  const updateReimbursementStatus = async (id: string, status: 'completed'): Promise<void> => {
+  const updateReimbursementStatus = async (id: string, status: 'completed', transactions: Transaction[]): Promise<void> => {
     const transaction = transactions.find(t => t.id === id);
     if (!transaction || !transaction.isReimbursement) return;
     
@@ -226,18 +175,10 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  return (
-    <TransactionContext.Provider value={{ 
-      transactions, 
-      isLoading,
-      error: error as Error | null,
-      addTransaction,
-      updateTransaction,
-      deleteTransaction,
-      getTransactionById,
-      updateReimbursementStatus
-    }}>
-      {children}
-    </TransactionContext.Provider>
-  );
+  return {
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    updateReimbursementStatus
+  };
 };
