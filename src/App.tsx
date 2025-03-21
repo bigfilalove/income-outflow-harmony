@@ -1,77 +1,92 @@
+import React, { useEffect } from 'react';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import { ThemeProvider } from "@/components/theme-provider"
+import { useTheme } from 'next-themes';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { TransactionProvider } from "@/context/transaction";
-import { BudgetProvider } from "@/context/BudgetContext";
-import { AuthProvider } from "@/context/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import Index from "./pages/Index";
-import Transactions from "./pages/Transactions";
-import BasicTransactions from "./pages/BasicTransactions";
-import Analytics from "./pages/Analytics";
-import Budgeting from "./pages/Budgeting";
-import Login from "./pages/Login";
-import AdminLogin from "./pages/AdminLogin";
-import Admin from "./pages/Admin";
-import NotFound from "./pages/NotFound";
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { TransactionProvider } from './context/transaction';
+import { BudgetProvider } from './context/BudgetContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Transactions from './pages/Transactions';
+import Analytics from './pages/Analytics';
+import Budgeting from './pages/Budgeting';
+import Admin from './pages/Admin';
+import NotFound from './pages/NotFound';
+import Landing from './pages/Landing';
+import BasicTransactions from './pages/BasicTransactions';
+import FinancialReports from './pages/FinancialReports';
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
+function App() {
+  const { theme } = useTheme();
+  const location = useLocation();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
+  
+  useEffect(() => {
+    // Log the current route
+    console.log("Current route:", location.pathname);
+  }, [location]);
+  
+  return (
+    <div className={theme}>
+      <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TransactionProvider>
             <BudgetProvider>
-              <Toaster />
-              <Sonner />
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/admin-login" element={<AdminLogin />} />
-                
-                <Route path="/" element={
-                  <ProtectedRoute allowBasicUser={false}>
-                    <Index />
-                  </ProtectedRoute>
-                } />
-                <Route path="/transactions" element={
-                  <ProtectedRoute allowBasicUser={false}>
-                    <Transactions />
-                  </ProtectedRoute>
-                } />
-                <Route path="/transactions-basic" element={
-                  <ProtectedRoute>
-                    <BasicTransactions />
-                  </ProtectedRoute>
-                } />
-                <Route path="/analytics" element={
-                  <ProtectedRoute allowBasicUser={false}>
-                    <Analytics />
-                  </ProtectedRoute>
-                } />
-                <Route path="/budgeting" element={
-                  <ProtectedRoute allowBasicUser={false}>
-                    <Budgeting />
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin" element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <Admin />
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <ThemeProvider defaultTheme="light" storageKey="finance-app-theme">
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/transactions" element={
+                    <ProtectedRoute>
+                      <Transactions />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/analytics" element={
+                    <ProtectedRoute>
+                      <Analytics />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/budgeting" element={
+                    <ProtectedRoute>
+                      <Budgeting />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin" element={
+                    <ProtectedRoute>
+                      <Admin />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/basic-transactions" element={
+                    <ProtectedRoute>
+                      <BasicTransactions />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/financial-reports" element={
+                    <ProtectedRoute>
+                      <FinancialReports />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Toaster />
+              </ThemeProvider>
             </BudgetProvider>
           </TransactionProvider>
         </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </QueryClientProvider>
+    </div>
+  );
+}
 
 export default App;

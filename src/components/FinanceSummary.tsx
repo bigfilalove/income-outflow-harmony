@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getCategoryData, getMonthlyData } from '@/utils/chartUtils';
 import MonthlyChart from '@/components/finance/MonthlyChart';
 import CategoryCharts from '@/components/finance/CategoryCharts';
+import FinancialReportDialog from '@/components/reports/FinancialReportDialog';
 
 const FinanceSummary: React.FC = () => {
   const { transactions } = useTransactions();
@@ -17,9 +18,12 @@ const FinanceSummary: React.FC = () => {
 
   return (
     <Card className="animate-slideUp">
-      <CardHeader>
-        <CardTitle>Финансовая сводка</CardTitle>
-        <CardDescription>Визуализация доходов и расходов</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Финансовая сводка</CardTitle>
+          <CardDescription>Визуализация доходов и расходов</CardDescription>
+        </div>
+        <FinancialReportDialog />
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="monthly">

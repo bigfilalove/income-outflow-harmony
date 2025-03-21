@@ -1,21 +1,8 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  BarChart3, 
-  ListOrdered, 
-  Menu, 
-  X,
-  LogOut,
-  LogIn,
-  Shield,
-  User,
-  FileBarChart
-} from 'lucide-react';
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from "@/components/ui/theme-provider"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,173 +10,107 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
+import { MoonIcon, SunIcon } from '@radix-ui/react-icons';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Navbar = () => {
-  const isMobile = useIsMobile();
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const { isAuthenticated, currentUser, logout } = useAuth();
+  const { currentUser, logout } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
-
-  const getNavItems = () => {
-    const navItems = [
-      { label: 'Главная', path: '/' },
-      { label: 'Транзакции', path: '/transactions' },
-      { label: 'Аналитика', path: '/analytics' },
-      { label: 'Бюджетирование', path: '/budgeting', icon: <FileBarChart className="h-4 w-4 mr-2" /> },
-    ];
-    
-    return navItems;
+  const { setTheme } = useTheme();
+  
+  const isActive = (path: string) => {
+    return location.pathname === path;
   };
-
-  const navItems = getNavItems();
-
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
+  
+  const activeClass = "text-primary";
+  
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error("Failed to log out", error);
+    }
   };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  const handleLogin = () => {
-    navigate('/login');
-  };
-
-  const handleAdminPanel = () => {
-    navigate('/admin');
-  };
-
-  const NavItems = () => (
-    <>
-      {navItems.map((item) => (
-        <NavLink
-          key={item.path}
-          to={item.path}
-          className={({ isActive }) => cn(
-            "flex items-center px-4 py-2 rounded-md transition-all duration-200 ease-in-out",
-            isActive 
-              ? "bg-primary text-primary-foreground" 
-              : "hover:bg-secondary"
-          )}
-          onClick={() => isMobile && setMobileMenuOpen(false)}
-        >
-          {item.icon}
-          <span>{item.label}</span>
-        </NavLink>
-      ))}
-    </>
-  );
-
+  
   return (
-    <nav className="sticky top-0 z-40 w-full backdrop-blur-md bg-background/80 border-b">
+    <nav className="border-b bg-background sticky top-0 z-10">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center">
-          <div className="font-bold text-xl mr-6">Finance Tracker</div>
+        <div className="flex gap-6 md:gap-10">
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-xl font-bold">Finance App</span>
+          </Link>
           
-          {/* Desktop Navigation */}
-          {!isMobile && (
-            <div className="hidden md:flex space-x-4">
-              <NavItems />
+          {currentUser && (
+            <div className="hidden md:flex gap-6">
+              <Link to="/" className={`${isActive('/') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                Обзор
+              </Link>
+              
+              {currentUser.role === 'admin' && (
+                <>
+                  <Link to="/transactions" className={`${isActive('/transactions') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                    Транзакции
+                  </Link>
+                  <Link to="/analytics" className={`${isActive('/analytics') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                    Аналитика
+                  </Link>
+                  <Link to="/budgeting" className={`${isActive('/budgeting') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                    Бюджеты
+                  </Link>
+                  <Link to="/financial-reports" className={`${isActive('/financial-reports') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                    Отчеты
+                  </Link>
+                  <Link to="/admin" className={`${isActive('/admin') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                    Управление
+                  </Link>
+                </>
+              )}
+              
+              {currentUser.role === 'user' && (
+                <>
+                  <Link to="/basic-transactions" className={`${isActive('/basic-transactions') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                    Транзакции
+                  </Link>
+                </>
+              )}
             </div>
           )}
         </div>
-
-        {/* User Menu */}
-        <div className="flex items-center">
-          {isAuthenticated ? (
+        
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="sm" onClick={() => setTheme((theme) => theme === "light" ? "dark" : "light")}>
+            <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+          
+          {currentUser ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="hidden md:inline-block">
-                    {currentUser?.name}
-                  </span>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={currentUser.image} alt={currentUser.name} />
+                    <AvatarFallback>{currentUser.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Мой аккаунт</DropdownMenuLabel>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Мой профиль</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {currentUser?.role === 'admin' && (
-                  <DropdownMenuItem onClick={handleAdminPanel}>
-                    <Shield className="mr-2 h-4 w-4" />
-                    <span>Панель администратора</span>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Выйти</span>
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>Выйти</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="ghost" onClick={handleLogin}>
-              <LogIn className="h-4 w-4 mr-2" />
-              <span>Войти</span>
-            </Button>
-          )}
-
-          {/* Mobile Menu Toggle */}
-          {isMobile && (
-            <Button variant="ghost" size="icon" onClick={toggleMobileMenu} className="ml-2">
-              {mobileMenuOpen ? <X /> : <Menu />}
-            </Button>
+            <>
+              <Link to="/login" className="text-sm font-medium hover:underline">Войти</Link>
+              <Link to="/register" className="ml-4 text-sm font-medium hover:underline">Регистрация</Link>
+            </>
           )}
         </div>
       </div>
-
-      {/* Mobile Navigation */}
-      {isMobile && mobileMenuOpen && (
-        <div className="fixed inset-0 top-16 z-50 animate-fadeIn">
-          <div 
-            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          <div className="absolute right-0 top-0 h-full w-2/3 bg-background p-6 shadow-lg animate-slideDown">
-            <div className="flex flex-col space-y-4">
-              <NavItems />
-              {isAuthenticated && currentUser?.role === 'admin' && (
-                <NavLink
-                  to="/admin"
-                  className="flex items-center px-4 py-2 rounded-md hover:bg-secondary"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Shield className="h-5 w-5 mr-2" />
-                  <span>Панель администратора</span>
-                </NavLink>
-              )}
-              <div className="pt-4 border-t">
-                {isAuthenticated ? (
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => {
-                      handleLogout();
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    <LogOut className="h-5 w-5 mr-2" />
-                    <span>Выйти</span>
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => {
-                      handleLogin();
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    <LogIn className="h-5 w-5 mr-2" />
-                    <span>Войти</span>
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </nav>
   );
 };

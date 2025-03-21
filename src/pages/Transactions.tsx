@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import TransactionList from '@/components/transaction/TransactionList';
 import TransactionForm from '@/components/TransactionForm';
 import ReportDownloadDialog from '@/components/ReportDownloadDialog';
+import FinancialReportDialog from '@/components/reports/FinancialReportDialog';
 import { useAuth } from '@/context/AuthContext';
 
 const Transactions = () => {
@@ -26,6 +27,7 @@ const Transactions = () => {
           <ReportDownloadDialog reportType="transactions" />
           <ReportDownloadDialog reportType="reimbursements" />
           <ReportDownloadDialog reportType="period" />
+          <FinancialReportDialog />
         </div>
         
         <div className="grid gap-6 md:grid-cols-3">
