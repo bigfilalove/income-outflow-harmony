@@ -59,7 +59,7 @@ export const transactionCategories = {
   ]
 };
 
-// Список доступных компаний
+// Список доступных компаний (значение по умолчанию)
 export const companies = [
   'ООО "Технологии будущего"',
   'ЗАО "Инновации"',
@@ -69,3 +69,21 @@ export const companies = [
   'ООО "Логистик Плюс"',
   'Другая'
 ];
+
+// Функция для получения актуального списка компаний из локального хранилища
+export const getCompanies = (): string[] => {
+  const storedCompanies = localStorage.getItem('companies');
+  if (storedCompanies) {
+    try {
+      return JSON.parse(storedCompanies);
+    } catch (error) {
+      console.error('Error parsing companies:', error);
+    }
+  }
+  return companies;
+};
+
+// Функция для сохранения списка компаний в локальное хранилище
+export const saveCompanies = (updatedCompanies: string[]): void => {
+  localStorage.setItem('companies', JSON.stringify(updatedCompanies));
+};

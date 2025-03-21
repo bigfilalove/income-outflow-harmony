@@ -1,12 +1,24 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import UsersManagement from '@/components/admin/UsersManagement';
 import PasswordManagement from '@/components/admin/PasswordManagement';
+import CompaniesManagement from '@/components/admin/CompaniesManagement';
+import { getCompanies, saveCompanies } from '@/types/transaction';
 
 const Admin = () => {
   const { users, addUser, removeUser, updateAdminPassword, adminPassword } = useAuth();
+  const [companies, setCompanies] = useState<string[]>([]);
+
+  useEffect(() => {
+    setCompanies(getCompanies());
+  }, []);
+
+  const handleUpdateCompanies = (updatedCompanies: string[]) => {
+    setCompanies(updatedCompanies);
+    saveCompanies(updatedCompanies);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -23,6 +35,13 @@ const Admin = () => {
           <PasswordManagement 
             adminPassword={adminPassword} 
             updateAdminPassword={updateAdminPassword} 
+          />
+        </div>
+        
+        <div className="mt-8">
+          <CompaniesManagement 
+            companies={companies} 
+            updateCompanies={handleUpdateCompanies} 
           />
         </div>
       </main>

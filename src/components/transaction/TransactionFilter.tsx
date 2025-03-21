@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown } from 'lucide-react';
-import { companies } from '@/types/transaction';
+import { getCompanies } from '@/types/transaction';
 
 export type FilterType = 'all' | 'income' | 'expense' | 'reimbursement' | 'pending' | string;
 
@@ -18,6 +18,25 @@ interface TransactionFilterProps {
 }
 
 const TransactionFilter: React.FC<TransactionFilterProps> = ({ setFilter }) => {
+  const [companies, setCompanies] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Загружаем актуальный список компаний
+    setCompanies(getCompanies());
+    
+    // Обновляем список при изменении в localStorage
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'companies') {
+        setCompanies(getCompanies());
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
