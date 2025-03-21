@@ -6,7 +6,21 @@ import { useAuth } from '@/context/AuthContext';
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, currentUser } = useAuth();
+
+  const handleNavigateToApp = () => {
+    if (currentUser) {
+      if (currentUser.role === 'admin') {
+        navigate('/admin');
+      } else if (currentUser.role === 'user') {
+        navigate('/transactions');
+      } else if (currentUser.role === 'basic') {
+        navigate('/basic-transactions');
+      }
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -15,7 +29,7 @@ const Landing = () => {
           <h1 className="text-2xl font-bold">Finance App</h1>
           <div className="space-x-4">
             {isAuthenticated ? (
-              <Button onClick={() => navigate('/transactions')}>
+              <Button onClick={handleNavigateToApp}>
                 Перейти в приложение
               </Button>
             ) : (

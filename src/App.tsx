@@ -22,16 +22,20 @@ import BasicTransactions from './pages/BasicTransactions';
 import FinancialReports from './pages/FinancialReports';
 import AdminLogin from './pages/AdminLogin';
 
+// Создаем QueryClient один раз при загрузке приложения
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 минут
+    },
+  },
+});
+
 function App() {
   const { theme } = useTheme();
   const location = useLocation();
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false,
-      },
-    },
-  });
   
   useEffect(() => {
     // Log the current route
@@ -66,7 +70,7 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/admin" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute requireAdmin={true}>
                       <Admin />
                     </ProtectedRoute>
                   } />

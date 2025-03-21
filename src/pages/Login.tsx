@@ -24,17 +24,24 @@ const Login = () => {
       const success = await loginWithCredentials(username, password);
       if (success) {
         toast.success(`Добро пожаловать!`);
-        // Перенаправляем на страницу транзакций вместо главной
-        if (currentUser?.role === 'admin' || currentUser?.role === 'user') {
-          navigate('/transactions');
-        } else if (currentUser?.role === 'basic') {
-          navigate('/basic-transactions');
-        } else {
-          navigate('/');
-        }
+        
+        // Получаем текущего пользователя снова после успешной аутентификации
+        setTimeout(() => {
+          // Делаем перенаправление с небольшой задержкой, чтобы currentUser успел обновиться
+          if (currentUser?.role === 'admin') {
+            navigate('/admin');
+          } else if (currentUser?.role === 'user') {
+            navigate('/transactions');
+          } else if (currentUser?.role === 'basic') {
+            navigate('/basic-transactions');
+          } else {
+            navigate('/');
+          }
+        }, 100);
       }
     } catch (error) {
       console.error('Login error:', error);
+      toast.error("Ошибка при входе. Проверьте ваши учетные данные.");
     } finally {
       setIsLoading(false);
     }
