@@ -39,7 +39,8 @@ const Register = () => {
         name: formData.name,
         email: formData.email,
         username: formData.username,
-        password: formData.password
+        password: formData.password,
+        role: 'basic' // Add the default role property
       });
       
       if (success) {
