@@ -46,11 +46,17 @@ const KpiChart: React.FC<KpiChartProps> = ({ data }) => {
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="period" />
-          <YAxis />
+          <XAxis 
+            dataKey="period" 
+            padding={{ left: 20, right: 20 }}
+          />
+          <YAxis 
+            domain={['auto', 'auto']}
+            padding={{ top: 20, bottom: 20 }}
+          />
           <ChartTooltip
             content={<ChartTooltipContent />}
           />
@@ -63,6 +69,8 @@ const KpiChart: React.FC<KpiChartProps> = ({ data }) => {
               name={metric}
               stroke={colors[index % colors.length]}
               activeDot={{ r: 8 }}
+              isAnimationActive={false}
+              dot={{ r: 4 }}
             />
           ))}
         </LineChart>
