@@ -63,7 +63,7 @@ const KpiDashboard: React.FC<KpiDashboardProps> = ({ title, kpis, chartData }) =
           <CardHeader>
             <CardTitle>Динамика показателей</CardTitle>
           </CardHeader>
-          <CardContent className="h-96">
+          <CardContent className="h-[400px]">
             <KpiChart data={chartData} />
           </CardContent>
         </Card>

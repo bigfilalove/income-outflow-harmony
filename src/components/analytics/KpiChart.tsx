@@ -33,6 +33,24 @@ const KpiChart: React.FC<KpiChartProps> = ({ data }) => {
     '#3B82F6'  // Blue
   ];
 
+  // Find min and max values for better Y axis scaling
+  const minMaxValues = metrics.reduce((acc, metric) => {
+    const values = data.map(item => Number(item[metric]) || 0);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    
+    if (min < acc.min) acc.min = min;
+    if (max > acc.max) acc.max = max;
+    
+    return acc;
+  }, { min: Infinity, max: -Infinity });
+
+  // Add padding to min/max values for better visualization
+  const yAxisDomain = [
+    minMaxValues.min > 0 ? 0 : minMaxValues.min * 1.1,
+    minMaxValues.max * 1.1
+  ];
+
   return (
     <ChartContainer
       config={{
@@ -46,21 +64,31 @@ const KpiChart: React.FC<KpiChartProps> = ({ data }) => {
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
-          margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis 
             dataKey="period" 
-            padding={{ left: 20, right: 20 }}
+            padding={{ left: 30, right: 30 }}
+            tick={{ fontSize: 12 }}
+            tickMargin={10}
           />
           <YAxis 
-            domain={['auto', 'auto']}
+            domain={yAxisDomain as [number, number]}
             padding={{ top: 20, bottom: 20 }}
+            tick={{ fontSize: 12 }}
+            tickMargin={10}
+            width={50}
           />
           <ChartTooltip
             content={<ChartTooltipContent />}
           />
-          <Legend />
+          <Legend 
+            verticalAlign="top"
+            height={36}
+            iconType="circle"
+            iconSize={8}
+          />
           {metrics.map((metric, index) => (
             <Line
               key={metric}
@@ -68,9 +96,11 @@ const KpiChart: React.FC<KpiChartProps> = ({ data }) => {
               dataKey={metric}
               name={metric}
               stroke={colors[index % colors.length]}
-              activeDot={{ r: 8 }}
+              strokeWidth={2}
+              connectNulls={true}
+              activeDot={{ r: 8, strokeWidth: 1 }}
+              dot={{ r: 4, strokeWidth: 1 }}
               isAnimationActive={false}
-              dot={{ r: 4 }}
             />
           ))}
         </LineChart>
