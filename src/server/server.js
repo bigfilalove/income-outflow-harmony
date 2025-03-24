@@ -1,7 +1,5 @@
-
 // Импорты и настройки
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
@@ -16,16 +14,18 @@ const transactionsRoutes = require('./routes/transactions');
 const predictionsRoutes = require('./routes/predictions');
 const usersRoutes = require('./routes/users');
 const budgetsRoutes = require('./routes/budgets');
+const companiesRoutes = require('./routes/companies');
+const categoriesRoutes = require('./routes/categories'); // Добавляем маршрут для категорий
+
+// Подключение к MongoDB
+const connectDB = require('./config/db');
 
 // Загрузка переменных окружения
 dotenv.config();
 
 // Инициализация Express
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-// Connect to MongoDB
-require('./config/db');
+const PORT = process.env.PORT || 5050;
 
 // Middleware
 app.use(cors());
@@ -38,6 +38,8 @@ app.use('/api/transactions', transactionsRoutes);
 app.use('/api/predictions', predictionsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/budgets', budgetsRoutes);
+app.use('/api/companies', companiesRoutes);
+app.use('/api/categories', categoriesRoutes); // Подключаем маршрут
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -59,10 +61,20 @@ app.use(notFoundHandler);
 // Error handler
 app.use(errorHandler);
 
-// Запуск сервера
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Запуск сервера после подключения к MongoDB
+const startServer = async () => {
+  try {
+    await connectDB();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 // Обработка необработанных отклонений промисов
 process.on('unhandledRejection', (err) => {

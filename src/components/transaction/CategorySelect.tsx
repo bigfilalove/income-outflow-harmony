@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Select,
   SelectContent,
@@ -7,26 +7,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { fetchCategories } from '@/lib';
 
 interface CategorySelectProps {
   value: string;
   onChange: (value: string) => void;
-  categories?: { id: string, name: string }[] | string[];
+  type: 'income' | 'expense' | 'reimbursement'; // Добавляем пропс для фильтрации
 }
 
-const CategorySelect: React.FC<CategorySelectProps> = ({ value, onChange, categories }) => {
-  // Default categories to use if none are provided
-  const defaultCategories = [
-    { id: "1", name: "Зарплата" },
-    { id: "2", name: "Аренда" },
-    { id: "3", name: "Продажи" },
-    { id: "4", name: "Маркетинг" },
-    { id: "5", name: "ИТ" },
-    { id: "6", name: "Офисные расходы" }
-  ];
+const CategorySelect: React.FC<CategorySelectProps> = ({ value, onChange, type }) => {
+  // Загружаем категории через API с фильтрацией по типу
+  const { data: categories, isLoading, error } = useQuery({
+    queryKey: ['categories', type],
+    queryFn: () => fetchCategories(type),
+  });
 
-  // Use provided categories or default to the predefined list
-  const categoriesToUse = categories || defaultCategories;
+  if (isLoading) {
+    return <div>Загрузка категорий...</div>;
+  }
+
+  if (error) {
+    return <div>Ошибка загрузки категорий: {error.message}</div>;
+  }
 
   return (
     <Select value={value} onValueChange={onChange}>
@@ -34,22 +36,11 @@ const CategorySelect: React.FC<CategorySelectProps> = ({ value, onChange, catego
         <SelectValue placeholder="Выберите категорию" />
       </SelectTrigger>
       <SelectContent>
-        {Array.isArray(categoriesToUse) && categoriesToUse.map((category, index) => {
-          // Handle both object format and string format
-          if (typeof category === 'string') {
-            return (
-              <SelectItem key={index} value={category}>
-                {category}
-              </SelectItem>
-            );
-          } else {
-            return (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
-              </SelectItem>
-            );
-          }
-        })}
+        {categories?.map((category) => (
+          <SelectItem key={category.id} value={category.name}>
+            {category.name}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );

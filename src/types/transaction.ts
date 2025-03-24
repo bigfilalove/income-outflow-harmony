@@ -34,32 +34,6 @@ export interface ServerTransaction {
   project: string | null;
 }
 
-export const transactionCategories = {
-  income: [
-    'Продажи',
-    'Инвестиции',
-    'Возврат средств',
-    'Кредиты',
-    'Другое'
-  ],
-  expense: [
-    'Аренда',
-    'Зарплаты',
-    'Оборудование',
-    'Маркетинг',
-    'Коммунальные услуги',
-    'Налоги',
-    'Другое'
-  ],
-  reimbursement: [
-    'Транспорт',
-    'Командировки',
-    'Оборудование',
-    'Канцелярия',
-    'Клиентские встречи',
-    'Другое'
-  ]
-};
 
 export interface CategoryList {
   income: string[];
@@ -67,25 +41,6 @@ export interface CategoryList {
   reimbursement: string[];
 }
 
-export const companies = [
-  'ООО "Технологии будущего"',
-  'ЗАО "Инновации"',
-  'ИП Иванов',
-  'ООО "Строй-Мастер"',
-  'ООО "Финансовые решения"',
-  'ООО "Логистик Плюс"',
-  'Другая'
-];
-
-export const projects = [
-  'Разработка сайта',
-  'Мобильное приложение',
-  'Редизайн',
-  'Маркетинговая кампания',
-  'Исследование рынка',
-  'Внутренняя автоматизация',
-  'Другой'
-];
 
 const dispatchCompaniesUpdated = () => {
   window.dispatchEvent(new Event('companiesUpdated'));

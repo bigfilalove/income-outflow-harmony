@@ -1,30 +1,29 @@
-
 import React, { useState } from 'react';
-import { 
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle 
+  CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Transaction, TransactionType, transactionCategories } from '@/types/transaction';
-import { useTransactions } from '@/context/transaction';
+import { createTransaction } from '@/lib';
 import TransactionTypeTabs from '@/components/transaction/TransactionTypeTabs';
 import TransactionDatePicker from '@/components/transaction/TransactionDatePicker';
 import ReimbursementFields from '@/components/transaction/ReimbursementFields';
 import CreatorField from '@/components/transaction/CreatorField';
-import CategorySelect from '@/components/transaction/CategorySelect';
-import CompanySelect from '@/components/transaction/CompanySelect';
+import CategorySelect from '@/components/CategorySelect'; // Обновлённый компонент
+import CompanySelect from '@/components/CompanySelect'; // Обновлённый компонент
 import ProjectSelect from '@/components/transaction/ProjectSelect';
-import { toast } from "sonner";
+import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
 const TransactionForm: React.FC = () => {
-  const { addTransaction } = useTransactions();
-  const [transactionType, setTransactionType] = useState<TransactionType>('income');
+  const queryClient = useQueryClient();
+  const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -36,45 +35,15 @@ const TransactionForm: React.FC = () => {
   const [project, setProject] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleTransactionTypeChange = (type: TransactionType) => {
-    setTransactionType(type);
-    setIsReimbursement(false); // Reset reimbursement when changing type
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!amount || !description || !category) {
-      toast("Ошибка", {
-        description: "Пожалуйста, заполните все обязательные поля"
+  // Мутация для добавления транзакции
+  const mutation = useMutation({
+    mutationFn: createTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['transactions']);
+      toast("Транзакция добавлена", {
+        description: "Транзакция успешно добавлена.",
       });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    const transaction: Omit<Transaction, 'id'> = {
-      amount: parseFloat(amount),
-      description,
-      category,
-      date,
-      type: transactionType,
-      createdBy: createdBy.trim() || undefined,
-      company: company || undefined,
-      project: project || undefined,
-    };
-
-    // Add reimbursement fields if it's a reimbursement
-    if (transactionType === 'expense' && isReimbursement) {
-      transaction.isReimbursement = true;
-      transaction.reimbursedTo = reimbursedTo;
-      transaction.reimbursementStatus = 'pending';
-    }
-
-    try {
-      await addTransaction(transaction);
-      
-      // Reset form
+      // Сброс формы
       setAmount('');
       setDescription('');
       setCategory('');
@@ -84,14 +53,54 @@ const TransactionForm: React.FC = () => {
       setCreatedBy('');
       setCompany('');
       setProject('');
-    } catch (error) {
-      console.error("Error adding transaction:", error);
-    } finally {
+    },
+    onError: (error) => {
+      toast("Ошибка", {
+        description: `Не удалось добавить транзакцию: ${error.message}`,
+      });
+    },
+    onSettled: () => {
       setIsSubmitting(false);
-    }
+    },
+  });
+
+  const handleTransactionTypeChange = (type: 'income' | 'expense') => {
+    setTransactionType(type);
+    setIsReimbursement(false); // Сбрасываем возмещение при смене типа
   };
 
-  const categories = transactionCategories[transactionType];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!amount || !description || !category) {
+      toast("Ошибка", {
+        description: "Пожалуйста, заполните все обязательные поля",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const transaction = {
+      amount: parseFloat(amount),
+      description,
+      category,
+      date,
+      type: transactionType,
+      createdBy: createdBy.trim() || undefined,
+      company: company || undefined,
+      project: project || undefined,
+      isReimbursement: transactionType === 'expense' && isReimbursement ? true : false,
+      reimbursedTo: transactionType === 'expense' && isReimbursement ? reimbursedTo : undefined,
+      reimbursementStatus: transactionType === 'expense' && isReimbursement ? 'pending' : undefined,
+      createdAt: new Date(),
+    };
+
+    mutation.mutate(transaction);
+  };
+
+  // Определяем тип для CategorySelect
+  const categoryType = isReimbursement ? 'reimbursement' : transactionType;
 
   return (
     <Card className="animate-slideUp">
@@ -101,21 +110,24 @@ const TransactionForm: React.FC = () => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <TransactionTypeTabs 
+          <TransactionTypeTabs
             value={transactionType}
             onChange={handleTransactionTypeChange}
           />
-          
+
           <div className="space-y-4">
-            <CreatorField 
+            <CreatorField
               value={createdBy}
               onChange={setCreatedBy}
             />
 
-            <CompanySelect
-              value={company}
-              onChange={setCompany}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="company">Компания</Label>
+              <CompanySelect
+                value={company}
+                onChange={setCompany}
+              />
+            </div>
 
             <ProjectSelect
               value={project}
@@ -133,7 +145,7 @@ const TransactionForm: React.FC = () => {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="description">Описание</Label>
               <Input
@@ -144,30 +156,33 @@ const TransactionForm: React.FC = () => {
                 required
               />
             </div>
-            
-            <CategorySelect 
-              categories={categories}
-              value={category}
-              onChange={setCategory}
-            />
-            
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Категория</Label>
+              <CategorySelect
+                value={category}
+                onChange={setCategory}
+                type={categoryType} // Передаём тип для фильтрации
+              />
+            </div>
+
             {transactionType === 'expense' && (
-              <ReimbursementFields 
+              <ReimbursementFields
                 isReimbursement={isReimbursement}
                 onReimbursementChange={setIsReimbursement}
                 reimbursedTo={reimbursedTo}
                 onReimbursedToChange={setReimbursedTo}
               />
             )}
-            
-            <TransactionDatePicker 
+
+            <TransactionDatePicker
               date={date}
               onDateChange={(newDate) => newDate && setDate(newDate)}
             />
           </div>
-          
-          <Button 
-            type="submit" 
+
+          <Button
+            type="submit"
             className="w-full"
             variant={transactionType === 'income' ? 'default' : 'outline'}
             disabled={isSubmitting}
@@ -177,12 +192,12 @@ const TransactionForm: React.FC = () => {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Добавление...
               </>
+            ) : isReimbursement ? (
+              'Добавить возмещение'
+            ) : transactionType === 'income' ? (
+              'Добавить доход'
             ) : (
-              transactionType === 'reimbursement' 
-                ? 'Добавить возмещение' 
-                : transactionType === 'income' 
-                  ? 'Добавить доход' 
-                  : 'Добавить расход'
+              'Добавить расход'
             )}
           </Button>
         </form>
