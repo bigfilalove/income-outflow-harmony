@@ -1,58 +1,106 @@
-
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Edit, Trash, Check, X } from 'lucide-react';
-import { companies as defaultCompanies } from '@/types/transaction';
+import { fetchCompanies, createCompany, updateCompany, deleteCompany } from '@/lib';
+import { toast } from 'sonner';
 
 interface CompaniesManagementProps {
-  companies: string[];
-  updateCompanies: (companies: string[]) => void;
+  updateCompanies?: () => void;
 }
 
-const CompaniesManagement: React.FC<CompaniesManagementProps> = ({ 
-  companies, 
-  updateCompanies 
-}) => {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+const CompaniesManagement: React.FC<CompaniesManagementProps> = ({ updateCompanies }) => {
+  const queryClient = useQueryClient();
+  const [editingCompany, setEditingCompany] = useState<{ id: string, name: string } | null>(null);
   const [newCompany, setNewCompany] = useState('');
-  const [editCompany, setEditCompany] = useState('');
+
+  // Загружаем компании
+  const { data: companies, isLoading, error } = useQuery({
+    queryKey: ['companies'],
+    queryFn: fetchCompanies,
+  });
+
+  // Мутация для добавления компании
+  const createMutation = useMutation({
+    mutationFn: (name: string) => createCompany(name),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['companies']);
+      setNewCompany('');
+      toast("Компания добавлена", {
+        description: `Новая компания "${newCompany.trim()}" добавлена успешно.`,
+      });
+      if (updateCompanies) updateCompanies();
+    },
+    onError: (error) => {
+      toast("Ошибка", {
+        description: `Не удалось добавить компанию: ${error.message}`,
+      });
+    },
+  });
+
+  // Мутация для обновления компании
+  const updateMutation = useMutation({
+    mutationFn: ({ id, name }: { id: string, name: string }) => updateCompany(id, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['companies']);
+      setEditingCompany(null);
+      toast("Компания обновлена", {
+        description: "Изменения компании сохранены успешно.",
+      });
+      if (updateCompanies) updateCompanies();
+    },
+    onError: (error) => {
+      toast("Ошибка", {
+        description: `Не удалось обновить компанию: ${error.message}`,
+      });
+    },
+  });
+
+  // Мутация для удаления компании
+  const deleteMutation = useMutation({
+    mutationFn: deleteCompany,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['companies']);
+      toast("Компания удалена", {
+        description: "Компания была успешно удалена.",
+      });
+      if (updateCompanies) updateCompanies();
+    },
+    onError: (error) => {
+      toast("Ошибка", {
+        description: `Не удалось удалить компанию: ${error.message}`,
+      });
+    },
+  });
 
   const handleAddCompany = () => {
-    if (newCompany.trim() && !companies.includes(newCompany.trim())) {
-      updateCompanies([...companies, newCompany.trim()]);
-      setNewCompany('');
+    if (newCompany.trim() && !companies?.some(company => company.name === newCompany.trim())) {
+      createMutation.mutate(newCompany.trim());
     }
   };
 
-  const handleStartEdit = (index: number) => {
-    setEditingIndex(index);
-    setEditCompany(companies[index]);
+  const handleStartEdit = (company: { id: string, name: string }) => {
+    setEditingCompany(company);
   };
 
   const handleCancelEdit = () => {
-    setEditingIndex(null);
-    setEditCompany('');
+    setEditingCompany(null);
   };
 
-  const handleSaveEdit = (index: number) => {
-    if (editCompany.trim() && !companies.includes(editCompany.trim())) {
-      const updatedCompanies = [...companies];
-      updatedCompanies[index] = editCompany.trim();
-      updateCompanies(updatedCompanies);
+  const handleSaveEdit = () => {
+    if (editingCompany && editingCompany.name.trim() && !companies?.some(company => company.name === editingCompany.name.trim() && company.id !== editingCompany.id)) {
+      updateMutation.mutate({ id: editingCompany.id, name: editingCompany.name.trim() });
     }
-    setEditingIndex(null);
   };
 
-  const handleRemoveCompany = (index: number) => {
-    const updatedCompanies = companies.filter((_, i) => i !== index);
-    updateCompanies(updatedCompanies);
+  const handleRemoveCompany = (id: string) => {
+    deleteMutation.mutate(id);
   };
 
-  const handleResetToDefault = () => {
-    updateCompanies([...defaultCompanies]);
-  };
+  if (isLoading) return <div>Загрузка...</div>;
+  if (error) return <div>Ошибка: {error.message}</div>;
 
   return (
     <Card>
@@ -73,37 +121,37 @@ const CompaniesManagement: React.FC<CompaniesManagementProps> = ({
           </Button>
         </div>
 
+        {editingCompany && (
+          <div className="flex items-center space-x-2">
+            <Input
+              value={editingCompany.name}
+              onChange={(e) => setEditingCompany({ ...editingCompany, name: e.target.value })}
+              className="flex-1"
+            />
+            <Button onClick={handleSaveEdit} size="sm">
+              <Check className="mr-1" size={16} />
+              Сохранить
+            </Button>
+            <Button variant="outline" onClick={handleCancelEdit} size="sm">
+              <X className="mr-1" size={16} />
+              Отмена
+            </Button>
+          </div>
+        )}
+
         <div className="border rounded-md divide-y">
-          {companies.length > 0 ? (
-            companies.map((company, index) => (
-              <div key={index} className="flex items-center justify-between p-3">
-                {editingIndex === index ? (
-                  <div className="flex items-center space-x-2 flex-1">
-                    <Input
-                      value={editCompany}
-                      onChange={(e) => setEditCompany(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button variant="ghost" size="sm" onClick={() => handleSaveEdit(index)}>
-                      <Check size={16} />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
-                      <X size={16} />
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <span>{company}</span>
-                    <div>
-                      <Button variant="ghost" size="sm" onClick={() => handleStartEdit(index)}>
-                        <Edit size={16} />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleRemoveCompany(index)}>
-                        <Trash size={16} />
-                      </Button>
-                    </div>
-                  </>
-                )}
+          {companies?.length > 0 ? (
+            companies.map((company) => (
+              <div key={company.id} className="flex items-center justify-between p-3">
+                <span>{company.name}</span>
+                <div>
+                  <Button variant="ghost" size="sm" onClick={() => handleStartEdit(company)}>
+                    <Edit size={16} />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleRemoveCompany(company.id)}>
+                    <Trash size={16} />
+                  </Button>
+                </div>
               </div>
             ))
           ) : (
@@ -112,12 +160,6 @@ const CompaniesManagement: React.FC<CompaniesManagementProps> = ({
             </div>
           )}
         </div>
-
-        {companies.length > 0 && (
-          <Button variant="outline" onClick={handleResetToDefault} className="w-full">
-            Сбросить к значениям по умолчанию
-          </Button>
-        )}
       </CardContent>
     </Card>
   );

@@ -12,10 +12,13 @@ export const loginUser = async (username: string, password: string): Promise<{ u
     });
     
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Login response not OK:', response.status, errorText);
       throw new Error('Login failed');
     }
     
     const data = await response.json();
+    console.log('Login response data:', data); // Добавляем отладку
     
     // Store token in localStorage
     localStorage.setItem('finance-tracker-token', data.token);

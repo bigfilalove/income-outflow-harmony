@@ -1,33 +1,40 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-  },
-  plugins: [
-    react(),
-    mode === 'development' &&
-    componentTagger(),
-  ].filter(Boolean),
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+export default defineConfig(async ({ mode }) => {
+  let componentTagger;
+  if (mode === 'development') {
+    const { componentTagger: tagger } = await import("lovable-tagger");
+    componentTagger = tagger;
+  }
+
+  return {
+    server: {
+      host: "::",
+      port: 8080,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:5050',
+          changeOrigin: true,
+          // Удаляем rewrite, чтобы сохранить префикс /api
+        },
+      },
     },
-  },
-  // Base path configuration for deployment flexibility
-  base: './',
-  build: {
-    // Output directory for production build
-    outDir: 'dist',
-    // Generate source maps for easier debugging
-    sourcemap: true,
-    // Optimize chunk size for better performance
-    chunkSizeWarningLimit: 1000,
-  },
-}));
+    plugins: [
+      react(),
+      mode === 'development' && componentTagger && componentTagger(),
+    ].filter(Boolean),
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
+    },
+    base: './',
+    build: {
+      outDir: 'dist',
+      sourcemap: true,
+      chunkSizeWarningLimit: 1000,
+    },
+  };
+});

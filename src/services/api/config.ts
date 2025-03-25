@@ -2,7 +2,7 @@
 // Base API configuration and utilities
 
 // API base URL (uses the Express server instead of json-server)
-export const API_URL = 'http://localhost:3001';
+export const API_URL = '/api';
 
 // Get token from localStorage
 export const getToken = (): string | null => {
