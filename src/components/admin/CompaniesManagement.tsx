@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Edit, Trash, Check, X } from 'lucide-react';
-import { fetchCompanies, createCompany, updateCompany, deleteCompany } from '@/lib';
+import { fetchCompanies, createCompany, updateCompany, deleteCompany } from '@/lib/companies';
 import { toast } from 'sonner';
 
 interface CompaniesManagementProps {
@@ -100,7 +100,7 @@ const CompaniesManagement: React.FC<CompaniesManagementProps> = ({ updateCompani
   };
 
   if (isLoading) return <div>Загрузка...</div>;
-  if (error) return <div>Ошибка: {error.message}</div>;
+  if (error) return <div>Ошибк��: {error.message}</div>;
 
   return (
     <Card>
