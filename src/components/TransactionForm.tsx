@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -10,13 +11,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { createTransaction } from '@/lib';
+import { createTransaction } from '@/services/api';
 import TransactionTypeTabs from '@/components/transaction/TransactionTypeTabs';
 import TransactionDatePicker from '@/components/transaction/TransactionDatePicker';
 import ReimbursementFields from '@/components/transaction/ReimbursementFields';
 import CreatorField from '@/components/transaction/CreatorField';
-import CategorySelect from '@/components/CategorySelect'; // Обновлённый компонент
-import CompanySelect from '@/components/CompanySelect'; // Обновлённый компонент
+import CategorySelect from '@/components/transaction/CategorySelect'; // Fixed import path
+import CompanySelect from '@/components/transaction/CompanySelect'; // Fixed import path
 import ProjectSelect from '@/components/transaction/ProjectSelect';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -39,7 +40,7 @@ const TransactionForm: React.FC = () => {
   const mutation = useMutation({
     mutationFn: createTransaction,
     onSuccess: () => {
-      queryClient.invalidateQueries(['transactions']);
+      queryClient.invalidateQueries({ queryKey: ['transactions'] }); // Fixed the queryKey format
       toast("Транзакция добавлена", {
         description: "Транзакция успешно добавлена.",
       });

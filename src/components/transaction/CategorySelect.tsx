@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -7,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchCategories } from '@/lib';
+import { fetchCategories } from '@/lib/categories';
 
 interface CategorySelectProps {
   value: string;

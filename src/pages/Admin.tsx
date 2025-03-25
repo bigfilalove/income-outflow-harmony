@@ -19,9 +19,11 @@ const Admin = () => {
     setProjects(getProjects());
   }, []);
 
-  const handleUpdateCompanies = (updatedCompanies: string[]) => {
-    setCompanies(updatedCompanies);
-    saveCompanies(updatedCompanies);
+  const handleUpdateCompanies = () => {
+    // This function no longer needs parameters as we're using the API now
+    // The API will handle storing and retrieving companies
+    // We'll just trigger a refresh if needed
+    console.log("Companies updated through API");
   };
 
   const handleUpdateProjects = (updatedProjects: string[]) => {
@@ -49,7 +51,6 @@ const Admin = () => {
         
         <div className="grid gap-6 md:grid-cols-2 mt-8">
           <CompaniesManagement 
-            companies={companies} 
             updateCompanies={handleUpdateCompanies} 
           />
           <ProjectsManagement

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -7,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchCompanies } from '@/lib';
+import { fetchCompanies } from '@/lib/companies';
 
 interface CompanySelectProps {
   value: string;
@@ -35,7 +36,7 @@ const CompanySelect: React.FC<CompanySelectProps> = ({ value, onChange }) => {
         <SelectValue placeholder="Выберите компанию" />
       </SelectTrigger>
       <SelectContent>
-        {companies?.map((company) => (
+        {companies && companies.map((company) => (
           <SelectItem key={company.id} value={company.name}>
             {company.name}
           </SelectItem>

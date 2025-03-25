@@ -26,7 +26,7 @@ const CompaniesManagement: React.FC<CompaniesManagementProps> = ({ updateCompani
   const createMutation = useMutation({
     mutationFn: (name: string) => createCompany(name),
     onSuccess: () => {
-      queryClient.invalidateQueries(['companies']);
+      queryClient.invalidateQueries({ queryKey: ['companies'] });
       setNewCompany('');
       toast("Компания добавлена", {
         description: `Новая компания "${newCompany.trim()}" добавлена успешно.`,
@@ -44,7 +44,7 @@ const CompaniesManagement: React.FC<CompaniesManagementProps> = ({ updateCompani
   const updateMutation = useMutation({
     mutationFn: ({ id, name }: { id: string, name: string }) => updateCompany(id, name),
     onSuccess: () => {
-      queryClient.invalidateQueries(['companies']);
+      queryClient.invalidateQueries({ queryKey: ['companies'] });
       setEditingCompany(null);
       toast("Компания обновлена", {
         description: "Изменения компании сохранены успешно.",
@@ -62,7 +62,7 @@ const CompaniesManagement: React.FC<CompaniesManagementProps> = ({ updateCompani
   const deleteMutation = useMutation({
     mutationFn: deleteCompany,
     onSuccess: () => {
-      queryClient.invalidateQueries(['companies']);
+      queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast("Компания удалена", {
         description: "Компания была успешно удалена.",
       });
@@ -100,7 +100,7 @@ const CompaniesManagement: React.FC<CompaniesManagementProps> = ({ updateCompani
   };
 
   if (isLoading) return <div>Загрузка...</div>;
-  if (error) return <div>Ошибк��: {error.message}</div>;
+  if (error) return <div>Ошибка: {error.message}</div>;
 
   return (
     <Card>

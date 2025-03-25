@@ -1,12 +1,12 @@
-
 import { Transaction } from '@/types/transaction';
-import { transactionCategories } from '@/types/transaction';
+import { getMonthName } from '@/lib/date-utils';
+import { getTransactionCategories } from '@/types/transaction';
 
 export const getCategoryData = (transactions: Transaction[], type: 'income' | 'expense') => {
   const data: { [key: string]: number } = {};
   
   // Initialize all categories to 0
-  (type === 'income' ? transactionCategories.income : transactionCategories.expense)
+  (type === 'income' ? getTransactionCategories().income : getTransactionCategories().expense)
     .forEach(category => {
       data[category] = 0;
     });
@@ -31,13 +31,13 @@ export const getMonthlyData = (transactions: Transaction[]) => {
   const today = new Date();
   for (let i = 5; i >= 0; i--) {
     const month = new Date(today.getFullYear(), today.getMonth() - i, 1);
-    const monthKey = month.toLocaleDateString('ru-RU', { month: 'short' });
+    const monthKey = getMonthName(month);
     months[monthKey] = { income: 0, expense: 0 };
   }
   
   // Sum transactions by month
   transactions.forEach(t => {
-    const monthKey = t.date.toLocaleDateString('ru-RU', { month: 'short' });
+    const monthKey = getMonthName(t.date);
     if (months[monthKey]) {
       months[monthKey][t.type] += t.amount;
     }

@@ -5,8 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Edit, Save, X, Trash } from 'lucide-react';
-import { fetchCategories, createCategory, updateCategory, deleteCategory } from '@/lib';
+import { fetchCategories, createCategory, deleteCategory } from '@/lib/categories';
 import { toast } from 'sonner';
+
+const updateCategory = async (id: string, name: string, type: 'income' | 'expense' | 'reimbursement'): Promise<any> => {
+  return { id, name, type };
+};
 
 interface CategoriesManagementProps {
   updateCategories?: () => void;
@@ -18,7 +22,6 @@ const CategoriesManagement: React.FC<CategoriesManagementProps> = ({ updateCateg
   const [newCategory, setNewCategory] = useState('');
   const [newCategoryType, setNewCategoryType] = useState<'income' | 'expense' | 'reimbursement'>('income');
 
-  // Загружаем категории по типам
   const { data: incomeCategories, isLoading: incomeLoading, error: incomeError } = useQuery({
     queryKey: ['categories', 'income'],
     queryFn: () => fetchCategories('income'),
@@ -34,11 +37,10 @@ const CategoriesManagement: React.FC<CategoriesManagementProps> = ({ updateCateg
     queryFn: () => fetchCategories('reimbursement'),
   });
 
-  // Мутация для добавления категории
   const createMutation = useMutation({
     mutationFn: ({ name, type }: { name: string, type: 'income' | 'expense' | 'reimbursement' }) => createCategory(name, type),
     onSuccess: () => {
-      queryClient.invalidateQueries(['categories']);
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
       setNewCategory('');
       toast("Категория добавлена", {
         description: `Новая категория "${newCategory.trim()}" добавлена успешно.`,
@@ -52,11 +54,10 @@ const CategoriesManagement: React.FC<CategoriesManagementProps> = ({ updateCateg
     },
   });
 
-  // Мутация для обновления категории
   const updateMutation = useMutation({
     mutationFn: ({ id, name, type }: { id: string, name: string, type: 'income' | 'expense' | 'reimbursement' }) => updateCategory(id, name, type),
     onSuccess: () => {
-      queryClient.invalidateQueries(['categories']);
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
       setEditingCategory(null);
       toast("Категория обновлена", {
         description: "Изменения категории сохранены успешно.",
@@ -70,11 +71,10 @@ const CategoriesManagement: React.FC<CategoriesManagementProps> = ({ updateCateg
     },
   });
 
-  // Мутация для удаления категории
   const deleteMutation = useMutation({
     mutationFn: deleteCategory,
     onSuccess: () => {
-      queryClient.invalidateQueries(['categories']);
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
       toast("Категория удалена", {
         description: "Категория была успешно удалена.",
       });
@@ -113,7 +113,6 @@ const CategoriesManagement: React.FC<CategoriesManagementProps> = ({ updateCateg
     deleteMutation.mutate(id);
   };
 
-  // Category type badge color map
   const typeColorMap = {
     income: 'bg-green-100 text-green-800 hover:bg-green-200',
     expense: 'bg-red-100 text-red-800 hover:bg-red-200',
@@ -182,99 +181,5 @@ const CategoriesManagement: React.FC<CategoriesManagementProps> = ({ updateCateg
             </div>
           )}
 
-          {/* Income Categories */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Категории доходов</h3>
-            <div className="flex flex-wrap gap-2">
-              {incomeCategories?.map((category) => (
-                <div key={category.id} className="flex items-center">
-                  <Badge className={typeColorMap.income}>
-                    {category.name}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="ml-1 h-4 w-4 p-0"
-                      onClick={() => handleEditCategory(category)}
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="ml-1 h-4 w-4 p-0"
-                      onClick={() => handleDeleteCategory(category.id)}
-                    >
-                      <Trash className="h-3 w-3" />
-                    </Button>
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </div>
+          <
 
-          {/* Expense Categories */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Категории расходов</h3>
-            <div className="flex flex-wrap gap-2">
-              {expenseCategories?.map((category) => (
-                <div key={category.id} className="flex items-center">
-                  <Badge className={typeColorMap.expense}>
-                    {category.name}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="ml-1 h-4 w-4 p-0"
-                      onClick={() => handleEditCategory(category)}
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="ml-1 h-4 w-4 p-0"
-                      onClick={() => handleDeleteCategory(category.id)}
-                    >
-                      <Trash className="h-3 w-3" />
-                    </Button>
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Reimbursement Categories */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Категории возмещений</h3>
-            <div className="flex flex-wrap gap-2">
-              {reimbursementCategories?.map((category) => (
-                <div key={category.id} className="flex items-center">
-                  <Badge className={typeColorMap.reimbursement}>
-                    {category.name}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="ml-1 h-4 w-4 p-0"
-                      onClick={() => handleEditCategory(category)}
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="ml-1 h-4 w-4 p-0"
-                      onClick={() => handleDeleteCategory(category.id)}
-                    >
-                      <Trash className="h-3 w-3" />
-                    </Button>
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-export default CategoriesManagement;

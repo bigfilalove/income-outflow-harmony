@@ -1,3 +1,4 @@
+
 export type TransactionType = 'income' | 'expense' | 'reimbursement';
 export type ReimbursementStatus = 'pending' | 'completed';
 
@@ -41,6 +42,14 @@ export interface CategoryList {
   reimbursement: string[];
 }
 
+// Default values for empty lists
+const defaultCompanies: string[] = [];
+const defaultProjects: string[] = [];
+const defaultTransactionCategories: CategoryList = {
+  income: [],
+  expense: [],
+  reimbursement: []
+};
 
 const dispatchCompaniesUpdated = () => {
   window.dispatchEvent(new Event('companiesUpdated'));
@@ -63,7 +72,7 @@ export const getCompanies = (): string[] => {
       console.error('Error parsing companies:', error);
     }
   }
-  return companies;
+  return defaultCompanies;
 };
 
 export const saveCompanies = (updatedCompanies: string[]): void => {
@@ -80,7 +89,7 @@ export const getTransactionCategories = (): CategoryList => {
       console.error('Error parsing categories:', error);
     }
   }
-  return transactionCategories;
+  return defaultTransactionCategories;
 };
 
 export const saveCategories = (updatedCategories: CategoryList): void => {
@@ -97,7 +106,7 @@ export const getProjects = (): string[] => {
       console.error('Error parsing projects:', error);
     }
   }
-  return projects;
+  return defaultProjects;
 };
 
 export const saveProjects = (updatedProjects: string[]): void => {
