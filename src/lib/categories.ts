@@ -3,6 +3,7 @@ import { createAuthHeaders } from './config';
 
 export interface Category {
   id: string;
+  _id?: string; // Add optional _id field for MongoDB compatibility
   name: string;
   type: 'income' | 'expense' | 'reimbursement';
   createdAt: Date;
@@ -14,7 +15,7 @@ export const fetchCategories = async (type?: 'income' | 'expense' | 'reimburseme
     const query = type ? `?type=${type}` : '';
     const data = await get<Category[]>(`/categories${query}`);
     return data.map(category => ({
-      id: category.id || category._id,
+      id: category.id || category._id || '',
       name: category.name,
       type: category.type,
       createdAt: new Date(category.createdAt),

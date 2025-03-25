@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -42,7 +41,6 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
   const [project, setProject] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Load transaction data when dialog opens
   useEffect(() => {
     if (transaction) {
       setTransactionType(transaction.type as TransactionType);
@@ -84,11 +82,9 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
       project: project || undefined,
     };
     
-    // Add reimbursement fields if it's a reimbursement
     if (transactionType === 'expense' && isReimbursement) {
       updatedTransaction.isReimbursement = true;
       updatedTransaction.reimbursedTo = reimbursedTo;
-      // Keep the same status unless it's a new reimbursement
       if (!transaction.isReimbursement) {
         updatedTransaction.reimbursementStatus = 'pending';
       }
@@ -107,6 +103,8 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
       setIsSubmitting(false);
     }
   };
+  
+  const categoryType = isReimbursement ? 'reimbursement' : transactionType;
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -160,9 +158,9 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
             </div>
             
             <CategorySelect 
-              categories={transactionType === 'income' ? [] : []}
               value={category}
               onChange={setCategory}
+              type={categoryType}
             />
             
             {transactionType === 'expense' && (

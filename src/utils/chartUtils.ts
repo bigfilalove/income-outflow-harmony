@@ -1,6 +1,12 @@
+
 import { Transaction } from '@/types/transaction';
-import { getMonthName } from '@/lib/date-utils';
+import { getMonthNameShort } from '@/lib/date-utils'; // Using getMonthNameShort instead
 import { getTransactionCategories } from '@/types/transaction';
+
+// Helper function to get month name - using the existing getMonthNameShort function
+const getMonthName = (date: Date): string => {
+  return getMonthNameShort(date.getMonth());
+};
 
 export const getCategoryData = (transactions: Transaction[], type: 'income' | 'expense') => {
   const data: { [key: string]: number } = {};

@@ -16,11 +16,12 @@ import TransactionTypeTabs from '@/components/transaction/TransactionTypeTabs';
 import TransactionDatePicker from '@/components/transaction/TransactionDatePicker';
 import ReimbursementFields from '@/components/transaction/ReimbursementFields';
 import CreatorField from '@/components/transaction/CreatorField';
-import CategorySelect from '@/components/transaction/CategorySelect'; // Fixed import path
-import CompanySelect from '@/components/transaction/CompanySelect'; // Fixed import path
+import CategorySelect from '@/components/transaction/CategorySelect';
+import CompanySelect from '@/components/transaction/CompanySelect';
 import ProjectSelect from '@/components/transaction/ProjectSelect';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { TransactionType, ReimbursementStatus } from '@/types/transaction';
 
 const TransactionForm: React.FC = () => {
   const queryClient = useQueryClient();
@@ -40,7 +41,7 @@ const TransactionForm: React.FC = () => {
   const mutation = useMutation({
     mutationFn: createTransaction,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] }); // Fixed the queryKey format
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
       toast("Транзакция добавлена", {
         description: "Транзакция успешно добавлена.",
       });
@@ -93,7 +94,7 @@ const TransactionForm: React.FC = () => {
       project: project || undefined,
       isReimbursement: transactionType === 'expense' && isReimbursement ? true : false,
       reimbursedTo: transactionType === 'expense' && isReimbursement ? reimbursedTo : undefined,
-      reimbursementStatus: transactionType === 'expense' && isReimbursement ? 'pending' : undefined,
+      reimbursementStatus: transactionType === 'expense' && isReimbursement ? 'pending' as ReimbursementStatus : undefined,
       createdAt: new Date(),
     };
 

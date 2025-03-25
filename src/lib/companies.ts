@@ -3,6 +3,7 @@ import { createAuthHeaders } from './config';
 
 export interface Company {
   id: string;
+  _id?: string; // Add optional _id field for MongoDB compatibility
   name: string;
   createdAt: Date;
 }
@@ -12,7 +13,7 @@ export const fetchCompanies = async (): Promise<Company[]> => {
   try {
     const data = await get<Company[]>('/companies');
     return data.map(company => ({
-      id: company.id || company._id,
+      id: company.id || company._id || '',
       name: company.name,
       createdAt: new Date(company.createdAt),
     }));
