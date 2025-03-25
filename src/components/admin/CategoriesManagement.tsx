@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Edit, Save, X, Trash } from 'lucide-react';
-import { fetchCategories, createCategory, deleteCategory } from '@/lib/categories';
+import { fetchCategories, createCategory, deleteCategory } from '@/lib';
 import { toast } from 'sonner';
 
 const updateCategory = async (id: string, name: string, type: 'income' | 'expense' | 'reimbursement'): Promise<any> => {
@@ -181,5 +182,74 @@ const CategoriesManagement: React.FC<CategoriesManagementProps> = ({ updateCateg
             </div>
           )}
 
-          <
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Income Categories */}
+            <div className="space-y-4">
+              <h3 className="font-medium">Доходы</h3>
+              {incomeCategories?.map((category) => (
+                <div key={category.id} className="flex items-center justify-between gap-2 rounded-md border p-2">
+                  <div className="flex items-center gap-2">
+                    <Badge className={typeColorMap.income}>Доход</Badge>
+                    <span>{category.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => handleEditCategory(category)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteCategory(category.id)}>
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
 
+            {/* Expense Categories */}
+            <div className="space-y-4">
+              <h3 className="font-medium">Расходы</h3>
+              {expenseCategories?.map((category) => (
+                <div key={category.id} className="flex items-center justify-between gap-2 rounded-md border p-2">
+                  <div className="flex items-center gap-2">
+                    <Badge className={typeColorMap.expense}>Расход</Badge>
+                    <span>{category.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => handleEditCategory(category)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteCategory(category.id)}>
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Reimbursement Categories */}
+            <div className="space-y-4">
+              <h3 className="font-medium">Возмещения</h3>
+              {reimbursementCategories?.map((category) => (
+                <div key={category.id} className="flex items-center justify-between gap-2 rounded-md border p-2">
+                  <div className="flex items-center gap-2">
+                    <Badge className={typeColorMap.reimbursement}>Возмещение</Badge>
+                    <span>{category.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => handleEditCategory(category)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteCategory(category.id)}>
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default CategoriesManagement;
