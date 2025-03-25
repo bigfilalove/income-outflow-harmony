@@ -1,4 +1,4 @@
-
+// context/TransactionProvider.tsx
 import React, { createContext } from 'react';
 import { Transaction } from '@/types/transaction';
 import { toast } from "sonner";
@@ -53,16 +53,49 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return transactions.find(t => t.id === id);
   };
 
+  // Fetch categories statistics
+  const getCategoriesStats = async (): Promise<Record<string, { category: string; count: number }[]>> => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Токен отсутствует. Пожалуйста, войдите в систему.');
+    }
+
+    try {
+      const response = await fetch('/api/transactions/categories-stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        const errorMessage = `HTTP error! status: ${response.status}`;
+        if (response.status === 401) {
+          throw new Error('Unauthorized: 401');
+        }
+        throw new Error(errorMessage);
+      }
+      const stats = await response.json();
+      return stats;
+    } catch (error) {
+      if (error.message.includes('401')) {
+        handleAuthError(error);
+        throw error; // Перебрасываем ошибку, чтобы компонент мог обработать её
+      }
+      console.error('Ошибка при загрузке статистики категорий:', error);
+      return { income: [], expense: [], reimbursement: [] };
+    }
+  };
+
   return (
     <TransactionContext.Provider value={{ 
       transactions, 
       isLoading,
-      error: error as Error | null,
+      error: error instanceof Error ? error : error ? new Error(String(error)) : null,
       addTransaction,
       updateTransaction,
       deleteTransaction,
       getTransactionById,
-      updateReimbursementStatus
+      updateReimbursementStatus,
+      getCategoriesStats
     }}>
       {children}
     </TransactionContext.Provider>

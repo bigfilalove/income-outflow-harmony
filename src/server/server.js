@@ -16,7 +16,7 @@ const usersRoutes = require('./routes/users');
 const budgetsRoutes = require('./routes/budgets');
 const companiesRoutes = require('./routes/companies');
 const categoriesRoutes = require('./routes/categories'); // Добавляем маршрут для категорий
-
+const employeeRoutes = require('./routes/employees');
 // Подключение к MongoDB
 const connectDB = require('./config/db');
 
@@ -35,6 +35,7 @@ app.use(logger);
 // Маршруты API
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionsRoutes);
+app.use('/api/employees', employeeRoutes);
 app.use('/api/predictions', predictionsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/budgets', budgetsRoutes);

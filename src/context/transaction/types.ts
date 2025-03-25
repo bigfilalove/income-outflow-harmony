@@ -1,4 +1,3 @@
-
 import { Transaction } from '@/types/transaction';
 
 export interface TransactionContextType {
@@ -10,4 +9,5 @@ export interface TransactionContextType {
   deleteTransaction: (id: string) => Promise<void>;
   getTransactionById: (id: string) => Transaction | undefined;
   updateReimbursementStatus: (id: string, status: 'completed') => Promise<void>;
+  getCategoriesStats: () => Promise<Record<string, { category: string; count: number }[]>>;
 }

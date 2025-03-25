@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+// src/components/transaction/ImportTransactionsDialog.tsx
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -27,6 +27,11 @@ import { useTransactions } from '@/context/transaction';
 import { Transaction, getTransactionCategories } from '@/types/transaction';
 import { parseCSV, parseXML, categorizeTransactions } from '@/utils/importUtils';
 
+interface Employee {
+  id: string;
+  fullName: string;
+}
+
 const ImportTransactionsDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -35,8 +40,51 @@ const ImportTransactionsDialog = () => {
   const [importing, setImporting] = useState(false);
   const [importComplete, setImportComplete] = useState(false);
   const [importErrors, setImportErrors] = useState<string[]>([]);
-  
-  const { addTransaction } = useTransactions();
+  const [selectedEmployee, setSelectedEmployee] = useState<string>('');
+  const [skippedTransactions, setSkippedTransactions] = useState<string[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [categoriesStats, setCategoriesStats] = useState<Record<string, { category: string; count: number }[]>>({
+    income: [],
+    expense: [],
+    reimbursement: [],
+  });
+
+  const { addTransaction, getCategoriesStats } = useTransactions();
+
+  // Загружаем сотрудников и статистику категорий при открытии диалога
+  useEffect(() => {
+    if (isOpen) {
+      const fetchEmployees = async () => {
+        try {
+          const response = await fetch('/api/employees', {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            },
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          setEmployees(data);
+        } catch (error) {
+          console.error('Ошибка при загрузке сотрудников:', error);
+          setImportErrors(['Не удалось загрузить список сотрудников']);
+        }
+      };
+
+      const loadCategoriesStats = async () => {
+        try {
+          const stats = await getCategoriesStats();
+          setCategoriesStats(stats);
+        } catch (error) {
+          setImportErrors(['Не удалось загрузить статистику категорий. Категоризация может быть менее точной.']);
+        }
+      };
+
+      fetchEmployees();
+      loadCategoriesStats();
+    }
+  }, [isOpen, getCategoriesStats]);
 
   const resetState = () => {
     setFile(null);
@@ -44,89 +92,85 @@ const ImportTransactionsDialog = () => {
     setImporting(false);
     setImportComplete(false);
     setImportErrors([]);
+    setSelectedEmployee('');
+    setSkippedTransactions([]);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-      setImportComplete(false);
-      setImportErrors([]);
-      
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const content = event.target?.result as string;
-          let parsed: Partial<Transaction>[] = [];
-          
-          if (fileFormat === 'csv') {
-            parsed = parseCSV(content);
-          } else {
-            parsed = parseXML(content);
-          }
-          
-          // Автоматически категоризируем транзакции
-          const categorized = categorizeTransactions(parsed);
-          setParsedData(categorized);
-        } catch (error) {
-          console.error("Ошибка при парсинге файла:", error);
-          setImportErrors([`Ошибка при парсинге файла: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`]);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
+
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    setImportComplete(false);
+    setImportErrors([]);
+    setSkippedTransactions([]);
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const content = event.target?.result as string;
+        if (!content) {
+          throw new Error('Файл пустой');
         }
-      };
-      
-      if (fileFormat === 'csv') {
-        reader.readAsText(e.target.files[0]);
-      } else {
-        reader.readAsText(e.target.files[0]);
+        const parsed = fileFormat === 'csv' ? parseCSV(content) : parseXML(content);
+        const categorized = categorizeTransactions(parsed, categoriesStats);
+        setParsedData(categorized);
+      } catch (error) {
+        console.error("Ошибка при парсинге файла:", error);
+        setImportErrors([`Ошибка при парсинге файла: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`]);
       }
-    }
+    };
+    reader.readAsText(selectedFile, 'UTF-8');
+  };
+
+  const handleCategoryChange = (index: number, newCategory: string) => {
+    setParsedData((prevData) =>
+      prevData.map((transaction, i) =>
+        i === index ? { ...transaction, category: newCategory } : transaction
+      )
+    );
   };
 
   const handleImport = async () => {
-    if (parsedData.length === 0) return;
-    
+    if (parsedData.length === 0 || !selectedEmployee) return;
+
     setImporting(true);
     const errors: string[] = [];
-    
-    try {
-      // Импортируем каждую транзакцию последовательно
-      for (const transaction of parsedData) {
-        try {
-          if (
-            typeof transaction.amount === 'number' &&
-            transaction.description &&
-            transaction.category &&
-            transaction.type
-          ) {
-            await addTransaction({
-              amount: transaction.amount,
-              description: transaction.description,
-              category: transaction.category,
-              date: transaction.date || new Date(),
-              type: transaction.type,
-              isReimbursement: transaction.isReimbursement || false,
-              reimbursedTo: transaction.reimbursedTo,
-              company: transaction.company,
-              project: transaction.project
-            });
-          } else {
-            throw new Error(`Неполные данные для транзакции: ${transaction.description}`);
-          }
-        } catch (error) {
-          console.error("Ошибка при импорте транзакции:", error);
-          errors.push(`Ошибка при импорте "${transaction.description}": ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+
+    for (const transaction of parsedData) {
+      try {
+        if (
+          typeof transaction.amount !== 'number' ||
+          !transaction.description ||
+          !transaction.category ||
+          !transaction.type ||
+          !['income', 'expense'].includes(transaction.type)
+        ) {
+          throw new Error('Некорректные данные транзакции');
         }
+
+        await addTransaction({
+          amount: transaction.amount,
+          description: transaction.description,
+          category: transaction.category,
+          date: transaction.date || new Date(),
+          type: transaction.type,
+          isReimbursement: transaction.isReimbursement ?? false,
+          reimbursedTo: transaction.reimbursedTo ?? null,
+          reimbursementStatus: transaction.reimbursementStatus ?? null,
+          createdBy: selectedEmployee,
+          createdAt: transaction.createdAt || new Date(),
+          company: transaction.company ?? null,
+          project: transaction.project ?? null,
+        });
+      } catch (error) {
+        errors.push(`Ошибка при импорте "${transaction.description}": ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
       }
-      
-      setImportComplete(true);
-      if (errors.length > 0) {
-        setImportErrors(errors);
-      }
-    } catch (error) {
-      console.error("Ошибка при импорте транзакций:", error);
-      setImportErrors([`Ошибка при импорте транзакций: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`]);
-    } finally {
-      setImporting(false);
     }
+
+    setImportComplete(true);
+    if (errors.length > 0) setImportErrors(errors);
+    setImporting(false);
   };
 
   const handleClose = () => {
@@ -148,7 +192,7 @@ const ImportTransactionsDialog = () => {
         <DialogHeader>
           <DialogTitle>Импорт транзакций</DialogTitle>
         </DialogHeader>
-        
+
         {importComplete ? (
           <div className="space-y-4">
             <div className="flex items-center justify-center p-4 bg-green-50 rounded-md">
@@ -157,7 +201,6 @@ const ImportTransactionsDialog = () => {
                 Импорт завершен успешно: {parsedData.length - importErrors.length} из {parsedData.length} транзакций
               </p>
             </div>
-            
             {importErrors.length > 0 && (
               <Alert variant="destructive">
                 <AlertDescription>
@@ -170,7 +213,6 @@ const ImportTransactionsDialog = () => {
                 </AlertDescription>
               </Alert>
             )}
-            
             <Button onClick={handleClose} className="w-full">
               Закрыть
             </Button>
@@ -182,7 +224,6 @@ const ImportTransactionsDialog = () => {
                 <TabsTrigger value="csv">CSV</TabsTrigger>
                 <TabsTrigger value="xml">XML</TabsTrigger>
               </TabsList>
-              
               <TabsContent value="csv" className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="csvFile">Выберите CSV файл</Label>
@@ -197,11 +238,10 @@ const ImportTransactionsDialog = () => {
                     <File className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Формат CSV: дата,описание,сумма,тип,категория,возмещение,кому_возмещено,компания,проект
+                    Формат CSV: Сумма в валюте счета;Назначение платежа;Тип операции (пополнение/списание) (значения: Credit/Debit или пополнение/списание);Категория операции;Дата транзакции;...
                   </p>
                 </div>
               </TabsContent>
-              
               <TabsContent value="xml" className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="xmlFile">Выберите XML файл</Label>
@@ -222,7 +262,7 @@ const ImportTransactionsDialog = () => {
                 </div>
               </TabsContent>
             </Tabs>
-            
+
             {importErrors.length > 0 && (
               <Alert variant="destructive">
                 <AlertDescription>
@@ -235,31 +275,83 @@ const ImportTransactionsDialog = () => {
                 </AlertDescription>
               </Alert>
             )}
-            
+
+            {skippedTransactions.length > 0 && (
+              <Alert variant="warning">
+                <AlertDescription>
+                  <p className="mb-2">Следующие транзакции были пропущены:</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {skippedTransactions.map((msg, index) => (
+                      <li key={index}>{msg}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {parsedData.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="employee">ФИО сотрудника</Label>
+                <select
+                  id="employee"
+                  value={selectedEmployee}
+                  onChange={(e) => setSelectedEmployee(e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                >
+                  <option value="">Выберите сотрудника</option>
+                  {employees.map((employee) => (
+                    <option key={employee.id} value={employee.fullName}>
+                      {employee.fullName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {parsedData.length > 0 && (
               <div className="border rounded-md">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Описание</TableHead>
-                      <TableHead>Сумма</TableHead>
+                      <TableHead>Сумма (₽)</TableHead>
                       <TableHead>Тип</TableHead>
                       <TableHead>Категория</TableHead>
+                      <TableHead>Дата</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {parsedData.slice(0, 5).map((transaction, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{transaction.description}</TableCell>
-                        <TableCell>{transaction.amount}</TableCell>
-                        <TableCell>
-                          <Badge variant={transaction.type === 'income' ? 'success' : 'destructive'}>
-                            {transaction.type === 'income' ? 'Доход' : 'Расход'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{transaction.category}</TableCell>
-                      </TableRow>
-                    ))}
+                    {parsedData.slice(0, 5).map((transaction, index) => {
+                      const categoryType = transaction.isReimbursement ? 'reimbursement' : transaction.type || 'expense';
+                      const availableCategories = getTransactionCategories()[categoryType] || [];
+                      return (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium truncate max-w-[200px]" title={transaction.description}>
+                            {transaction.description}
+                          </TableCell>
+                          <TableCell>{transaction.amount} ₽</TableCell>
+                          <TableCell>
+                            <Badge variant={transaction.type === 'income' ? 'success' : 'destructive'}>
+                              {transaction.type === 'income' ? 'Доход' : 'Расход'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <select
+                              value={transaction.category || ''}
+                              onChange={(e) => handleCategoryChange(index, e.target.value)}
+                              className="p-1 border rounded-md"
+                            >
+                              {availableCategories.map((cat) => (
+                                <option key={cat} value={cat}>
+                                  {cat}
+                                </option>
+                              ))}
+                            </select>
+                          </TableCell>
+                          <TableCell>{transaction.date?.toLocaleDateString()}</TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
                 {parsedData.length > 5 && (
@@ -269,18 +361,14 @@ const ImportTransactionsDialog = () => {
                 )}
               </div>
             )}
-            
+
             <DialogFooter>
-              <Button 
-                variant="outline" 
-                onClick={handleClose}
-                disabled={importing}
-              >
+              <Button variant="outline" onClick={handleClose} disabled={importing}>
                 Отмена
               </Button>
-              <Button 
-                onClick={handleImport} 
-                disabled={parsedData.length === 0 || importing}
+              <Button
+                onClick={handleImport}
+                disabled={parsedData.length === 0 || importing || !selectedEmployee}
               >
                 {importing ? 'Импорт...' : `Импортировать ${parsedData.length} транзакций`}
               </Button>

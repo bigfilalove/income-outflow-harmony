@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Transaction, getCompanies, saveCompanies, getProjects, saveProjects } from '@/types/transaction';
 import { toast } from "sonner";
@@ -9,7 +8,7 @@ import {
   updateTransaction as apiUpdateTransaction 
 } from '@/services/api';
 
-export const useTransactionOperations = (handleAuthError: (error: any) => void) => {
+export const useTransactionOperations = (handleAuthError: (error: unknown) => void) => {
   const queryClient = useQueryClient();
   
   // Add transaction mutation
@@ -18,7 +17,7 @@ export const useTransactionOperations = (handleAuthError: (error: any) => void) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       handleAuthError(error);
     }
   });
@@ -29,7 +28,7 @@ export const useTransactionOperations = (handleAuthError: (error: any) => void) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       handleAuthError(error);
     }
   });
@@ -40,7 +39,7 @@ export const useTransactionOperations = (handleAuthError: (error: any) => void) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       handleAuthError(error);
     }
   });
@@ -52,7 +51,7 @@ export const useTransactionOperations = (handleAuthError: (error: any) => void) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       handleAuthError(error);
     }
   });
@@ -70,9 +69,7 @@ export const useTransactionOperations = (handleAuthError: (error: any) => void) 
         description: `${transaction.description} было успешно добавлено.`
       });
       
-      // If transaction has a company, trigger a company update
       if (transaction.company && !getCompanies().includes(transaction.company)) {
-        // This ensures that any new companies used in transactions get added to the stored list
         const companies = getCompanies();
         companies.push(transaction.company);
         saveCompanies(companies);
@@ -81,7 +78,6 @@ export const useTransactionOperations = (handleAuthError: (error: any) => void) 
         window.dispatchEvent(new Event('companiesUpdated'));
       }
       
-      // If transaction has a project, trigger a project update
       if (transaction.project && !getProjects().includes(transaction.project)) {
         const projects = getProjects();
         projects.push(transaction.project);
@@ -111,7 +107,6 @@ export const useTransactionOperations = (handleAuthError: (error: any) => void) 
         description: `${transaction.description} было успешно обновлено.`
       });
       
-      // If transaction has a new company, update the companies list
       if (transaction.company && !getCompanies().includes(transaction.company)) {
         const companies = getCompanies();
         companies.push(transaction.company);
@@ -120,7 +115,6 @@ export const useTransactionOperations = (handleAuthError: (error: any) => void) 
         window.dispatchEvent(new Event('companiesUpdated'));
       }
       
-      // If transaction has a new project, update the projects list
       if (transaction.project && !getProjects().includes(transaction.project)) {
         const projects = getProjects();
         projects.push(transaction.project);
@@ -155,6 +149,7 @@ export const useTransactionOperations = (handleAuthError: (error: any) => void) 
       toast("Ошибка", {
         description: 'Не удалось удалить транзакцию.'
       });
+      throw error; // Перебрасываем ошибку
     }
   };
 
@@ -172,6 +167,7 @@ export const useTransactionOperations = (handleAuthError: (error: any) => void) 
       toast("Ошибка", {
         description: 'Не удалось обновить статус возмещения.'
       });
+      throw error; // Перебрасываем ошибку
     }
   };
 

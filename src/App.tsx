@@ -1,11 +1,10 @@
-
 import React, { useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from "./components/theme-provider";
 import { useTheme } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
+import { EmployeeProvider } from '@/context/employee';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TransactionProvider } from './context/transaction';
 import { BudgetProvider } from './context/BudgetContext';
@@ -49,51 +48,53 @@ function App() {
         <AuthProvider>
           <TransactionProvider>
             <BudgetProvider>
-              <ThemeProvider defaultTheme="light" storageKey="finance-app-theme">
-                <Routes>
-                  <Route path="/" element={<Landing />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/admin-login" element={<AdminLogin />} />
-                  <Route path="/transactions" element={
-                    <ProtectedRoute>
-                      <Transactions />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/analytics" element={
-                    <ProtectedRoute>
-                      <Analytics />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/advanced-analytics" element={
-                    <ProtectedRoute>
-                      <AdvancedAnalytics />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/budgeting" element={
-                    <ProtectedRoute>
-                      <Budgeting />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin" element={
-                    <ProtectedRoute requireAdmin={true}>
-                      <Admin />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/basic-transactions" element={
-                    <ProtectedRoute>
-                      <BasicTransactions />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/financial-reports" element={
-                    <ProtectedRoute>
-                      <FinancialReports />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <Toaster />
-              </ThemeProvider>
+              <EmployeeProvider> {/* Добавляем EmployeeProvider */}
+                <ThemeProvider defaultTheme="light" storageKey="finance-app-theme">
+                  <Routes>
+                    <Route path="/" element={<Landing />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/admin-login" element={<AdminLogin />} />
+                    <Route path="/transactions" element={
+                      <ProtectedRoute>
+                        <Transactions />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/analytics" element={
+                      <ProtectedRoute>
+                        <Analytics />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/advanced-analytics" element={
+                      <ProtectedRoute>
+                        <AdvancedAnalytics />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/budgeting" element={
+                      <ProtectedRoute>
+                        <Budgeting />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin" element={
+                      <ProtectedRoute requireAdmin={true}>
+                        <Admin />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/basic-transactions" element={
+                      <ProtectedRoute>
+                        <BasicTransactions />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/financial-reports" element={
+                      <ProtectedRoute>
+                        <FinancialReports />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  <Toaster />
+                </ThemeProvider>
+              </EmployeeProvider>
             </BudgetProvider>
           </TransactionProvider>
         </AuthProvider>
