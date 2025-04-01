@@ -1,5 +1,4 @@
-
-export type TransactionType = 'income' | 'expense' | 'reimbursement';
+export type TransactionType = 'income' | 'expense' | 'transfer';
 export type ReimbursementStatus = 'pending' | 'completed';
 
 export interface Transaction {
@@ -16,6 +15,9 @@ export interface Transaction {
   createdAt?: Date;
   company?: string;
   project?: string;
+  isTransfer?: boolean;
+  fromCompany?: string;
+  toCompany?: string;
 }
 
 export interface ServerTransaction {
@@ -33,16 +35,11 @@ export interface ServerTransaction {
   createdAt: string;
   company: string | null;
   project: string | null;
+  isTransfer: boolean;
+  fromCompany: string | null;
+  toCompany: string | null;
 }
 
-
-export interface CategoryList {
-  income: string[];
-  expense: string[];
-  reimbursement: string[];
-}
-
-// Default values for empty lists
 const defaultCompanies: string[] = [];
 const defaultProjects: string[] = [];
 const defaultTransactionCategories: CategoryList = {
@@ -133,7 +130,7 @@ export const fetchCategoriesFromAPI = async (): Promise<CategoryList> => {
     saveCategories(categoryList);
     return categoryList;
   } catch (error) {
-    console.error('Ошибка при загрузке категорий из API:', error);
+    console.error('��шибка при загрузке категорий из API:', error);
     const defaultCategories: CategoryList = {
       income: ['Продажа лестницы', 'Продажа прочих изделий', 'Инвестиции', 'Возврат подотчетной суммы', 'Другое'],
       expense: ['ФОТ', 'Металл', 'IT-инфраструктура', 'Маркетинг', 'Комиссии банка – Т-Банк', 'Под отчетные средства', 'Аренда офисного помещения', 'Налоги', 'Другое'],

@@ -17,7 +17,10 @@ export const mapServerToClient = (serverTransaction: ServerTransaction): Transac
     createdBy: serverTransaction.createdBy || undefined,
     createdAt: serverTransaction.createdAt ? new Date(serverTransaction.createdAt) : undefined,
     company: serverTransaction.company || undefined,
-    project: serverTransaction.project || undefined
+    project: serverTransaction.project || undefined,
+    isTransfer: serverTransaction.isTransfer,
+    fromCompany: serverTransaction.fromCompany || undefined,
+    toCompany: serverTransaction.toCompany || undefined
   };
 };
 
@@ -35,7 +38,10 @@ export const mapClientToServer = (clientTransaction: Omit<Transaction, 'id'>): O
     createdBy: clientTransaction.createdBy || null,
     createdAt: clientTransaction.createdAt ? clientTransaction.createdAt.toISOString() : new Date().toISOString(),
     company: clientTransaction.company || null,
-    project: clientTransaction.project || null
+    project: clientTransaction.project || null,
+    isTransfer: clientTransaction.isTransfer || false,
+    fromCompany: clientTransaction.fromCompany || null,
+    toCompany: clientTransaction.toCompany || null
   };
 };
 

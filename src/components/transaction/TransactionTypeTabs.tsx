@@ -1,29 +1,27 @@
 
 import React from 'react';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TransactionType } from '@/types/transaction';
 
 interface TransactionTypeTabsProps {
   value: TransactionType;
-  onChange: (value: TransactionType) => void;
+  onChange: (type: TransactionType) => void;
+  showTransfer?: boolean;
 }
 
-const TransactionTypeTabs: React.FC<TransactionTypeTabsProps> = ({ value, onChange }) => {
+const TransactionTypeTabs: React.FC<TransactionTypeTabsProps> = ({ 
+  value, 
+  onChange,
+  showTransfer = false
+}) => {
+  const tabCount = showTransfer ? 3 : 2;
+  
   return (
-    <Tabs 
-      defaultValue={value} 
-      onValueChange={(value) => onChange(value as TransactionType)}
-      className="w-full"
-    >
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="income">Приход</TabsTrigger>
+    <Tabs value={value} onValueChange={(newValue) => onChange(newValue as TransactionType)} className="w-full">
+      <TabsList className={`grid w-full grid-cols-${tabCount}`}>
+        <TabsTrigger value="income">Доход</TabsTrigger>
         <TabsTrigger value="expense">Расход</TabsTrigger>
-        <TabsTrigger value="reimbursement">Возмещение</TabsTrigger>
+        {showTransfer && <TabsTrigger value="transfer">Перевод</TabsTrigger>}
       </TabsList>
     </Tabs>
   );
