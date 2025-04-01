@@ -1,4 +1,3 @@
-
 // src/components/transaction/ImportTransactionsDialog.tsx
 import React, { useState, useEffect } from 'react';
 import { 
@@ -336,8 +335,8 @@ const ImportTransactionsDialog = () => {
                         <TableHead>Дата</TableHead>
                       </TableRow>
                     </TableHeader>
-                    <TableBody>
-                      {parsedData.slice(0, 5).map((transaction, index) => {
+                    <TableBody className="max-h-[40vh] overflow-y-auto">
+                      {parsedData.map((transaction, index) => {
                         const categoryType: CategoryType = transaction.isReimbursement 
                           ? 'reimbursement' 
                           : (transaction.type || 'expense');
@@ -367,11 +366,6 @@ const ImportTransactionsDialog = () => {
                       })}
                     </TableBody>
                   </Table>
-                  {parsedData.length > 5 && (
-                    <div className="p-2 text-center text-sm text-muted-foreground">
-                      И ещё {parsedData.length - 5} транзакций
-                    </div>
-                  )}
                 </div>
               )}
 
