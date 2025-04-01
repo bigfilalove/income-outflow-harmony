@@ -131,7 +131,7 @@ const ProjectAllocations: React.FC<ProjectAllocationsProps> = ({
       {editMode && (
         <Card className="p-4">
           {remainingAmount !== 0 && (
-            <Alert variant="warning" className="mb-4">
+            <Alert variant="default" className="mb-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 Общая сумма распределений должна быть равна {totalAmount.toLocaleString('ru-RU')} ₽

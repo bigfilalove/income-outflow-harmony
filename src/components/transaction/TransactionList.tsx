@@ -59,6 +59,11 @@ const TransactionList: React.FC = () => {
     setEditingTransaction(null);
   };
 
+  // Create a wrapper function to handle the status update with correct parameters
+  const handleUpdateStatus = (id: string) => {
+    updateReimbursementStatus(id, 'completed');
+  };
+
   return (
     <>
       <Card className="animate-slideUp">
@@ -101,7 +106,7 @@ const TransactionList: React.FC = () => {
                       transaction={transaction}
                       onDelete={deleteTransaction}
                       onEdit={handleEdit}
-                      onUpdateStatus={updateReimbursementStatus}
+                      onUpdateStatus={handleUpdateStatus}
                     />
                   ))
                 )}
