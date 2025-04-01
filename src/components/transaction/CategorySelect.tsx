@@ -9,18 +9,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { fetchCategories } from '@/lib/categories';
+import { CategoryType } from '@/types/transaction';
 
 interface CategorySelectProps {
   value: string;
   onChange: (value: string) => void;
-  type: 'income' | 'expense' | 'reimbursement'; // Добавляем пропс для фильтрации
+  type: CategoryType; // Updated to accept all CategoryType values
 }
 
 const CategorySelect: React.FC<CategorySelectProps> = ({ value, onChange, type }) => {
+  // For transfer type, we'll use expense categories as a fallback
+  const categoryType = type === 'transfer' ? 'expense' : type;
+  
   // Загружаем категории через API с фильтрацией по типу
   const { data: categories, isLoading, error } = useQuery({
-    queryKey: ['categories', type],
-    queryFn: () => fetchCategories(type),
+    queryKey: ['categories', categoryType],
+    queryFn: () => fetchCategories(categoryType),
   });
 
   if (isLoading) {

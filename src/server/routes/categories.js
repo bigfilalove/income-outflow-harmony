@@ -1,3 +1,4 @@
+
 const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
@@ -30,7 +31,7 @@ router.post('/', authenticate, async (req, res) => {
     }
 
     // Проверка валидности type
-    if (!['income', 'expense', 'reimbursement'].includes(type)) {
+    if (!['income', 'expense', 'reimbursement', 'transfer'].includes(type)) {
       return res.status(400).json({ message: 'Invalid category type' });
     }
 
@@ -53,7 +54,7 @@ router.put('/:id', authenticate, async (req, res) => {
     }
 
     // Проверка валидности type
-    if (!['income', 'expense', 'reimbursement'].includes(type)) {
+    if (!['income', 'expense', 'reimbursement', 'transfer'].includes(type)) {
       return res.status(400).json({ message: 'Invalid category type' });
     }
 

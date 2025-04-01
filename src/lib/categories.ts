@@ -1,16 +1,18 @@
+
 import { API_URL, get } from './config';
 import { createAuthHeaders } from './config';
+import { CategoryType } from '@/types/transaction';
 
 export interface Category {
   id: string;
   _id?: string; // Add optional _id field for MongoDB compatibility
   name: string;
-  type: 'income' | 'expense' | 'reimbursement';
+  type: CategoryType;
   createdAt: Date;
 }
 
 // Получить список всех категорий с возможной фильтрацией по типу
-export const fetchCategories = async (type?: 'income' | 'expense' | 'reimbursement'): Promise<Category[]> => {
+export const fetchCategories = async (type?: CategoryType): Promise<Category[]> => {
   try {
     const query = type ? `?type=${type}` : '';
     const data = await get<Category[]>(`/categories${query}`);
@@ -27,7 +29,7 @@ export const fetchCategories = async (type?: 'income' | 'expense' | 'reimburseme
 };
 
 // Добавить новую категорию
-export const createCategory = async (name: string, type: 'income' | 'expense' | 'reimbursement'): Promise<Category | null> => {
+export const createCategory = async (name: string, type: CategoryType): Promise<Category | null> => {
   try {
     const response = await fetch(`${API_URL}/categories`, {
       method: 'POST',
