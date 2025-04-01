@@ -1,3 +1,4 @@
+
 // src/components/transaction/ImportTransactionsDialog.tsx
 import React, { useState, useEffect } from 'react';
 import { 
@@ -22,11 +23,11 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { File, FileText, Upload, Check, AlertCircle } from 'lucide-react';
+import { File, FileText, Upload, Check } from 'lucide-react';
 import { useTransactions } from '@/context/transaction';
-import { Transaction } from '@/types/transaction';
+import { Transaction, CategoryType } from '@/types/transaction';
 import { parseCSV, parseXML, categorizeTransactions } from '@/utils/importUtils';
-import CategorySelect from './CategorySelect'; // Предполагаемый путь к компоненту
+import CategorySelect from './CategorySelect';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Определяем интерфейс Employee
@@ -149,32 +150,31 @@ const ImportTransactionsDialog = () => {
           typeof transaction.amount !== 'number' ||
           !transaction.description ||
           !transaction.category ||
-          !transaction.type ||
-          !['income', 'expense'].includes(transaction.type)
+          !transaction.type
         ) {
           throw new Error('Некорректные данные транзакции');
         }
+
+        const isReimbursementType = transaction.isReimbursement || false;
   
-        let type = transaction.type;
-        if (transaction.isReimbursement) {
-          type = 'reimbursement';
-        }
-  
-        console.log('Добавление транзакции:', { ...transaction, type });
         await addTransaction({
           amount: transaction.amount,
           description: transaction.description,
           category: transaction.category,
           date: transaction.date || new Date(),
-          type: type,
-          isReimbursement: transaction.isReimbursement ?? false,
-          reimbursedTo: transaction.reimbursedTo ?? null,
-          reimbursementStatus: transaction.reimbursementStatus ?? null,
+          type: transaction.type,
+          isReimbursement: isReimbursementType,
+          reimbursedTo: transaction.reimbursedTo || undefined,
+          reimbursementStatus: isReimbursementType ? 'pending' : undefined,
           createdBy: selectedEmployee,
           createdAt: transaction.createdAt || new Date(),
-          company: transaction.company ?? null,
-          project: transaction.project ?? null,
+          company: transaction.company || undefined,
+          project: transaction.project || undefined,
+          isTransfer: transaction.isTransfer || false,
+          fromCompany: transaction.fromCompany || undefined,
+          toCompany: transaction.toCompany || undefined
         });
+        
         console.log('Транзакция успешно добавлена:', transaction.description);
       } catch (error) {
         const errorMsg = `Ошибка при импорте "${transaction.description}": ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`;
@@ -338,7 +338,7 @@ const ImportTransactionsDialog = () => {
                     </TableHeader>
                     <TableBody>
                       {parsedData.slice(0, 5).map((transaction, index) => {
-                        const categoryType = transaction.isReimbursement 
+                        const categoryType: CategoryType = transaction.isReimbursement 
                           ? 'reimbursement' 
                           : (transaction.type || 'expense');
                         return (
@@ -349,7 +349,7 @@ const ImportTransactionsDialog = () => {
                             <TableCell>{transaction.amount} ₽</TableCell>
                             <TableCell>
                               <Badge variant={transaction.type === 'income' ? 'success' : 'destructive'}>
-                                {transaction.type === 'income' ? 'Доход' : 'Расход'}
+                                {transaction.type === 'income' ? 'Доход' : transaction.type === 'transfer' ? 'Перевод' : 'Расход'}
                               </Badge>
                             </TableCell>
                             <TableCell>

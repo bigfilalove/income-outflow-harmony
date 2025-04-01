@@ -1,5 +1,6 @@
+
 // utils/importUtils.ts
-import { Transaction, getTransactionCategories } from '@/types/transaction';
+import { Transaction, getTransactionCategories, CategoryList, CategoryType } from '@/types/transaction';
 
 /**
  * Парсит CSV-файл и возвращает массив транзакций
@@ -326,17 +327,18 @@ export const categorizeTransactions = (
     }
 
     const description = transaction.description?.toLowerCase() || '';
-    let type = transaction.type || 'expense';
+    let type = transaction.type;
     let category = transaction.category || '';
 
     console.log(`Транзакция ${index + 1}, описание: "${description}", тип: ${type}, начальная категория: "${category}"`);
 
+    // Map the type
+    let categoryType: CategoryType = type;
     if (transaction.isReimbursement) {
-      type = 'reimbursement';
+      categoryType = 'reimbursement';
     }
 
     if (!category) {
-      const categoryType = type === 'reimbursement' ? 'reimbursement' : type;
       const categoriesForType = categoryKeywords[categoryType] || {};
 
       for (const [cat, keywords] of Object.entries(categoriesForType)) {
@@ -348,9 +350,8 @@ export const categorizeTransactions = (
       }
     }
 
-    const categoryType = type === 'reimbursement' ? 'reimbursement' : type;
     const statsForType = categoriesStats[categoryType] || [];
-    const availableCategories = allCategories[categoryType] || [];
+    const availableCategories = allCategories[categoryType as keyof CategoryList] || [];
 
     console.log(`Тип категории: ${categoryType}, статистика:`, statsForType, `доступные категории:`, availableCategories);
 
@@ -370,7 +371,7 @@ export const categorizeTransactions = (
     categorized.push({
       ...transaction,
       category,
-      type: type as Transaction['type'],
+      type,
     });
 
     console.log(`Транзакция ${index + 1}, итоговая категория: "${category}"`);

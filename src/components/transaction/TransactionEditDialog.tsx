@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-import { TransactionType, Transaction } from '@/types/transaction';
+import { TransactionType, Transaction, CategoryType } from '@/types/transaction';
 import { useTransactions } from '@/context/transaction';
 import TransactionTypeTabs from './TransactionTypeTabs';
 import TransactionDatePicker from './TransactionDatePicker';
@@ -104,7 +105,7 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
     }
   };
   
-  const categoryType = isReimbursement ? 'reimbursement' : transactionType;
+  const categoryType: CategoryType = isReimbursement ? 'reimbursement' : transactionType;
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

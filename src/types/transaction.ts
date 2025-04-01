@@ -1,5 +1,13 @@
+
 export type TransactionType = 'income' | 'expense' | 'transfer';
 export type ReimbursementStatus = 'pending' | 'completed';
+export type CategoryType = TransactionType | 'reimbursement';
+
+export interface CategoryList {
+  income: string[];
+  expense: string[];
+  reimbursement: string[];
+}
 
 export interface Transaction {
   id: string;
@@ -116,7 +124,7 @@ export const fetchCategoriesFromAPI = async (): Promise<CategoryList> => {
       reimbursement: [],
     };
 
-    categories.forEach((category: { name: string; type: TransactionType }) => {
+    categories.forEach((category: { name: string; type: CategoryType }) => {
       if (category.type === 'income') {
         categoryList.income.push(category.name);
       } else if (category.type === 'expense') {
