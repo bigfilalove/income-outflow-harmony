@@ -81,13 +81,16 @@ export const parseCSV = (csvContent: string): Partial<Transaction>[] => {
         case 'категория операции':
           transaction.category = value || '';
           break;
-        case 'дата транзакции':
-          try {
-            transaction.date = value ? new Date(parseDate(value)) : new Date();
-          } catch (e) {
-            transaction.date = new Date();
-          }
-          break;
+          case 'дата транзакции':
+            try {
+              const parsedDate = value ? parseDate(value) : new Date();
+              console.log(`Дата из CSV: ${value}, распарсенная дата: ${parsedDate}`);
+              transaction.date = parsedDate;
+            } catch (e) {
+              skippedRows.push(`Транзакция в строке ${i + 1} пропущена: некорректная дата "${value}"`);
+              transaction.date = new Date();
+            }
+            break;
         case 'контрагент':
           transaction.reimbursedTo = value;
           break;
@@ -163,19 +166,63 @@ const parseCSVLine = (line: string, delimiter: string = ','): string[] => {
 /**
  * Парсит дату в формате ДД.ММ.ГГГГ или ГГГГ-ММ-ДД
  */
+
 const parseDate = (dateStr: string): Date => {
   const formats = [
-    { pattern: /(\d{2})\.(\d{2})\.(\d{4})/, transform: (d: string, m: string, y: string) => new Date(`${y}-${m}-${d}`) },
-    { pattern: /(\d{4})-(\d{2})-(\d{2})/, transform: (y: string, m: string, d: string) => new Date(`${y}-${m}-${d}`) },
+    // DD.MM.YYYY
+    {
+      pattern: /(\d{2})\.(\d{2})\.(\d{4})/,
+      transform: (d: string, m: string, y: string) => {
+        const day = parseInt(d, 10);
+        const month = parseInt(m, 10) - 1; // Месяц в JS начинается с 0
+        const year = parseInt(y, 10);
+        return new Date(Date.UTC(year, month, day));
+      },
+    },
+    // DD.MM.YY
+    {
+      pattern: /(\d{2})\.(\d{2})\.(\d{2})/,
+      transform: (d: string, m: string, y: string) => {
+        const day = parseInt(d, 10);
+        const month = parseInt(m, 10) - 1; // Месяц в JS начинается с 0
+        let year = parseInt(y, 10);
+        // Если год двухзначный, предполагаем, что это 20XX
+        year = year < 50 ? 2000 + year : 1900 + year;
+        return new Date(Date.UTC(year, month, day));
+      },
+    },
+    // YYYY-MM-DD
+    {
+      pattern: /(\d{4})-(\d{2})-(\d{2})/,
+      transform: (y: string, m: string, d: string) => {
+        const year = parseInt(y, 10);
+        const month = parseInt(m, 10) - 1; // Месяц в JS начинается с 0
+        const day = parseInt(d, 10);
+        return new Date(Date.UTC(year, month, day));
+      },
+    },
   ];
 
   for (const format of formats) {
     const match = dateStr.match(format.pattern);
     if (match) {
-      return format.transform(match[3], match[2], match[1]);
+      // Для DD.MM.YYYY и DD.MM.YY: match[1] — день, match[2] — месяц, match[3] — год
+      // Для YYYY-MM-DD: match[1] — год, match[2] — месяц, match[3] — день
+      let date: Date;
+      if (format.pattern === formats[0].pattern || format.pattern === formats[1].pattern) {
+        // DD.MM.YYYY или DD.MM.YY
+        date = format.transform(match[1], match[2], match[3]); // день, месяц, год
+      } else {
+        // YYYY-MM-DD
+        date = format.transform(match[1], match[2], match[3]); // год, месяц, день
+      }
+      if (isNaN(date.getTime())) {
+        throw new Error(`Некорректная дата: ${dateStr}`);
+      }
+      return date;
     }
   }
-  return new Date();
+  throw new Error(`Неподдерживаемый формат даты: ${dateStr}`);
 };
 
 /**
@@ -234,10 +281,9 @@ export const categorizeTransactions = (
   transactions: Partial<Transaction>[],
   categoriesStats: Record<string, { category: string; count: number }[]>
 ): Partial<Transaction>[] => {
-  // Получаем все категории из системы
   const allCategories = getTransactionCategories();
+  console.log('Все категории из getTransactionCategories:', allCategories);
 
-  // Ключевые слова для автоматической категоризации
   const categoryKeywords: Record<string, Record<string, string[]>> = {
     income: {
       'Продажи': ['продажа', 'продажи', 'выручка', 'sale', 'revenue'],
@@ -266,7 +312,6 @@ export const categorizeTransactions = (
   const skipped: string[] = [];
 
   for (const [index, transaction] of transactions.entries()) {
-    // Проверяем наличие обязательных полей
     if (!transaction.amount) {
       skipped.push(`Транзакция ${index + 1} пропущена: отсутствует сумма`);
       continue;
@@ -282,16 +327,14 @@ export const categorizeTransactions = (
 
     const description = transaction.description?.toLowerCase() || '';
     let type = transaction.type || 'expense';
-
-    // Подбираем категорию на основе ключевых слов в описании
     let category = transaction.category || '';
 
-    // Если это операция возмещения
+    console.log(`Транзакция ${index + 1}, описание: "${description}", тип: ${type}, начальная категория: "${category}"`);
+
     if (transaction.isReimbursement) {
       type = 'reimbursement';
     }
 
-    // Проходимся по ключевым словам для данного типа транзакции
     if (!category) {
       const categoryType = type === 'reimbursement' ? 'reimbursement' : type;
       const categoriesForType = categoryKeywords[categoryType] || {};
@@ -299,29 +342,29 @@ export const categorizeTransactions = (
       for (const [cat, keywords] of Object.entries(categoriesForType)) {
         if (keywords.some(keyword => description.includes(keyword))) {
           category = cat;
+          console.log(`Назначена категория "${cat}" для транзакции "${description}" на основе ключевых слов: ${keywords}`);
           break;
         }
       }
     }
 
-    // Если категория не найдена по ключевым словам или найдена, но мы хотим уточнить
     const categoryType = type === 'reimbursement' ? 'reimbursement' : type;
     const statsForType = categoriesStats[categoryType] || [];
     const availableCategories = allCategories[categoryType] || [];
 
-    if (statsForType.length > 0) {
-      // Находим наиболее популярную категорию из базы
-      const mostPopularCategory = statsForType[0].category;
+    console.log(`Тип категории: ${categoryType}, статистика:`, statsForType, `доступные категории:`, availableCategories);
 
-      // Если категория не определена или не входит в список доступных, используем самую популярную
+    if (statsForType.length > 0) {
+      const mostPopularCategory = statsForType[0].category;
       if (!category || !availableCategories.includes(category)) {
         category = mostPopularCategory;
+        console.log(`Категория перезаписана на популярную: "${mostPopularCategory}"`);
       }
     }
 
-    // Если категория всё ещё не определена, используем "Другое"
     if (!category) {
       category = availableCategories.find(cat => cat.includes('Друг')) || availableCategories[0] || 'Другое';
+      console.log(`Категория установлена по умолчанию: "${category}"`);
     }
 
     categorized.push({
@@ -329,6 +372,8 @@ export const categorizeTransactions = (
       category,
       type: type as Transaction['type'],
     });
+
+    console.log(`Транзакция ${index + 1}, итоговая категория: "${category}"`);
   }
 
   if (categorized.length === 0) {

@@ -24,13 +24,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { File, FileText, Upload, Check, AlertCircle } from 'lucide-react';
 import { useTransactions } from '@/context/transaction';
-import { Transaction, getTransactionCategories } from '@/types/transaction';
+import { Transaction } from '@/types/transaction';
 import { parseCSV, parseXML, categorizeTransactions } from '@/utils/importUtils';
+import CategorySelect from './CategorySelect'; // Предполагаемый путь к компоненту
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+// Определяем интерфейс Employee
 interface Employee {
   id: string;
   fullName: string;
 }
+
+// Создаем экземпляр QueryClient для react-query
+const queryClient = new QueryClient();
 
 const ImportTransactionsDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -56,9 +62,9 @@ const ImportTransactionsDialog = () => {
     if (isOpen) {
       const fetchEmployees = async () => {
         try {
-          const response = await fetch('/api/employees', {
+          const response = await fetch('http://localhost:8080/api/employees', {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Authorization': `Bearer ${localStorage.getItem('finance-tracker-token')}`,
             },
           });
           if (!response.ok) {
@@ -133,10 +139,10 @@ const ImportTransactionsDialog = () => {
 
   const handleImport = async () => {
     if (parsedData.length === 0 || !selectedEmployee) return;
-
+  
     setImporting(true);
     const errors: string[] = [];
-
+  
     for (const transaction of parsedData) {
       try {
         if (
@@ -148,13 +154,19 @@ const ImportTransactionsDialog = () => {
         ) {
           throw new Error('Некорректные данные транзакции');
         }
-
+  
+        let type = transaction.type;
+        if (transaction.isReimbursement) {
+          type = 'reimbursement';
+        }
+  
+        console.log('Добавление транзакции:', { ...transaction, type });
         await addTransaction({
           amount: transaction.amount,
           description: transaction.description,
           category: transaction.category,
           date: transaction.date || new Date(),
-          type: transaction.type,
+          type: type,
           isReimbursement: transaction.isReimbursement ?? false,
           reimbursedTo: transaction.reimbursedTo ?? null,
           reimbursementStatus: transaction.reimbursementStatus ?? null,
@@ -163,11 +175,14 @@ const ImportTransactionsDialog = () => {
           company: transaction.company ?? null,
           project: transaction.project ?? null,
         });
+        console.log('Транзакция успешно добавлена:', transaction.description);
       } catch (error) {
-        errors.push(`Ошибка при импорте "${transaction.description}": ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+        const errorMsg = `Ошибка при импорте "${transaction.description}": ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`;
+        console.error(errorMsg);
+        errors.push(errorMsg);
       }
     }
-
+  
     setImportComplete(true);
     if (errors.length > 0) setImportErrors(errors);
     setImporting(false);
@@ -181,202 +196,201 @@ const ImportTransactionsDialog = () => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" onClick={() => setIsOpen(true)}>
-          <Upload className="h-4 w-4 mr-2" />
-          Импорт транзакций
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Импорт транзакций</DialogTitle>
-        </DialogHeader>
+    <QueryClientProvider client={queryClient}>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" onClick={() => setIsOpen(true)}>
+            <Upload className="h-4 w-4 mr-2" />
+            Импорт транзакций
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Импорт транзакций</DialogTitle>
+          </DialogHeader>
 
-        {importComplete ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-center p-4 bg-green-50 rounded-md">
-              <Check className="h-6 w-6 text-green-500 mr-2" />
-              <p className="text-green-700 font-medium">
-                Импорт завершен успешно: {parsedData.length - importErrors.length} из {parsedData.length} транзакций
-              </p>
+          {importComplete ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-center p-4 bg-green-50 rounded-md">
+                <Check className="h-6 w-6 text-green-500 mr-2" />
+                <p className="text-green-700 font-medium">
+                  Импорт завершен успешно: {parsedData.length - importErrors.length} из {parsedData.length} транзакций
+                </p>
+              </div>
+              {importErrors.length > 0 && (
+                <Alert variant="destructive">
+                  <AlertDescription>
+                    <p className="mb-2">Следующие транзакции не удалось импортировать:</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      {importErrors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              )}
+              <Button onClick={handleClose} className="w-full">
+                Закрыть
+              </Button>
             </div>
-            {importErrors.length > 0 && (
-              <Alert variant="destructive">
-                <AlertDescription>
-                  <p className="mb-2">Следующие транзакции не удалось импортировать:</p>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {importErrors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
-            <Button onClick={handleClose} className="w-full">
-              Закрыть
-            </Button>
-          </div>
-        ) : (
-          <>
-            <Tabs defaultValue="csv" onValueChange={(value) => setFileFormat(value as 'csv' | 'xml')}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="csv">CSV</TabsTrigger>
-                <TabsTrigger value="xml">XML</TabsTrigger>
-              </TabsList>
-              <TabsContent value="csv" className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="csvFile">Выберите CSV файл</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="csvFile"
-                      type="file"
-                      accept=".csv"
-                      onChange={handleFileChange}
-                      disabled={importing}
-                    />
-                    <File className="h-5 w-5 text-muted-foreground" />
+          ) : (
+            <>
+              <Tabs defaultValue="csv" onValueChange={(value) => setFileFormat(value as 'csv' | 'xml')}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="csv">CSV</TabsTrigger>
+                  <TabsTrigger value="xml">XML</TabsTrigger>
+                </TabsList>
+                <TabsContent value="csv" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="csvFile">Выберите CSV файл</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="csvFile"
+                        type="file"
+                        accept=".csv"
+                        onChange={handleFileChange}
+                        disabled={importing}
+                      />
+                      <File className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Формат CSV: Сумма в валюте счета;Назначение платежа;Тип операции (пополнение/списание) (значения: Credit/Debit или пополнение/списание);Категория операции;Дата транзакции;...
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Формат CSV: Сумма в валюте счета;Назначение платежа;Тип операции (пополнение/списание) (значения: Credit/Debit или пополнение/списание);Категория операции;Дата транзакции;...
-                  </p>
-                </div>
-              </TabsContent>
-              <TabsContent value="xml" className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="xmlFile">Выберите XML файл</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="xmlFile"
-                      type="file"
-                      accept=".xml"
-                      onChange={handleFileChange}
-                      disabled={importing}
-                    />
-                    <FileText className="h-5 w-5 text-muted-foreground" />
+                </TabsContent>
+                <TabsContent value="xml" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="xmlFile">Выберите XML файл</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="xmlFile"
+                        type="file"
+                        accept=".xml"
+                        onChange={handleFileChange}
+                        disabled={importing}
+                      />
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      XML должен содержать теги: transaction, date, description, amount, type, category, isReimbursement, 
+                      reimbursedTo, company, project
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    XML должен содержать теги: transaction, date, description, amount, type, category, isReimbursement, 
-                    reimbursedTo, company, project
-                  </p>
+                </TabsContent>
+              </Tabs>
+
+              {importErrors.length > 0 && (
+                <Alert variant="destructive">
+                  <AlertDescription>
+                    <p className="mb-2">Обнаружены ошибки при парсинге файла:</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      {importErrors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {skippedTransactions.length > 0 && (
+                <Alert variant="default">
+                  <AlertDescription>
+                    <p className="mb-2">Следующие транзакции были пропущены:</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      {skippedTransactions.map((msg, index) => (
+                        <li key={index}>{msg}</li>
+                      ))}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {parsedData.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="employee">ФИО сотрудника</Label>
+                  <select
+                    id="employee"
+                    value={selectedEmployee}
+                    onChange={(e) => setSelectedEmployee(e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                  >
+                    <option value="">Выберите сотрудника</option>
+                    {employees.map((employee) => (
+                      <option key={employee.id} value={employee.fullName}>
+                        {employee.fullName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </TabsContent>
-            </Tabs>
+              )}
 
-            {importErrors.length > 0 && (
-              <Alert variant="destructive">
-                <AlertDescription>
-                  <p className="mb-2">Обнаружены ошибки при парсинге файла:</p>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {importErrors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
+              {parsedData.length > 0 && (
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Описание</TableHead>
+                        <TableHead>Сумма (₽)</TableHead>
+                        <TableHead>Тип</TableHead>
+                        <TableHead>Категория</TableHead>
+                        <TableHead>Дата</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {parsedData.slice(0, 5).map((transaction, index) => {
+                        const categoryType = transaction.isReimbursement 
+                          ? 'reimbursement' 
+                          : (transaction.type || 'expense');
+                        return (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium truncate max-w-[200px]" title={transaction.description}>
+                              {transaction.description}
+                            </TableCell>
+                            <TableCell>{transaction.amount} ₽</TableCell>
+                            <TableCell>
+                              <Badge variant={transaction.type === 'income' ? 'success' : 'destructive'}>
+                                {transaction.type === 'income' ? 'Доход' : 'Расход'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <CategorySelect
+                                value={transaction.category || ''}
+                                onChange={(newCategory) => handleCategoryChange(index, newCategory)}
+                                type={categoryType}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              {transaction.date?.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                  {parsedData.length > 5 && (
+                    <div className="p-2 text-center text-sm text-muted-foreground">
+                      И ещё {parsedData.length - 5} транзакций
+                    </div>
+                  )}
+                </div>
+              )}
 
-            {skippedTransactions.length > 0 && (
-              <Alert variant="warning">
-                <AlertDescription>
-                  <p className="mb-2">Следующие транзакции были пропущены:</p>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {skippedTransactions.map((msg, index) => (
-                      <li key={index}>{msg}</li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {parsedData.length > 0 && (
-              <div className="space-y-2">
-                <Label htmlFor="employee">ФИО сотрудника</Label>
-                <select
-                  id="employee"
-                  value={selectedEmployee}
-                  onChange={(e) => setSelectedEmployee(e.target.value)}
-                  className="w-full p-2 border rounded-md"
+              <DialogFooter>
+                <Button variant="outline" onClick={handleClose} disabled={importing}>
+                  Отмена
+                </Button>
+                <Button
+                  onClick={handleImport}
+                  disabled={parsedData.length === 0 || importing || !selectedEmployee}
                 >
-                  <option value="">Выберите сотрудника</option>
-                  {employees.map((employee) => (
-                    <option key={employee.id} value={employee.fullName}>
-                      {employee.fullName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {parsedData.length > 0 && (
-              <div className="border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Описание</TableHead>
-                      <TableHead>Сумма (₽)</TableHead>
-                      <TableHead>Тип</TableHead>
-                      <TableHead>Категория</TableHead>
-                      <TableHead>Дата</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {parsedData.slice(0, 5).map((transaction, index) => {
-                      const categoryType = transaction.isReimbursement ? 'reimbursement' : transaction.type || 'expense';
-                      const availableCategories = getTransactionCategories()[categoryType] || [];
-                      return (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium truncate max-w-[200px]" title={transaction.description}>
-                            {transaction.description}
-                          </TableCell>
-                          <TableCell>{transaction.amount} ₽</TableCell>
-                          <TableCell>
-                            <Badge variant={transaction.type === 'income' ? 'success' : 'destructive'}>
-                              {transaction.type === 'income' ? 'Доход' : 'Расход'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <select
-                              value={transaction.category || ''}
-                              onChange={(e) => handleCategoryChange(index, e.target.value)}
-                              className="p-1 border rounded-md"
-                            >
-                              {availableCategories.map((cat) => (
-                                <option key={cat} value={cat}>
-                                  {cat}
-                                </option>
-                              ))}
-                            </select>
-                          </TableCell>
-                          <TableCell>{transaction.date?.toLocaleDateString()}</TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-                {parsedData.length > 5 && (
-                  <div className="p-2 text-center text-sm text-muted-foreground">
-                    И ещё {parsedData.length - 5} транзакций
-                  </div>
-                )}
-              </div>
-            )}
-
-            <DialogFooter>
-              <Button variant="outline" onClick={handleClose} disabled={importing}>
-                Отмена
-              </Button>
-              <Button
-                onClick={handleImport}
-                disabled={parsedData.length === 0 || importing || !selectedEmployee}
-              >
-                {importing ? 'Импорт...' : `Импортировать ${parsedData.length} транзакций`}
-              </Button>
-            </DialogFooter>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
+                  {importing ? 'Импорт...' : `Импортировать ${parsedData.length} транзакций`}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </QueryClientProvider>
   );
 };
 

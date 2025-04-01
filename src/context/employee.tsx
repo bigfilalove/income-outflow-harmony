@@ -18,9 +18,9 @@ export const EmployeeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch('/api/employees', {
+      const response = await fetch('http://localhost:5050/api/employees', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Предполагаем, что токен хранится в localStorage
+          'Authorization': `Bearer ${localStorage.getItem('finance-tracker-token')}`, // Предполагаем, что токен хранится в localStorage
         },
       });
       if (!response.ok) {

@@ -61,7 +61,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
 
     try {
-      const response = await fetch('/api/transactions/categories-stats', {
+      const response = await fetch('http://localhost:5050/api/transactions/categories-stats', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

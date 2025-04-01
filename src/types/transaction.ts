@@ -97,6 +97,53 @@ export const saveCategories = (updatedCategories: CategoryList): void => {
   dispatchCategoriesUpdated();
 };
 
+export const fetchCategoriesFromAPI = async (): Promise<CategoryList> => {
+  try {
+    const token = localStorage.getItem('finance-tracker-token');
+    console.log('Запрос к /api/categories с токеном:', token);
+    const response = await fetch('http://localhost:5050/api/categories', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    console.log('Статус ответа /api/categories:', response.status);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const categories = await response.json();
+    console.log('Полученные категории:', categories);
+
+    const categoryList: CategoryList = {
+      income: [],
+      expense: [],
+      reimbursement: [],
+    };
+
+    categories.forEach((category: { name: string; type: TransactionType }) => {
+      if (category.type === 'income') {
+        categoryList.income.push(category.name);
+      } else if (category.type === 'expense') {
+        categoryList.expense.push(category.name);
+      } else if (category.type === 'reimbursement') {
+        categoryList.reimbursement.push(category.name);
+      }
+    });
+
+    console.log('Сформированный categoryList:', categoryList);
+    saveCategories(categoryList);
+    return categoryList;
+  } catch (error) {
+    console.error('Ошибка при загрузке категорий из API:', error);
+    const defaultCategories: CategoryList = {
+      income: ['Продажа лестницы', 'Продажа прочих изделий', 'Инвестиции', 'Возврат подотчетной суммы', 'Другое'],
+      expense: ['ФОТ', 'Металл', 'IT-инфраструктура', 'Маркетинг', 'Комиссии банка – Т-Банк', 'Под отчетные средства', 'Аренда офисного помещения', 'Налоги', 'Другое'],
+      reimbursement: ['Другое'],
+    };
+    saveCategories(defaultCategories);
+    return defaultCategories;
+  }
+};
+
 export const getProjects = (): string[] => {
   const storedProjects = localStorage.getItem('projects');
   if (storedProjects) {

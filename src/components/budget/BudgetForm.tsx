@@ -1,25 +1,27 @@
-
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form'; // Добавляем Controller
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useBudgets } from '@/context/BudgetContext';
-import { getTransactionCategories, CategoryList } from '@/types/transaction';
 import { getCompanies } from '@/types/transaction';
 import { getMonthsList, getQuartersList, getYearsList } from '@/lib/date-utils';
 import { BudgetPeriod } from '@/types/budget';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
+import { Form, FormItem, FormLabel } from '@/components/ui/form'; // Добавляем FormItem и FormLabel
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-// Import our new form components
+// Импортируем новые компоненты
 import FormTabs from './form/FormTabs';
-import CategoryField from './form/CategoryField';
 import CompanyField from './form/CompanyField';
 import AmountField from './form/AmountField';
 import PeriodField from './form/PeriodField';
 import YearField from './form/YearField';
 import MonthField from './form/MonthField';
+import CategorySelect from '../transaction/CategorySelect';
 import { BudgetFormProps, FormValues, formSchema } from './form/types';
+
+// Создаем QueryClient
+const queryClient = new QueryClient();
 
 const BudgetForm: React.FC<BudgetFormProps> = ({ 
   onSuccess, 
@@ -27,7 +29,6 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
   defaultType = 'expense'
 }) => {
   const { addBudget, updateBudget } = useBudgets();
-  const [categories, setCategories] = useState<CategoryList>(getTransactionCategories());
   const [companies] = useState(getCompanies().filter(company => company !== ''));
   const years = getYearsList();
   const months = getMonthsList();
@@ -58,27 +59,13 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
     },
   });
   
-  // Получение списка категорий
-  useEffect(() => {
-    const handleCategoriesUpdate = () => {
-      setCategories(getTransactionCategories());
-    };
-    
-    window.addEventListener('categoriesUpdated', handleCategoriesUpdate);
-    
-    return () => {
-      window.removeEventListener('categoriesUpdated', handleCategoriesUpdate);
-    };
-  }, []);
-  
-  // Следим за изменением типа бюджета для обновления списка категорий
+  // Следим за изменением типа бюджета
   const selectedType = form.watch('type');
   const selectedPeriod = form.watch('period');
   
   // Обработчик отправки формы
   const onSubmit = async (values: FormValues) => {
     try {
-      // Convert "all" to null for company field
       const companyValue = values.company === "all" ? null : values.company;
       
       if (initialData) {
@@ -87,7 +74,6 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
           company: companyValue
         });
       } else {
-        // Fix: Ensure all required properties are included
         await addBudget({
           category: values.category,
           amount: values.amount,
@@ -101,7 +87,6 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
         });
       }
       
-      // Сбрасываем форму и вызываем коллбэк успеха
       if (!initialData) {
         form.reset({
           category: '',
@@ -121,61 +106,72 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
       console.error('Error saving budget:', error);
     }
   };
-  
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{initialData ? 'Редактировать бюджет' : 'Добавить бюджет'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormTabs 
-              selectedType={selectedType}
-              onValueChange={(value) => form.setValue('type', value)}
-            />
-            
-            <CategoryField 
-              control={form.control}
-              categories={categories}
-              selectedType={selectedType}
-            />
-            
-            <CompanyField 
-              control={form.control}
-              companies={companies}
-            />
-            
-            <AmountField control={form.control} />
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <PeriodField 
-                control={form.control}
-                setValue={form.setValue}
-                currentMonth={currentMonth}
-                currentQuarter={currentQuarter}
+    <QueryClientProvider client={queryClient}>
+      <Card>
+        <CardHeader>
+          <CardTitle>{initialData ? 'Редактировать бюджет' : 'Добавить бюджет'}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormTabs 
+                selectedType={selectedType}
+                onValueChange={(value) => form.setValue('type', value)}
               />
               
-              <YearField 
+              <Controller
                 control={form.control}
-                years={years}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Категория</FormLabel>
+                    <CategorySelect
+                      value={field.value}
+                      onChange={field.onChange}
+                      type={selectedType}
+                    />
+                  </FormItem>
+                )}
               />
               
-              <MonthField 
+              <CompanyField 
                 control={form.control}
-                selectedPeriod={selectedPeriod}
-                months={months}
-                quarters={quarters}
+                companies={companies}
               />
-            </div>
-            
-            <Button type="submit" className="w-full">
-              {initialData ? 'Обновить бюджет' : 'Добавить бюджет'}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+              
+              <AmountField control={form.control} />
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <PeriodField 
+                  control={form.control}
+                  setValue={form.setValue}
+                  currentMonth={currentMonth}
+                  currentQuarter={currentQuarter}
+                />
+                
+                <YearField 
+                  control={form.control}
+                  years={years}
+                />
+                
+                <MonthField 
+                  control={form.control}
+                  selectedPeriod={selectedPeriod}
+                  months={months}
+                  quarters={quarters}
+                />
+              </div>
+              
+              <Button type="submit" className="w-full">
+                {initialData ? 'Обновить бюджет' : 'Добавить бюджет'}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </QueryClientProvider>
   );
 };
 
