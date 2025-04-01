@@ -1,4 +1,3 @@
-
 export type TransactionType = 'income' | 'expense' | 'transfer';
 export type ReimbursementStatus = 'pending' | 'completed';
 export type CategoryType = TransactionType | 'reimbursement';
@@ -7,6 +6,12 @@ export interface CategoryList {
   income: string[];
   expense: string[];
   reimbursement: string[];
+  transfer: string[];
+}
+
+export interface ProjectAllocation {
+  project: string;
+  amount: number;
 }
 
 export interface Transaction {
@@ -26,6 +31,8 @@ export interface Transaction {
   isTransfer?: boolean;
   fromCompany?: string;
   toCompany?: string;
+  projectAllocations?: ProjectAllocation[];
+  hasAllocations?: boolean;
 }
 
 export interface ServerTransaction {
@@ -46,6 +53,8 @@ export interface ServerTransaction {
   isTransfer: boolean;
   fromCompany: string | null;
   toCompany: string | null;
+  projectAllocations?: ProjectAllocation[];
+  hasAllocations: boolean;
 }
 
 const defaultCompanies: string[] = [];
@@ -53,7 +62,8 @@ const defaultProjects: string[] = [];
 const defaultTransactionCategories: CategoryList = {
   income: [],
   expense: [],
-  reimbursement: []
+  reimbursement: [],
+  transfer: []
 };
 
 const dispatchCompaniesUpdated = () => {
@@ -122,6 +132,7 @@ export const fetchCategoriesFromAPI = async (): Promise<CategoryList> => {
       income: [],
       expense: [],
       reimbursement: [],
+      transfer: [],
     };
 
     categories.forEach((category: { name: string; type: CategoryType }) => {
@@ -131,6 +142,8 @@ export const fetchCategoriesFromAPI = async (): Promise<CategoryList> => {
         categoryList.expense.push(category.name);
       } else if (category.type === 'reimbursement') {
         categoryList.reimbursement.push(category.name);
+      } else if (category.type === 'transfer') {
+        categoryList.transfer.push(category.name);
       }
     });
 
@@ -143,6 +156,7 @@ export const fetchCategoriesFromAPI = async (): Promise<CategoryList> => {
       income: ['Продажа лестницы', 'Продажа прочих изделий', 'Инвестиции', 'Возврат подотчетной суммы', 'Другое'],
       expense: ['ФОТ', 'Металл', 'IT-инфраструктура', 'Маркетинг', 'Комиссии банка – Т-Банк', 'Под отчетные средства', 'Аренда офисного помещения', 'Налоги', 'Другое'],
       reimbursement: ['Другое'],
+      transfer: [],
     };
     saveCategories(defaultCategories);
     return defaultCategories;

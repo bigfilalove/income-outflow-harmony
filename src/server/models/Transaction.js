@@ -1,6 +1,11 @@
 
 const mongoose = require('mongoose');
 
+const projectAllocationSchema = new mongoose.Schema({
+  project: { type: String, required: true },
+  amount: { type: Number, required: true }
+}, { _id: false });
+
 const transactionSchema = new mongoose.Schema({
   amount: { type: Number, required: true },
   description: { type: String, required: true },
@@ -17,7 +22,10 @@ const transactionSchema = new mongoose.Schema({
   // New fields for transfer transactions
   toCompany: { type: String, default: null },
   fromCompany: { type: String, default: null },
-  isTransfer: { type: Boolean, default: false }
+  isTransfer: { type: Boolean, default: false },
+  // New field for project allocations
+  projectAllocations: [projectAllocationSchema],
+  hasAllocations: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

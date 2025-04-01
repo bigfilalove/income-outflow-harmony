@@ -1,4 +1,4 @@
-import { Transaction, ServerTransaction } from '@/types/transaction';
+import { Transaction, ServerTransaction, ProjectAllocation } from '@/types/transaction';
 import { User, ServerUser } from '@/types/user';
 import { ServerBudget, Budget } from '@/types/budget';
 
@@ -20,7 +20,9 @@ export const mapServerToClient = (serverTransaction: ServerTransaction): Transac
     project: serverTransaction.project || undefined,
     isTransfer: serverTransaction.isTransfer,
     fromCompany: serverTransaction.fromCompany || undefined,
-    toCompany: serverTransaction.toCompany || undefined
+    toCompany: serverTransaction.toCompany || undefined,
+    projectAllocations: serverTransaction.projectAllocations || undefined,
+    hasAllocations: serverTransaction.hasAllocations
   };
 };
 
@@ -41,7 +43,9 @@ export const mapClientToServer = (clientTransaction: Omit<Transaction, 'id'>): O
     project: clientTransaction.project || null,
     isTransfer: clientTransaction.isTransfer || false,
     fromCompany: clientTransaction.fromCompany || null,
-    toCompany: clientTransaction.toCompany || null
+    toCompany: clientTransaction.toCompany || null,
+    projectAllocations: clientTransaction.projectAllocations,
+    hasAllocations: clientTransaction.hasAllocations || false
   };
 };
 

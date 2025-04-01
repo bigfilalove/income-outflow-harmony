@@ -19,9 +19,10 @@ import CreatorField from '@/components/transaction/CreatorField';
 import CategorySelect from '@/components/transaction/CategorySelect';
 import CompanySelect from '@/components/transaction/CompanySelect';
 import ProjectSelect from '@/components/transaction/ProjectSelect';
+import ProjectAllocations from '@/components/transaction/ProjectAllocations';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-import { TransactionType, ReimbursementStatus } from '@/types/transaction';
+import { TransactionType, ReimbursementStatus, ProjectAllocation } from '@/types/transaction';
 
 const TransactionForm: React.FC = () => {
   const queryClient = useQueryClient();
@@ -35,6 +36,8 @@ const TransactionForm: React.FC = () => {
   const [createdBy, setCreatedBy] = useState('');
   const [company, setCompany] = useState('');
   const [project, setProject] = useState('');
+  const [hasAllocations, setHasAllocations] = useState(false);
+  const [projectAllocations, setProjectAllocations] = useState<ProjectAllocation[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Мутация для добавления транзакции
@@ -55,6 +58,8 @@ const TransactionForm: React.FC = () => {
       setCreatedBy('');
       setCompany('');
       setProject('');
+      setHasAllocations(false);
+      setProjectAllocations([]);
     },
     onError: (error) => {
       toast("Ошибка", {
@@ -81,21 +86,45 @@ const TransactionForm: React.FC = () => {
       return;
     }
 
+    const numAmount = parseFloat(amount);
+
+    // Проверка корректности распределения по проектам
+    if (hasAllocations) {
+      const allocatedTotal = projectAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
+      if (allocatedTotal !== numAmount) {
+        toast("Ошибка", {
+          description: "Сумма распределений должна быть равна общей сумме транзакции",
+        });
+        return;
+      }
+
+      // Проверка наличия дубликатов проектов
+      const projectsSet = new Set(projectAllocations.map(a => a.project));
+      if (projectAllocations.length !== projectsSet.size) {
+        toast("Ошибка", {
+          description: "Один проект используется несколько раз в распределении",
+        });
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     const transaction = {
-      amount: parseFloat(amount),
+      amount: numAmount,
       description,
       category,
       date,
       type: transactionType,
       createdBy: createdBy.trim() || undefined,
       company: company || undefined,
-      project: project || undefined,
+      project: hasAllocations ? undefined : (project || undefined),
       isReimbursement: transactionType === 'expense' && isReimbursement ? true : false,
       reimbursedTo: transactionType === 'expense' && isReimbursement ? reimbursedTo : undefined,
       reimbursementStatus: transactionType === 'expense' && isReimbursement ? 'pending' as ReimbursementStatus : undefined,
       createdAt: new Date(),
+      projectAllocations: hasAllocations ? projectAllocations : undefined,
+      hasAllocations
     };
 
     mutation.mutate(transaction);
@@ -131,10 +160,12 @@ const TransactionForm: React.FC = () => {
               />
             </div>
 
-            <ProjectSelect
-              value={project}
-              onChange={setProject}
-            />
+            {!hasAllocations && (
+              <ProjectSelect
+                value={project}
+                onChange={setProject}
+              />
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="amount">Сумма</Label>
@@ -167,6 +198,15 @@ const TransactionForm: React.FC = () => {
                 type={categoryType} // Передаём тип для фильтрации
               />
             </div>
+
+            {amount && (
+              <ProjectAllocations
+                totalAmount={parseFloat(amount) || 0}
+                allocations={projectAllocations}
+                onChange={setProjectAllocations}
+                onToggleAllocations={setHasAllocations}
+              />
+            )}
 
             {transactionType === 'expense' && (
               <ReimbursementFields
