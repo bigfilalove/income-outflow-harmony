@@ -1,79 +1,78 @@
-import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
+
+import { format, getMonth, getYear, isAfter, isBefore, isSameDay, isSameMonth, parseISO, subMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
-/**
- * Returns a short month name for a given month index (0-11)
- */
-export function getMonthNameShort(monthIndex: number): string {
-  const months = ['янв.', 'фев.', 'март', 'апр.', 'май', 'июнь', 'июль', 'авг.', 'сент.', 'окт.', 'нояб.', 'дек.'];
-  return months[monthIndex] || '';
-}
-
-// Получить начало месяца
-export const getStartOfMonth = (date: Date): Date => {
-  return startOfMonth(date);
+export const formatDate = (date: Date | string, formatStr: string = 'dd.MM.yyyy'): string => {
+  const parsedDate = typeof date === 'string' ? parseISO(date) : date;
+  return format(parsedDate, formatStr, { locale: ru });
 };
 
-// Получить конец месяца
-export const getEndOfMonth = (date: Date): Date => {
-  return endOfMonth(date);
+export const getCurrentMonthRange = () => {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return { startOfMonth, endOfMonth };
 };
 
-// Получить следующий месяц
-export const getNextMonth = (date: Date): Date => {
-  return addMonths(date, 1);
+export const getPreviousMonthRange = () => {
+  const now = new Date();
+  const prevMonth = subMonths(now, 1);
+  const startOfMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1);
+  const endOfMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0);
+  return { startOfMonth, endOfMonth };
 };
 
-// Получить предыдущий месяц
-export const getPreviousMonth = (date: Date): Date => {
-  return subMonths(date, 1);
+export const isCurrentMonth = (date: Date | string): boolean => {
+  const parsedDate = typeof date === 'string' ? parseISO(date) : date;
+  const now = new Date();
+  return isSameMonth(parsedDate, now);
 };
 
-// Форматировать дату как месяц и год
-export const formatMonthYear = (date: Date): string => {
-  return format(date, 'LLLL yyyy', { locale: ru });
+export const isPreviousMonth = (date: Date | string): boolean => {
+  const parsedDate = typeof date === 'string' ? parseISO(date) : date;
+  const now = new Date();
+  const prevMonth = subMonths(now, 1);
+  return isSameMonth(parsedDate, prevMonth);
 };
 
-// Форматировать дату как квартал и год
-export const formatQuarterYear = (date: Date): string => {
-  const quarter = Math.floor(date.getMonth() / 3) + 1;
-  return `${quarter} квартал ${date.getFullYear()}`;
+export const isInDateRange = (date: Date | string, startDate: Date | null, endDate: Date | null): boolean => {
+  const parsedDate = typeof date === 'string' ? parseISO(date) : date;
+  
+  if (!startDate && !endDate) return true;
+  
+  if (startDate && !endDate) {
+    return isAfter(parsedDate, startDate) || isSameDay(parsedDate, startDate);
+  }
+  
+  if (!startDate && endDate) {
+    return isBefore(parsedDate, endDate) || isSameDay(parsedDate, endDate);
+  }
+  
+  if (startDate && endDate) {
+    return (isAfter(parsedDate, startDate) || isSameDay(parsedDate, startDate)) && 
+           (isBefore(parsedDate, endDate) || isSameDay(parsedDate, endDate));
+  }
+  
+  return false;
 };
 
-// Получить текущий квартал (1-4)
-export const getCurrentQuarter = (): number => {
-  return Math.floor(new Date().getMonth() / 3) + 1;
+export const getMonthName = (date: Date | string, format: 'long' | 'short' = 'long'): string => {
+  const parsedDate = typeof date === 'string' ? parseISO(date) : date;
+  return format === 'long' 
+    ? parsedDate.toLocaleString('ru', { month: 'long' }) 
+    : parsedDate.toLocaleString('ru', { month: 'short' });
 };
 
-// Получить список месяцев
-export const getMonthsList = (): { value: number; label: string }[] => {
-  return Array.from({ length: 12 }, (_, i) => {
-    const date = new Date(2000, i, 1);
-    return {
-      value: i + 1,
-      label: format(date, 'LLLL', { locale: ru })
-    };
-  });
+export const getMonthNameByNumber = (monthNumber: number, format: 'long' | 'short' = 'long'): string => {
+  const date = new Date();
+  date.setMonth(monthNumber);
+  return getMonthName(date, format);
 };
 
-// Получить список кварталов
-export const getQuartersList = (): { value: number; label: string }[] => {
-  return [
-    { value: 1, label: '1 квартал (Янв-Март)' },
-    { value: 2, label: '2 квартал (Апр-Июнь)' },
-    { value: 3, label: '3 квартал (Июл-Сент)' },
-    { value: 4, label: '4 квартал (Окт-Дек)' }
-  ];
-};
-
-// Получить список последних лет
-export const getYearsList = (count: number = 5): { value: number; label: string }[] => {
-  const currentYear = new Date().getFullYear();
-  return Array.from({ length: count }, (_, i) => {
-    const year = currentYear - i;
-    return {
-      value: year,
-      label: year.toString()
-    };
-  });
+export const getCurrentMonthYear = (): { month: number; year: number } => {
+  const now = new Date();
+  return {
+    month: getMonth(now),
+    year: getYear(now)
+  };
 };
