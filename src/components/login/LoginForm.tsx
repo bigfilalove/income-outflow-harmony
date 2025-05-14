@@ -156,3 +156,5 @@ export const LoginForm = () => {
     </form>
   );
 };
+
+export default LoginForm; // Keep default export for backward compatibility

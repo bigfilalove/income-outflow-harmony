@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -35,3 +34,5 @@ export const TestAccounts = () => {
     </Card>
   );
 };
+
+export default TestAccounts; // Keep default export for backward compatibility

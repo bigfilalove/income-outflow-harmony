@@ -2,16 +2,33 @@
 import { supabase } from '@/lib/supabase';
 
 /**
+ * Detailed result type for Supabase connection check
+ */
+export interface ConnectionCheckResult {
+  isConnected: boolean;
+  details: {
+    url: string;
+    errorMessage: string;
+    errorCode: string;
+    fetchStatus: string;
+    authEnabled?: boolean;
+    tablesAccessible?: boolean;
+  }
+}
+
+/**
  * Check connection to Supabase with detailed diagnostics
  */
-export const checkSupabaseConnectionDetailed = async () => {
-  const result = {
+export const checkSupabaseConnectionDetailed = async (): Promise<ConnectionCheckResult> => {
+  const result: ConnectionCheckResult = {
     isConnected: false,
     details: {
       url: '',
       errorMessage: '',
       errorCode: '',
-      fetchStatus: ''
+      fetchStatus: '',
+      authEnabled: false,
+      tablesAccessible: false
     }
   };
   
@@ -36,6 +53,15 @@ export const checkSupabaseConnectionDetailed = async () => {
     
     result.isConnected = true;
     result.details.fetchStatus = `Успешно (${elapsed}ms)`;
+    result.details.tablesAccessible = true;
+    
+    // Check if auth is enabled
+    try {
+      await supabase.auth.getSession();
+      result.details.authEnabled = true;
+    } catch (authError) {
+      result.details.authEnabled = false;
+    }
     
     return result;
   } catch (error: any) {
@@ -47,5 +73,19 @@ export const checkSupabaseConnectionDetailed = async () => {
     result.details.fetchStatus = 'Ошибка';
     
     return result;
+  }
+};
+
+/**
+ * Simple function to check Supabase connection and notify the user
+ * Used in Admin panel
+ */
+export const checkAndNotifySupabaseConnection = async (): Promise<boolean> => {
+  try {
+    const result = await checkSupabaseConnectionDetailed();
+    return result.isConnected;
+  } catch (error) {
+    console.error('Error checking Supabase connection:', error);
+    return false;
   }
 };
