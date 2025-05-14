@@ -1,6 +1,6 @@
 
 import { supabase } from '@/lib/supabase';
-import { formatDate } from '@/lib/date-utils';
+import { formatDateShort } from '@/lib/formatters';
 import { Transaction } from '@/types/transaction';
 
 // Получение всех транзакций
@@ -50,7 +50,7 @@ export const createTransactionInSupabase = async (transaction: Omit<Transaction,
       amount: transaction.amount,
       description: transaction.description,
       category: transaction.category,
-      date: formatDate(transaction.date),
+      date: transaction.date.toISOString(), // Используем ISO строку для даты
       type: transaction.type,
       is_reimbursement: transaction.isReimbursement || false,
       reimbursed_to: transaction.reimbursedTo || null,
@@ -109,7 +109,7 @@ export const updateTransactionInSupabase = async (transaction: Transaction): Pro
       amount: transaction.amount,
       description: transaction.description,
       category: transaction.category,
-      date: formatDate(transaction.date),
+      date: transaction.date.toISOString(), // Используем ISO строку для даты
       type: transaction.type,
       is_reimbursement: transaction.isReimbursement || false,
       reimbursed_to: transaction.reimbursedTo || null,
