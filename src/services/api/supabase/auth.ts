@@ -16,7 +16,7 @@ export const loginWithCredentialsSupabase = async (username: string, password: s
         email: 'admin@example.com',
         username: 'admin',
         password: 'password123',
-        role: 'admin',
+        role: 'admin' as 'admin',
         createdAt: new Date('2023-01-01')
       },
       {
@@ -25,7 +25,7 @@ export const loginWithCredentialsSupabase = async (username: string, password: s
         email: 'user@example.com',
         username: 'user',
         password: 'password123',
-        role: 'user',
+        role: 'user' as 'user',
         createdAt: new Date('2023-01-02')
       },
       {
@@ -34,7 +34,7 @@ export const loginWithCredentialsSupabase = async (username: string, password: s
         email: 'basic@example.com',
         username: 'basic',
         password: 'password123',
-        role: 'basic',
+        role: 'basic' as 'basic',
         createdAt: new Date('2023-01-03')
       },
       {
@@ -43,7 +43,7 @@ export const loginWithCredentialsSupabase = async (username: string, password: s
         email: 'accountant@example.com',
         username: 'accountant',
         password: 'password123',
-        role: 'user',
+        role: 'user' as 'user',
         createdAt: new Date('2023-01-04')
       },
       {
@@ -52,7 +52,7 @@ export const loginWithCredentialsSupabase = async (username: string, password: s
         email: 'manager@example.com',
         username: 'manager',
         password: 'password123',
-        role: 'user',
+        role: 'user' as 'user',
         createdAt: new Date('2023-01-05')
       }
     ];
@@ -107,7 +107,7 @@ export const loginWithCredentialsSupabase = async (username: string, password: s
         email: users.email,
         username: users.username,
         password: '', // Don't return the actual password
-        role: users.role || 'basic',
+        role: (users.role as 'admin' | 'user' | 'basic') || 'basic',
         createdAt: new Date(users.created_at)
       };
       
