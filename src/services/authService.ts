@@ -9,6 +9,7 @@ export const login = (userId: string, users: User[]) => {
     localStorage.setItem('finance-tracker-current-user', userId);
     localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now());
     localStorage.setItem('finance-tracker-user', JSON.stringify(user));
+    console.log('User logged in and stored in localStorage:', user);
     return user;
   }
   return null;
@@ -27,7 +28,9 @@ export const loginWithCredentials = async (
     
     if (user) {
       console.log('Authentication successful:', user);
+      // Ensure we store the user data in localStorage
       localStorage.setItem('finance-tracker-user', JSON.stringify(user));
+      console.log('User data stored in localStorage');
       return user;
     }
     
@@ -39,6 +42,7 @@ export const loginWithCredentials = async (
       localStorage.setItem('finance-tracker-current-user', localUser.id);
       localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now());
       localStorage.setItem('finance-tracker-user', JSON.stringify(localUser));
+      console.log('Local user data stored in localStorage');
       return localUser;
     }
     

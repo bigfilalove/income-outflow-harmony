@@ -43,9 +43,25 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const token = localStorage.getItem('finance-tracker-token');
   const userInStorage = localStorage.getItem('finance-tracker-user');
   
+  // FIX: Only redirect to login if BOTH context auth AND localStorage auth are missing
   if (!isAuthenticated && (!token || !userInStorage)) {
     console.log('Not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
+  }
+
+  // If we have user in localStorage but not in context, consider the user authenticated
+  // This prevents redirect loops when context hasn't caught up with localStorage
+  if (!isAuthenticated && token && userInStorage) {
+    console.log('User authenticated via localStorage only, allowing access');
+    // For admin routes, still check the role
+    if (requireAdmin) {
+      const userRole = JSON.parse(userInStorage).role;
+      if (userRole !== 'admin') {
+        console.log('Not an admin, redirecting to home');
+        return <Navigate to="/" replace />;
+      }
+    }
+    return <>{children}</>;
   }
 
   // For admin routes, check the role

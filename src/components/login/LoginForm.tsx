@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,8 +13,37 @@ export const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { loginWithCredentials, currentUser } = useAuth();
+  const { loginWithCredentials, currentUser, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      redirectBasedOnRole();
+    }
+  }, [isAuthenticated]);
+
+  const redirectBasedOnRole = () => {
+    // Get the current user from context or localStorage
+    const userRole = currentUser?.role || 
+      (localStorage.getItem('finance-tracker-user') 
+        ? JSON.parse(localStorage.getItem('finance-tracker-user') || '{}').role 
+        : null);
+    
+    console.log('User role for redirection:', userRole);
+    
+    // Redirect based on role
+    if (userRole === 'admin') {
+      navigate('/admin', { replace: true });
+    } else if (userRole === 'user') {
+      navigate('/transactions', { replace: true });
+    } else if (userRole === 'basic') {
+      navigate('/basic-transactions', { replace: true });
+    } else {
+      navigate('/', { replace: true });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,23 +63,10 @@ export const LoginForm = () => {
         });
         console.log('Login successful, redirecting based on role');
         
-        // Get the current user from context after it has been set
-        const userRole = currentUser?.role || localStorage.getItem('finance-tracker-user') 
-          ? JSON.parse(localStorage.getItem('finance-tracker-user') || '{}').role 
-          : null;
-          
-        console.log('User role for redirection:', userRole);
-        
-        // Redirect based on role
-        if (userRole === 'admin') {
-          navigate('/admin');
-        } else if (userRole === 'user') {
-          navigate('/transactions');
-        } else if (userRole === 'basic') {
-          navigate('/basic-transactions');
-        } else {
-          navigate('/');
-        }
+        // Wait a short moment to ensure localStorage is updated before redirecting
+        setTimeout(() => {
+          redirectBasedOnRole();
+        }, 100);
       } else {
         toast({
           title: "Неверное имя пользователя или пароль",
