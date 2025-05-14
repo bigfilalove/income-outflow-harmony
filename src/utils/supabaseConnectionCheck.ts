@@ -2,22 +2,27 @@
 import { supabase } from '@/lib/supabase';
 
 /**
- * Detailed connection check with diagnostics
+ * Define the type for connection check results
  */
-export const checkSupabaseConnectionDetailed = async (): Promise<{
+export interface ConnectionCheckResult {
   isConnected: boolean;
   details: {
     url?: string;
     authEnabled?: boolean;
     tablesAccessible?: boolean;
     errorMessage?: string;
-    error?: any;
+    error?: any; // This allows storing any error object
   };
-}> => {
-  const result = {
+}
+
+/**
+ * Detailed connection check with diagnostics
+ */
+export const checkSupabaseConnectionDetailed = async (): Promise<ConnectionCheckResult> => {
+  const result: ConnectionCheckResult = {
     isConnected: false,
     details: {
-      url: supabase.supabaseUrl,
+      url: supabase.getUrl(), // Use getUrl() instead of accessing protected property
       authEnabled: false,
       tablesAccessible: false,
       errorMessage: ''

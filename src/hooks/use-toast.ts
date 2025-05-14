@@ -1,6 +1,18 @@
 
 import { useToast as useToastOriginal } from "@/components/ui/use-toast"
-import type { Toast } from "@/components/ui/use-toast"
+import type { ToastProps, ToastActionElement } from "@/components/ui/use-toast"
+
+// Re-export the Sonner toaster
+export { Toaster as SonnerToaster } from "sonner";
+
+// Define the Toast interface that matches what we're using
+export interface Toast {
+  id?: string;
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  action?: ToastActionElement;
+  variant?: "default" | "destructive";
+}
 
 /**
  * Use the toast hook with additional functionality

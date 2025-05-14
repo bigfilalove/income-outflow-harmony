@@ -18,6 +18,9 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   }
 });
 
+// Add a getUrl method to make the URL accessible
+supabase.getUrl = () => supabaseUrl;
+
 // Добавляем хелпер для проверки соединения с Supabase
 export const checkSupabaseConnection = async (): Promise<boolean> => {
   try {
