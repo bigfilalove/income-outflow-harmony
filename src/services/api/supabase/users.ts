@@ -1,77 +1,81 @@
 
 import { supabase } from '@/lib/supabase';
-import { User } from '@/types/user';
 import { toast } from 'sonner';
-import { setUserRoleByEmail } from './auth';
 
-// Получить список пользователей
-export const fetchUsersFromSupabase = async (): Promise<User[]> => {
-  try {
-    const { data: usersData, error } = await supabase
-      .from('users')
-      .select('*');
-    
-    if (error) {
-      console.error('Ошибка при получении списка пользователей:', error);
-      return [];
-    }
-    
-    return usersData.map(user => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      username: user.username,
-      password: '', // Не возвращаем пароль
-      role: (user.role as 'admin' | 'user' | 'basic') || 'basic',
-      createdAt: new Date(user.created_at)
-    }));
-  } catch (error) {
-    console.error('Ошибка API при получении пользователей:', error);
-    return [];
-  }
-};
-
-// Присвоить пользователю роль администратора
+/**
+ * Устанавливает роль администратора для пользователя по email или имени пользователя
+ */
 export const setAdminRoleForUser = async (emailOrUsername: string): Promise<boolean> => {
   try {
-    // Пробуем установить роль через Supabase Auth
-    const result = await setUserRoleByEmail(emailOrUsername, 'admin');
+    console.log('[Supabase Users] Попытка присвоить роль админа для:', emailOrUsername);
     
-    if (result) {
-      toast.success(`Пользователю ${emailOrUsername} успешно присвоена роль администратора`);
-      return true;
+    // Получаем список пользователей
+    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
+    
+    if (usersError) {
+      console.error('[Supabase Users] Ошибка при получении списка пользователей:', usersError);
+      return false;
     }
     
-    // Если не удалось через Auth API, пробуем через таблицу пользователей
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .or(`email.eq.${emailOrUsername},username.eq.${emailOrUsername}`)
-      .single();
+    // Найдем пользователя по email или username
+    const user = users.users.find(u => 
+      u.email === emailOrUsername || 
+      u.email === `${emailOrUsername}@example.com` || 
+      u.user_metadata?.username === emailOrUsername
+    );
     
-    if (userError || !userData) {
-      console.error(`Пользователь ${emailOrUsername} не найден`, userError);
+    if (!user) {
+      console.error(`[Supabase Users] Пользователь с email/логином ${emailOrUsername} не найден`);
       toast.error(`Пользователь ${emailOrUsername} не найден`);
       return false;
     }
     
-    // Обновляем роль пользователя в таблице
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ role: 'admin' })
-      .eq('id', userData.id);
+    console.log(`[Supabase Users] Найден пользователь для обновления:`, user);
+    
+    // Обновляем метаданные пользователя, устанавливая роль admin
+    const currentMetadata = user.user_metadata || {};
+    const updatedMetadata = { ...currentMetadata, role: 'admin' };
+    
+    const { error: updateError } = await supabase.auth.admin.updateUserById(
+      user.id,
+      { user_metadata: updatedMetadata }
+    );
     
     if (updateError) {
-      console.error('Ошибка при обновлении роли пользователя:', updateError);
-      toast.error('Не удалось присвоить роль администратора');
+      console.error(`[Supabase Users] Ошибка при обновлении роли пользователя:`, updateError);
       return false;
     }
     
-    toast.success(`Пользователю ${emailOrUsername} успешно присвоена роль администратора`);
+    console.log(`[Supabase Users] Пользователю ${emailOrUsername} успешно присвоена роль admin`);
     return true;
   } catch (error) {
-    console.error('Ошибка при присвоении роли администратора:', error);
-    toast.error('Произошла ошибка при присвоении роли администратора');
+    console.error('[Supabase Users] Ошибка при обновлении роли пользователя:', error);
     return false;
+  }
+};
+
+/**
+ * Получает список всех пользователей
+ */
+export const getAllUsers = async () => {
+  try {
+    const { data, error } = await supabase.auth.admin.listUsers();
+    
+    if (error) {
+      console.error('[Supabase Users] Ошибка при получении пользователей:', error);
+      return [];
+    }
+    
+    return data.users.map(user => ({
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.name || user.email?.split('@')[0] || 'Пользователь',
+      username: user.user_metadata?.username || user.email?.split('@')[0] || '',
+      role: user.user_metadata?.role || 'user',
+      createdAt: new Date(user.created_at)
+    }));
+  } catch (error) {
+    console.error('[Supabase Users] Ошибка при получении пользователей:', error);
+    return [];
   }
 };
