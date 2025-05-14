@@ -1,20 +1,39 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { checkSupabaseConnection } from '@/lib/supabase';
 import { ConnectionStatus } from '@/components/login/ConnectionStatus';
 import { LoginForm } from '@/components/login/LoginForm';
 import { TestAccounts } from '@/components/login/TestAccounts';
 import { toast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { SupabaseConnectionDebug } from '@/components/debug/SupabaseConnectionDebug';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { checkSupabaseConnectionDetailed } from '@/utils/supabaseConnectionCheck';
+import { useAuth } from '@/context/AuthContext';
 
 const Login = () => {
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>("checking");
   const [connectionError, setConnectionError] = useState<string | null>(null);
-  const [showDebugPanel, setShowDebugPanel] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated, currentUser, isLoading } = useAuth();
+
+  // Перенаправляем аутентифицированных пользователей
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && currentUser) {
+      console.log('Login page: Пользователь уже авторизован, перенаправление:', currentUser);
+      
+      // Перенаправление на основе роли пользователя
+      if (currentUser.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else if (currentUser.role === 'user') {
+        navigate('/transactions', { replace: true });
+      } else if (currentUser.role === 'basic') {
+        navigate('/basic-transactions', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [isAuthenticated, currentUser, isLoading, navigate]);
 
   useEffect(() => {
     const verifyConnection = async () => {
@@ -63,9 +82,10 @@ const Login = () => {
     verifyConnection();
   }, []);
 
-  const toggleDebugPanel = () => {
-    setShowDebugPanel(prev => !prev);
-  };
+  // Если пользователь уже аутентифицирован, показываем пустую страницу до перенаправления
+  if (!isLoading && isAuthenticated && currentUser) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">

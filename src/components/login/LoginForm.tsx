@@ -17,7 +17,7 @@ export const LoginForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Проверяем, авторизован ли пользователь
+  // Проверяем, авторизован ли пользователь при монтировании компонента
   useEffect(() => {
     if (!authLoading && isAuthenticated && currentUser) {
       console.log('Пользователь уже авторизован, перенаправление:', currentUser);
@@ -64,9 +64,10 @@ export const LoginForm = () => {
         console.log('Вход успешен');
         
         // Даем немного времени для обновления состояния аутентификации
+        // и перенаправляем пользователя на основе его роли
         setTimeout(() => {
           redirectBasedOnRole();
-        }, 300);
+        }, 500); // Увеличиваем время ожидания для надежности
       } else {
         toast({
           title: "Неверное имя пользователя или пароль",

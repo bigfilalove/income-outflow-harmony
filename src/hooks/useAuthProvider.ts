@@ -57,24 +57,24 @@ export const useAuthProvider = () => {
         
         // Асинхронно обрабатываем изменение состояния
         if (session) {
-          setTimeout(() => {
-            const userRole = session.user?.user_metadata?.role as 'admin' | 'user' | 'basic';
-            const appUser: AppUser = {
-              id: session.user.id,
-              name: session.user.user_metadata.name || session.user.email?.split('@')[0] || 'Пользователь',
-              email: session.user.email || '',
-              username: session.user.email?.split('@')[0] || '',
-              password: '', // Не храним пароль
-              role: userRole || 'basic',
-              createdAt: new Date(session.user.created_at)
-            };
-            
-            setCurrentUser(appUser);
-            setIsAuthenticated(true);
-            
-            // Сохраняем пользователя в localStorage для резервного сохранения
-            localStorage.setItem('finance-tracker-user', JSON.stringify(appUser));
-          }, 0);
+          // Избегаем использования setTimeout, чтобы предотвратить задержки
+          const userRole = session.user?.user_metadata?.role as 'admin' | 'user' | 'basic';
+          const appUser: AppUser = {
+            id: session.user.id,
+            name: session.user.user_metadata.name || session.user.email?.split('@')[0] || 'Пользователь',
+            email: session.user.email || '',
+            username: session.user.email?.split('@')[0] || '',
+            password: '', // Не храним пароль
+            role: userRole || 'basic',
+            createdAt: new Date(session.user.created_at)
+          };
+          
+          setCurrentUser(appUser);
+          setIsAuthenticated(true);
+          
+          // Сохраняем пользователя в localStorage для резервного сохранения
+          localStorage.setItem('finance-tracker-user', JSON.stringify(appUser));
+          localStorage.setItem('finance-tracker-token', session.access_token);
         } else {
           // Проверяем, есть ли демо-пользователь
           const storedUserStr = localStorage.getItem('finance-tracker-user');
@@ -174,6 +174,13 @@ export const useAuthProvider = () => {
       
       // Сессия и пользователь будут обновлены через onAuthStateChange
       console.log('Вход через Supabase успешен');
+      
+      // Небольшая задержка перед установкой флага, чтобы onAuthStateChange успел сработать
+      // но уже возвращаем true, чтобы UI знал, что логин успешен
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 300);
+      
       return true;
     } catch (error) {
       console.error('Ошибка входа:', error);

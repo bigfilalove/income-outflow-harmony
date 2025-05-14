@@ -39,7 +39,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Проверка аутентификации
   if (!isAuthenticated || !currentUser) {
     console.log('Не аутентифицирован, перенаправление на логин');
-    return <Navigate to="/login" replace />;
+    // Сохраняем текущий путь для перенаправления после входа
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
   // Для маршрутов администратора проверяем роль
