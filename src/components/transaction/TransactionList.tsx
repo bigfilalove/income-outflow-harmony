@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -16,13 +15,26 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Transaction } from '@/types/transaction';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { checkSupabaseConnection } from '@/lib/supabase';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const TransactionList: React.FC = () => {
-  const { transactions, isLoading, deleteTransaction, updateReimbursementStatus } = useTransactions();
+  const { transactions, isLoading, error, deleteTransaction, updateReimbursementStatus } = useTransactions();
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const isMobile = useIsMobile();
+  const [isSupabaseConnected, setIsSupabaseConnected] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      const connected = await checkSupabaseConnection();
+      setIsSupabaseConnected(connected);
+    };
+    
+    checkConnection();
+  }, []);
 
   const filteredTransactions = transactions.filter(t => {
     const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -64,6 +76,24 @@ const TransactionList: React.FC = () => {
     updateReimbursementStatus(id, 'completed');
   };
 
+  // Connection status component
+  const renderConnectionStatus = () => {
+    if (isSupabaseConnected === null) {
+      return <div className="animate-pulse text-center py-2 text-muted-foreground">Проверка соединения с Supabase...</div>;
+    } else if (!isSupabaseConnected) {
+      return (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Ошибка соединения</AlertTitle>
+          <AlertDescription>
+            Не удалось подключиться к Supabase. Проверьте настройки подключения.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+    return null;
+  };
+
   return (
     <>
       <Card className="animate-slideUp">
@@ -76,6 +106,16 @@ const TransactionList: React.FC = () => {
             <TransactionFilter setFilter={setFilter} />
           </div>
           <TransactionSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          {renderConnectionStatus()}
+          {error && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Ошибка загрузки данных</AlertTitle>
+              <AlertDescription>
+                {error.message || "Произошла ошибка при загрузке транзакций"}
+              </AlertDescription>
+            </Alert>
+          )}
         </CardHeader>
         <CardContent>
           <div className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">

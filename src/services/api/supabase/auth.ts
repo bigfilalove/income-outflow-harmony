@@ -2,125 +2,98 @@
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types/user';
 
-// Login user with username and password
-export const loginSupabase = async (
-  username: string,
-  password: string
-): Promise<{ user: User; token: string } | null> => {
+// Log in with username and password
+export const loginWithCredentialsSupabase = async (username: string, password: string): Promise<User | null> => {
   try {
-    console.log('Attempting Supabase login with:', { username });
+    console.log(`Attempting Supabase login for user: ${username}`);
     
-    // Get the user from the users table
-    const { data, error } = await supabase
+    // First try to get the user from the users table
+    const { data: users, error: userError } = await supabase
       .from('users')
       .select('*')
       .eq('username', username)
       .single();
     
-    if (error || !data) {
-      console.error('User not found in Supabase:', error);
+    if (userError) {
+      console.error('Error fetching user:', userError);
       return null;
     }
     
-    // For demonstration purposes, accept 'password123' as valid
-    if (password === 'password123') {
-      console.log('Login successful with password123 for user:', username);
-      
-      // Create a dummy token
-      const mockToken = `dummy-token-${Date.now()}`;
-      
-      // Save token to localStorage
-      localStorage.setItem('finance-tracker-token', mockToken);
-      
-      return {
-        user: {
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          username: data.username,
-          password: '', // Don't return password
-          role: data.role,
-          createdAt: new Date(data.created_at),
-        },
-        token: mockToken,
-      };
+    if (!users) {
+      console.error('User not found');
+      return null;
     }
     
-    console.error('Invalid password for user:', username);
-    return null;
+    // Very simple password check (in production, this would use bcrypt)
+    if (users.password !== password) {
+      console.error('Invalid password');
+      return null;
+    }
+    
+    // Successfully authenticated
+    console.log('User authenticated successfully:', users);
+    
+    // Transform to our app's User type
+    const appUser: User = {
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      username: users.username,
+      password: '', // Don't return the actual password
+      role: users.role || 'basic',
+      createdAt: new Date(users.created_at)
+    };
+    
+    // Store auth token in localStorage
+    localStorage.setItem('finance-tracker-token', 'dummy-token-for-supabase');
+    localStorage.setItem('finance-tracker-user', JSON.stringify(appUser));
+    
+    return appUser;
   } catch (error) {
-    console.error('Error logging in with Supabase:', error);
+    console.error('Supabase login error:', error);
     return null;
   }
 };
 
-// Logout user
-export const logoutSupabase = (): void => {
-  localStorage.removeItem('finance-tracker-token');
+// Log out
+export const logoutSupabase = async (): Promise<void> => {
+  try {
+    console.log('Logging out from Supabase');
+    
+    // Clear local storage
+    localStorage.removeItem('finance-tracker-token');
+    localStorage.removeItem('finance-tracker-user');
+    
+    return;
+  } catch (error) {
+    console.error('Supabase logout error:', error);
+    throw error;
+  }
 };
 
-// Register new user
-export const registerSupabase = async (
-  name: string,
-  email: string,
-  username: string,
-  password: string,
-  role: 'admin' | 'user' | 'basic' = 'basic'
-): Promise<{ user: User; token: string } | null> => {
+// Check if the user is already logged in
+export const checkAuthSupabase = async (): Promise<User | null> => {
   try {
-    // Check if user already exists
-    const { data: existingUsers, error: checkError } = await supabase
-      .from('users')
-      .select('*')
-      .or(`email.eq.${email},username.eq.${username}`)
-      .limit(1);
+    // Check for the token
+    const token = localStorage.getItem('finance-tracker-token');
+    const userJson = localStorage.getItem('finance-tracker-user');
     
-    if (checkError) {
-      throw checkError;
+    if (!token || !userJson) {
+      console.log('No stored credentials found');
+      return null;
     }
     
-    if (existingUsers && existingUsers.length > 0) {
-      throw new Error('User with this email or username already exists');
+    // Parse the user from localStorage
+    try {
+      const user = JSON.parse(userJson) as User;
+      console.log('User found in localStorage:', user);
+      return user;
+    } catch {
+      console.error('Error parsing user from localStorage');
+      return null;
     }
-    
-    // Create user
-    const { data, error } = await supabase
-      .from('users')
-      .insert({
-        name,
-        email,
-        username,
-        password, // In a real app, hash the password
-        role,
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-    
-    if (error) {
-      throw error;
-    }
-    
-    // Create dummy token
-    const mockToken = `dummy-token-${Date.now()}`;
-    
-    // Save token to localStorage
-    localStorage.setItem('finance-tracker-token', mockToken);
-    
-    return {
-      user: {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        username: data.username,
-        password: '', // Don't return password
-        role: data.role,
-        createdAt: new Date(data.created_at),
-      },
-      token: mockToken,
-    };
   } catch (error) {
-    console.error('Error registering user in Supabase:', error);
+    console.error('Error checking authentication status:', error);
     return null;
   }
 };
