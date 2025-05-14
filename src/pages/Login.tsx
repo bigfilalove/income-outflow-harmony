@@ -30,11 +30,13 @@ const Login = () => {
         } else {
           setConnectionStatus('error');
           setConnectionError('Не удалось подключиться к Supabase. Проверьте настройки соединения.');
+          console.log("Connection error detected, but allowing login anyway");
         }
       } catch (error) {
         console.error("Connection check error:", error);
         setConnectionStatus('error');
         setConnectionError('Ошибка при проверке соединения с Supabase.');
+        console.log("Connection error detected, but allowing login anyway");
       }
     };
     
@@ -44,10 +46,11 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (connectionStatus === 'error') {
-      toast.error("Невозможно войти без подключения к Supabase");
-      return;
-    }
+    // Allow login even with connection error - we'll use local authentication
+    // if (connectionStatus === 'error') {
+    //   toast.error("Невозможно войти без подключения к Supabase");
+    //   return;
+    // }
     
     setIsLoading(true);
     
@@ -151,7 +154,7 @@ const Login = () => {
                   onChange={(e) => setUsername(e.target.value)}
                   className="pr-10"
                   required
-                  disabled={connectionStatus === 'error' || isLoading}
+                  disabled={isLoading}
                 />
                 <UserIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               </div>
@@ -168,7 +171,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pr-10"
                   required
-                  disabled={connectionStatus === 'error' || isLoading}
+                  disabled={isLoading}
                 />
                 <KeyIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               </div>
@@ -178,7 +181,7 @@ const Login = () => {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isLoading || connectionStatus === 'error' || connectionStatus === 'checking'}
+              disabled={isLoading}
             >
               {isLoading ? 'Вход...' : 'Войти'}
             </Button>
@@ -194,7 +197,7 @@ const Login = () => {
               variant="outline" 
               className="w-full" 
               onClick={handleAdminLogin} 
-              disabled={connectionStatus === 'error' || connectionStatus === 'checking'}
+              disabled={isLoading}
             >
               <ShieldIcon className="mr-2 h-4 w-4" />
               Вход для администраторов

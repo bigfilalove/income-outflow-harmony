@@ -11,7 +11,7 @@ const initialUsers: User[] = [
     name: 'Администратор',
     email: 'admin@example.com',
     username: 'admin',
-    password: 'admin123',
+    password: 'password123',
     role: 'admin',
     createdAt: new Date('2023-01-01')
   },
@@ -20,7 +20,7 @@ const initialUsers: User[] = [
     name: 'Пользователь',
     email: 'user@example.com',
     username: 'user',
-    password: 'user123',
+    password: 'password123',
     role: 'user',
     createdAt: new Date('2023-01-02')
   },
@@ -29,9 +29,27 @@ const initialUsers: User[] = [
     name: 'Базовый пользователь',
     email: 'basic@example.com',
     username: 'basic',
-    password: 'basic123',
+    password: 'password123',
     role: 'basic',
     createdAt: new Date('2023-01-03')
+  },
+  {
+    id: '4',
+    name: 'Бухгалтер',
+    email: 'accountant@example.com',
+    username: 'accountant',
+    password: 'password123',
+    role: 'user',
+    createdAt: new Date('2023-01-04')
+  },
+  {
+    id: '5',
+    name: 'Менеджер',
+    email: 'manager@example.com',
+    username: 'manager',
+    password: 'password123',
+    role: 'user',
+    createdAt: new Date('2023-01-05')
   }
 ];
 
@@ -96,21 +114,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithCredentials = async (username: string, password: string): Promise<boolean> => {
     try {
-      // Для демонстрации ищем пользователя напрямую в массиве users
+      console.log(`Attempting to login with username: ${username}`);
+      
+      // First try local authentication with our predefined users
       const user = users.find(u => u.username === username && u.password === password);
       
       if (user) {
-        // Локальный вход
+        console.log('Local user authentication successful:', user);
         setCurrentUser(user);
         setIsAuthenticated(true);
         localStorage.setItem('finance-tracker-current-user', user.id);
         localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now());
         return true;
-      } else {
-        // Пытаемся использовать API только если нет локального совпадения
+      }
+      
+      // If local authentication fails, try API login (Supabase)
+      try {
+        console.log('Trying API authentication...');
         const result = await loginUser(username, password);
         
         if (result) {
+          console.log('API authentication successful:', result);
           const { user, token } = result;
           setCurrentUser(user);
           setIsAuthenticated(true);
@@ -118,12 +142,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem('finance-tracker-token', token);
           return true;
         }
+      } catch (apiError) {
+        console.error('API authentication error:', apiError);
+        // Continue with flow, don't return yet
       }
       
+      console.log('Authentication failed for username:', username);
       toast.error("Не удалось войти в систему. Проверьте логин и пароль.");
       return false;
     } catch (error) {
-      toast.error("Не удалось войти в систему. Проверьте логин и пароль.");
+      console.error('Login error:', error);
+      toast.error("Ошибка при входе в систему.");
       return false;
     }
   };
