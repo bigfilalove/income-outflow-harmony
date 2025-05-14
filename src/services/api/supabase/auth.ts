@@ -87,7 +87,7 @@ export const loginWithCredentialsSupabase = async (username: string, password: s
       
       // Get user metadata and profile
       // Mapping from Supabase user to our User type
-      const role = (supabaseUser.user_metadata.role as 'admin' | 'user' | 'basic') || 'basic';
+      const userRole = (supabaseUser.user_metadata.role as 'admin' | 'user' | 'basic') || 'basic';
       
       const user: User = {
         id: supabaseUser.id,
@@ -95,7 +95,7 @@ export const loginWithCredentialsSupabase = async (username: string, password: s
         email: supabaseUser.email || '',
         username: supabaseUser.email?.split('@')[0] || '',
         password: '', // Don't return the actual password
-        role: role,
+        role: userRole,
         createdAt: new Date(supabaseUser.created_at)
       };
       
@@ -127,7 +127,7 @@ export const checkAuthSupabase = async (): Promise<User | null> => {
       const { user: supabaseUser } = session;
       
       // Return user data
-      const role = (supabaseUser.user_metadata.role as 'admin' | 'user' | 'basic') || 'basic';
+      const userRole = (supabaseUser.user_metadata.role as 'admin' | 'user' | 'basic') || 'basic';
       
       const user: User = {
         id: supabaseUser.id,
@@ -135,7 +135,7 @@ export const checkAuthSupabase = async (): Promise<User | null> => {
         email: supabaseUser.email || '',
         username: supabaseUser.email?.split('@')[0] || '',
         password: '', // We don't store or return the password
-        role: role,
+        role: userRole,
         createdAt: new Date(supabaseUser.created_at)
       };
       
