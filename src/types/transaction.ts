@@ -7,6 +7,7 @@ export interface CategoryList {
   expense: string[];
   reimbursement: string[];
   transfer: string[];
+  investment: string[]; // New category type for owner investments
 }
 
 export interface ProjectAllocation {
@@ -31,6 +32,8 @@ export interface Transaction {
   isTransfer?: boolean;
   fromCompany?: string;
   toCompany?: string;
+  isInvestment?: boolean; // New flag for owner investments
+  investor?: string; // Who made the investment
   projectAllocations?: ProjectAllocation[];
   hasAllocations?: boolean;
 }
@@ -53,6 +56,8 @@ export interface ServerTransaction {
   isTransfer: boolean;
   fromCompany: string | null;
   toCompany: string | null;
+  isInvestment: boolean;
+  investor: string | null;
   projectAllocations?: ProjectAllocation[];
   hasAllocations: boolean;
 }
@@ -63,7 +68,8 @@ const defaultTransactionCategories: CategoryList = {
   income: [],
   expense: [],
   reimbursement: [],
-  transfer: []
+  transfer: [],
+  investment: [],
 };
 
 const dispatchCompaniesUpdated = () => {
@@ -133,9 +139,10 @@ export const fetchCategoriesFromAPI = async (): Promise<CategoryList> => {
       expense: [],
       reimbursement: [],
       transfer: [],
+      investment: [], // Initialize the new investment category
     };
 
-    categories.forEach((category: { name: string; type: CategoryType }) => {
+    categories.forEach((category: { name: string; type: CategoryType | 'investment' }) => {
       if (category.type === 'income') {
         categoryList.income.push(category.name);
       } else if (category.type === 'expense') {
@@ -144,6 +151,8 @@ export const fetchCategoriesFromAPI = async (): Promise<CategoryList> => {
         categoryList.reimbursement.push(category.name);
       } else if (category.type === 'transfer') {
         categoryList.transfer.push(category.name);
+      } else if (category.type === 'investment') {
+        categoryList.investment.push(category.name);
       }
     });
 
@@ -151,12 +160,13 @@ export const fetchCategoriesFromAPI = async (): Promise<CategoryList> => {
     saveCategories(categoryList);
     return categoryList;
   } catch (error) {
-    console.error('��шибка при загрузке категорий из API:', error);
+    console.error('Ошибка при загрузке категорий из API:', error);
     const defaultCategories: CategoryList = {
       income: ['Продажа лестницы', 'Продажа прочих изделий', 'Инвестиции', 'Возврат подотчетной суммы', 'Другое'],
       expense: ['ФОТ', 'Металл', 'IT-инфраструктура', 'Маркетинг', 'Комиссии банка – Т-Банк', 'Под отчетные средства', 'Аренда офисного помещения', 'Налоги', 'Другое'],
       reimbursement: ['Другое'],
       transfer: [],
+      investment: ['Вклад собственника', 'Инвестиции партнера', 'Другое'], // Default investment categories
     };
     saveCategories(defaultCategories);
     return defaultCategories;

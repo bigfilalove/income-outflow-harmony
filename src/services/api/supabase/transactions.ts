@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { formatDateShort } from '@/lib/formatters';
 import { Transaction } from '@/types/transaction';
@@ -34,6 +33,8 @@ export const fetchTransactionsFromSupabase = async (): Promise<Transaction[]> =>
       isTransfer: transaction.is_transfer || false,
       fromCompany: transaction.from_company || undefined,
       toCompany: transaction.to_company || undefined,
+      isInvestment: transaction.is_investment || false,
+      investor: transaction.investor || undefined,
       hasAllocations: transaction.has_allocations || false,
     }));
   } catch (error) {
@@ -61,6 +62,8 @@ export const createTransactionInSupabase = async (transaction: Omit<Transaction,
       is_transfer: transaction.isTransfer || false,
       from_company: transaction.fromCompany || null,
       to_company: transaction.toCompany || null,
+      is_investment: transaction.isInvestment || false,
+      investor: transaction.investor || null,
       has_allocations: transaction.hasAllocations || false,
     };
 
@@ -93,6 +96,8 @@ export const createTransactionInSupabase = async (transaction: Omit<Transaction,
       isTransfer: data.is_transfer || false,
       fromCompany: data.from_company || undefined,
       toCompany: data.to_company || undefined,
+      isInvestment: data.is_investment || false,
+      investor: data.investor || undefined,
       hasAllocations: data.has_allocations || false,
     };
   } catch (error) {
@@ -193,6 +198,49 @@ export const updateTransactionStatusInSupabase = async (id: string, status: 'com
     }
   } catch (error) {
     console.error('Error updating transaction status in Supabase:', error);
+    throw error;
+  }
+};
+
+// Получение отчета по инвестициям
+export const fetchInvestmentReportFromSupabase = async (
+  startDate?: Date, 
+  endDate?: Date, 
+  company?: string, 
+  investor?: string
+): Promise<any> => {
+  try {
+    let query = supabase
+      .from('transactions')
+      .select('*')
+      .eq('is_investment', true);
+    
+    if (startDate) {
+      query = query.gte('date', startDate.toISOString());
+    }
+    
+    if (endDate) {
+      query = query.lte('date', endDate.toISOString());
+    }
+    
+    if (company) {
+      query = query.eq('company', company);
+    }
+    
+    if (investor) {
+      query = query.eq('investor', investor);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching investment report from Supabase:', error);
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching investment report from Supabase:', error);
     throw error;
   }
 };

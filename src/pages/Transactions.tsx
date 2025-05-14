@@ -4,8 +4,10 @@ import Navbar from '@/components/Navbar';
 import TransactionList from '@/components/transaction/TransactionList';
 import TransactionForm from '@/components/TransactionForm';
 import TransferForm from '@/components/transaction/TransferForm';
+import InvestmentForm from '@/components/transaction/InvestmentForm';
 import ReportDownloadDialog from '@/components/ReportDownloadDialog';
 import FinancialReportDialog from '@/components/reports/FinancialReportDialog';
+import InvestmentReportDialog from '@/components/reports/InvestmentReportDialog';
 import ImportTransactionsDialog from '@/components/transaction/ImportTransactionsDialog';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -18,7 +20,7 @@ import { useTransactions } from '@/context/transaction';
 const Transactions = () => {
   const { currentUser } = useAuth();
   const { error } = useTransactions();
-  const [activeTab, setActiveTab] = useState<"transaction" | "transfer">("transaction");
+  const [activeTab, setActiveTab] = useState<"transaction" | "transfer" | "investment">("transaction");
   const [showDebug, setShowDebug] = useState(false);
 
   return (
@@ -39,6 +41,7 @@ const Transactions = () => {
           <ReportDownloadDialog reportType="reimbursements" />
           <ReportDownloadDialog reportType="period" />
           <FinancialReportDialog />
+          <InvestmentReportDialog />
           <ImportTransactionsDialog />
           <Link to="/advanced-analytics">
             <Button variant="outline" className="flex items-center gap-2">
@@ -73,16 +76,20 @@ const Transactions = () => {
             <TransactionList />
           </div>
           <div>
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "transaction" | "transfer")}>
-              <TabsList className="grid w-full grid-cols-2">
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "transaction" | "transfer" | "investment")}>
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="transaction">Доходы/Расходы</TabsTrigger>
                 <TabsTrigger value="transfer">Переводы</TabsTrigger>
+                <TabsTrigger value="investment">Инвестиции</TabsTrigger>
               </TabsList>
               <TabsContent value="transaction" className="mt-4">
                 <TransactionForm />
               </TabsContent>
               <TabsContent value="transfer" className="mt-4">
                 <TransferForm />
+              </TabsContent>
+              <TabsContent value="investment" className="mt-4">
+                <InvestmentForm />
               </TabsContent>
             </Tabs>
           </div>
