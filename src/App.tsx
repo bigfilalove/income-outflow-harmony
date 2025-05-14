@@ -6,9 +6,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { RouterProvider } from 'react-router-dom';
 import { router } from '@/router';
 import { HelmetProvider } from 'react-helmet-async';
+import { AuthProvider } from './context/AuthContext';
+import { AdminProvider } from './context/AdminContext';
 import './index.css';
-
-// We'll wrap the entire app in the AuthProvider in the router, not here
 
 function App() {
   const [queryClient] = React.useState(() => new QueryClient({
@@ -22,13 +22,17 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center">Загрузка...</div>}>
-        <HelmetProvider>
-          <ThemeProvider defaultTheme="light" storageKey="finance-tracker-theme">
-            <RouterProvider router={router} />
-          </ThemeProvider>
-        </HelmetProvider>
-      </Suspense>
+      <AuthProvider>
+        <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center">Загрузка...</div>}>
+          <HelmetProvider>
+            <ThemeProvider defaultTheme="light" storageKey="finance-tracker-theme">
+              <AdminProvider>
+                <RouterProvider router={router} />
+              </AdminProvider>
+            </ThemeProvider>
+          </HelmetProvider>
+        </Suspense>
+      </AuthProvider>
       <Toaster />
     </QueryClientProvider>
   );
