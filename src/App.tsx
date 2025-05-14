@@ -1,6 +1,6 @@
 
-import React, { useEffect } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from "./components/theme-provider";
 import { useTheme } from 'next-themes';
@@ -38,7 +38,7 @@ function App() {
   const { theme } = useTheme();
   const location = useLocation();
   
-  useEffect(() => {
+  React.useEffect(() => {
     // Log the current route
     console.log("Current route:", location.pathname);
   }, [location]);
@@ -49,7 +49,7 @@ function App() {
         <AuthProvider>
           <TransactionProvider>
             <BudgetProvider>
-              <EmployeeProvider> {/* Added EmployeeProvider */}
+              <EmployeeProvider>
                 <ThemeProvider defaultTheme="light" storageKey="finance-app-theme">
                   <Routes>
                     <Route path="/" element={<Landing />} />

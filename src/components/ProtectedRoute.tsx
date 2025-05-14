@@ -1,5 +1,5 @@
 
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 
@@ -14,20 +14,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { isAuthenticated, currentUser, isLoading } = useAuth();
   const [checking, setChecking] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     console.log('Protected route check:', { 
       isAuthenticated, 
       currentUser: !!currentUser,
       isLoading,
-      userRole: currentUser?.role
+      userRole: currentUser?.role,
+      path: location.pathname
     });
     
     // Заканчиваем проверку только после загрузки состояния аутентификации
     if (!isLoading) {
       setChecking(false);
     }
-  }, [isAuthenticated, currentUser, isLoading]);
+  }, [isAuthenticated, currentUser, isLoading, location]);
 
   // Отображаем ничего во время проверки аутентификации, чтобы избежать мигания
   if (checking || isLoading) {
