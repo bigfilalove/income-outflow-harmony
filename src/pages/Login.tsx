@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { checkSupabaseConnectionDetailed } from '@/utils/supabaseConnectionCheck';
 import { useAuth } from '@/context/AuthContext';
 import { SupabaseConnectionDebug } from '@/components/debug/SupabaseConnectionDebug';
+import { grantAdminRole } from '@/utils/setAdminRole';
 
 const Login = () => {
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>("checking");
@@ -89,8 +89,13 @@ const Login = () => {
     return null;
   }
 
+  // Функция для предоставления прав администратора пользователю v.eremkin.work
+  const handleSetAdminRights = async () => {
+    await grantAdminRole('v.eremkin.work');
+  };
+
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-background p-4">
       <Tabs defaultValue="login" className="w-full max-w-md space-y-4">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Вход</TabsTrigger>
@@ -121,6 +126,18 @@ const Login = () => {
           <SupabaseConnectionDebug />
         </TabsContent>
       </Tabs>
+      
+      {/* Добавляем скрытую кнопку для админа (видна только в режиме разработки) */}
+      {import.meta.env.DEV && (
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleSetAdminRights}
+          className="mt-8 text-xs opacity-50 hover:opacity-100"
+        >
+          Назначить v.eremkin.work администратором
+        </Button>
+      )}
     </div>
   );
 };
