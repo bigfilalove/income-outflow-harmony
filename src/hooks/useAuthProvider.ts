@@ -4,7 +4,6 @@ import { User } from '@/types/user';
 import { Session } from '@supabase/supabase-js';
 import { checkAuthSupabase, loginWithSupabase, logoutSupabase } from '@/services/api/supabase/auth';
 import { supabase } from '@/lib/supabase';
-import { useNavigate, NavigateFunction } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
 export const useAuthProvider = () => {
@@ -12,14 +11,6 @@ export const useAuthProvider = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Use try-catch to prevent the hook from throwing if used outside Router context
-  let navigate: NavigateFunction | undefined;
-  try {
-    navigate = useNavigate();
-  } catch (error) {
-    console.warn('useNavigate is not available in this context');
-  }
 
   // Initialize auth state
   useEffect(() => {
@@ -87,15 +78,6 @@ export const useAuthProvider = () => {
         setCurrentUser(result.user);
         setIsAuthenticated(true);
         
-        // Redirect based on role
-        if (navigate) {
-          if (result.user.role === 'admin') {
-            navigate('/admin');
-          } else {
-            navigate('/');
-          }
-        }
-        
         toast({
           title: "Вход выполнен успешно",
           description: `Добро пожаловать, ${result.user.name}!`,
@@ -121,7 +103,7 @@ export const useAuthProvider = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [navigate]);
+  }, []);
 
   // Logout
   const logout = useCallback(async () => {
@@ -133,10 +115,6 @@ export const useAuthProvider = () => {
         setCurrentUser(null);
         setIsAuthenticated(false);
         setSession(null);
-        
-        if (navigate) {
-          navigate('/login');
-        }
         
         toast({
           title: "Выход выполнен успешно",
@@ -159,7 +137,7 @@ export const useAuthProvider = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [navigate]);
+  }, []);
 
   return {
     currentUser,

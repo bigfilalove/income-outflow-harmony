@@ -8,7 +8,6 @@ import { router } from '@/router';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './context/AuthContext';
 import { AdminProvider } from './context/AdminContext';
-import { TransactionProvider } from './context/transaction';
 import './index.css';
 
 function App() {
@@ -28,9 +27,7 @@ function App() {
           <HelmetProvider>
             <ThemeProvider defaultTheme="light" storageKey="finance-tracker-theme">
               <AdminProvider>
-                <TransactionProvider>
-                  <RouterProvider router={router} />
-                </TransactionProvider>
+                <RouterProvider router={router} />
               </AdminProvider>
             </ThemeProvider>
           </HelmetProvider>

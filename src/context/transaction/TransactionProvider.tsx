@@ -1,9 +1,9 @@
+
 // context/TransactionProvider.tsx
 import React, { createContext } from 'react';
 import { Transaction } from '@/types/transaction';
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from '../AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { TransactionContextType } from './types';
 import { useTransactionsQuery } from './useTransactions';
 import { useTransactionOperations } from './useTransactionOperations';
@@ -14,7 +14,6 @@ export const TransactionContext = createContext<TransactionContextType | undefin
 
 export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { logout } = useAuth();
-  const navigate = useNavigate();
   
   // Handle authentication errors
   const handleAuthError = (error: any) => {
@@ -24,7 +23,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         description: "Ваша сессия истекла. Пожалуйста, войдите снова."
       });
       logout();
-      navigate('/login');
+      // We'll handle navigation through a callback instead of direct useNavigate
     }
   };
   
