@@ -3,10 +3,7 @@ import { Transaction, ServerTransaction } from '@/types/transaction';
 import { mapServerToClient, mapClientToServer } from './mappers';
 import { fetchTransactionsFromSupabase } from './supabase/transactions';
 
-// Export the Supabase implementation of fetchTransactions
-export { fetchTransactionsFromSupabase as fetchTransactions };
-
-// Legacy implementation for reference
+// Renamed the legacy implementation to avoid conflicts
 export const fetchTransactionsLegacy = async (): Promise<Transaction[]> => {
   try {
     const data = await get<ServerTransaction[]>('/transactions');
@@ -17,24 +14,8 @@ export const fetchTransactionsLegacy = async (): Promise<Transaction[]> => {
   }
 };
 
-// Transaction methods with authentication
-export const fetchTransactions = async (): Promise<Transaction[]> => {
-  try {
-    const response = await fetch(`${API_URL}/transactions`, {
-      headers: createAuthHeaders()
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch transactions');
-    }
-    
-    const data = await response.json();
-    return data.map(mapServerToClient);
-  } catch (error) {
-    console.error('Error fetching transactions:', error);
-    return [];
-  }
-};
+// Removed this duplicate implementation to resolve conflict
+// The same function is already exported via the Supabase implementation above
 
 export const createTransaction = async (transaction: Omit<Transaction, 'id'>): Promise<Transaction | null> => {
   try {
