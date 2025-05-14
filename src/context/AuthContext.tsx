@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, RegisterData } from '@/types/user';
-import { loginUser, registerUser, logoutUser } from '@/services/api';
+import { loginWithCredentials, logout as apiLogout, checkAuth } from '@/services/api';
 import { toast } from 'sonner';
 
 // Sample users data with usernames and passwords
@@ -90,17 +90,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [adminPassword]);
 
   useEffect(() => {
-    const savedUserId = localStorage.getItem('finance-tracker-current-user');
-    const token = localStorage.getItem('finance-tracker-token');
-    
-    if (savedUserId && token) {
-      const user = users.find(u => u.id === savedUserId);
-      if (user) {
-        setCurrentUser(user);
+    // Check if we have a stored user in localStorage
+    const checkStoredUser = async () => {
+      const storedUser = await checkAuth();
+      if (storedUser) {
+        setCurrentUser(storedUser);
         setIsAuthenticated(true);
       }
-    }
-  }, [users]);
+    };
+    
+    checkStoredUser();
+  }, []);
 
   const login = (userId: string) => {
     const user = users.find(u => u.id === userId);
@@ -108,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentUser(user);
       setIsAuthenticated(true);
       localStorage.setItem('finance-tracker-current-user', userId);
-      localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now()); // Added token
+      localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now());
     }
   };
 
@@ -116,35 +116,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log(`Attempting to login with username: ${username}`);
       
-      // First try local authentication with our predefined users
-      const user = users.find(u => u.username === username && u.password === password);
+      // First try direct API authentication (which includes both Supabase and demo accounts)
+      const user = await loginWithCredentials(username, password);
       
       if (user) {
-        console.log('Local user authentication successful:', user);
+        console.log('Authentication successful:', user);
         setCurrentUser(user);
         setIsAuthenticated(true);
-        localStorage.setItem('finance-tracker-current-user', user.id);
-        localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now());
         return true;
       }
       
-      // If local authentication fails, try API login (Supabase)
-      try {
-        console.log('Trying API authentication...');
-        const result = await loginUser(username, password);
-        
-        if (result) {
-          console.log('API authentication successful:', result);
-          const { user, token } = result;
-          setCurrentUser(user);
-          setIsAuthenticated(true);
-          localStorage.setItem('finance-tracker-current-user', user.id);
-          localStorage.setItem('finance-tracker-token', token);
-          return true;
-        }
-      } catch (apiError) {
-        console.error('API authentication error:', apiError);
-        // Continue with flow, don't return yet
+      // Fallback: Try local authentication with our predefined users
+      const localUser = users.find(u => u.username === username && u.password === password);
+      
+      if (localUser) {
+        console.log('Local authentication successful:', localUser);
+        setCurrentUser(localUser);
+        setIsAuthenticated(true);
+        localStorage.setItem('finance-tracker-current-user', localUser.id);
+        localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now());
+        return true;
       }
       
       console.log('Authentication failed for username:', username);
@@ -162,21 +153,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(false);
     localStorage.removeItem('finance-tracker-current-user');
     localStorage.removeItem('finance-tracker-token');
-    logoutUser(); // Clear token from localStorage
+    localStorage.removeItem('finance-tracker-user');
+    apiLogout(); // Clear token from localStorage
   };
 
   const addUser = async (userData: Omit<User, 'id' | 'createdAt'>): Promise<boolean> => {
     try {
-      // Try to use the API first
-      const result = await registerUser(userData);
-      
-      if (result) {
-        const { user } = result;
-        setUsers(prev => [...prev, user]);
-        return true;
-      }
-      
-      // If the API fails, fallback to local registration
+      // Create a new user locally
       const newUser: User = {
         ...userData,
         id: String(Date.now()),

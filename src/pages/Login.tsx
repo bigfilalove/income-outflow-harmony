@@ -15,7 +15,7 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>("checking");
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>("connected"); // Default to connected to avoid UI blocking
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const { loginWithCredentials, currentUser } = useAuth();
   const navigate = useNavigate();
@@ -28,15 +28,15 @@ const Login = () => {
           setConnectionStatus('connected');
           setConnectionError(null);
         } else {
+          console.log("Connection error with Supabase, but allowing login with demo accounts");
           setConnectionStatus('error');
-          setConnectionError('Не удалось подключиться к Supabase. Проверьте настройки соединения.');
-          console.log("Connection error detected, but allowing login anyway");
+          setConnectionError('Не удалось подключиться к Supabase. Вы можете использовать тестовые аккаунты для входа.');
         }
       } catch (error) {
         console.error("Connection check error:", error);
+        console.log("Connection error with Supabase, but allowing login with demo accounts");
         setConnectionStatus('error');
-        setConnectionError('Ошибка при проверке соединения с Supabase.');
-        console.log("Connection error detected, but allowing login anyway");
+        setConnectionError('Ошибка при проверке соединения с Supabase. Вы можете использовать тестовые аккаунты для входа.');
       }
     };
     
@@ -46,11 +46,8 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Allow login even with connection error - we'll use local authentication
-    // if (connectionStatus === 'error') {
-    //   toast.error("Невозможно войти без подключения к Supabase");
-    //   return;
-    // }
+    // We allow login regardless of Supabase connection status
+    // because we have demo accounts that work without Supabase
     
     setIsLoading(true);
     
@@ -60,20 +57,25 @@ const Login = () => {
       
       if (success) {
         toast.success(`Добро пожаловать!`);
-        console.log('Login successful, currentUser:', currentUser);
+        console.log('Login successful, redirecting based on role');
         
-        // Redirect with a delay to ensure currentUser is updated
-        setTimeout(() => {
-          if (currentUser?.role === 'admin') {
-            navigate('/admin');
-          } else if (currentUser?.role === 'user') {
-            navigate('/transactions');
-          } else if (currentUser?.role === 'basic') {
-            navigate('/basic-transactions');
-          } else {
-            navigate('/');
-          }
-        }, 100);
+        // Get the current user from context after it has been set
+        const userRole = currentUser?.role || localStorage.getItem('finance-tracker-user') 
+          ? JSON.parse(localStorage.getItem('finance-tracker-user') || '{}').role 
+          : null;
+          
+        console.log('User role for redirection:', userRole);
+        
+        // Redirect based on role
+        if (userRole === 'admin') {
+          navigate('/admin');
+        } else if (userRole === 'user') {
+          navigate('/transactions');
+        } else if (userRole === 'basic') {
+          navigate('/basic-transactions');
+        } else {
+          navigate('/');
+        }
       } else {
         toast.error("Неверное имя пользователя или пароль");
       }
@@ -92,6 +94,8 @@ const Login = () => {
   // Demo accounts for testing
   const testAccounts = [
     { username: 'admin', password: 'password123', role: 'Администратор' },
+    { username: 'user', password: 'password123', role: 'Пользователь' },
+    { username: 'basic', password: 'password123', role: 'Базовый пользователь' },
     { username: 'accountant', password: 'password123', role: 'Бухгалтер' },
     { username: 'manager', password: 'password123', role: 'Менеджер' }
   ];
@@ -112,7 +116,7 @@ const Login = () => {
         <div className="px-6 pb-2">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Ошибка соединения</AlertTitle>
+            <AlertTitle>Примечание</AlertTitle>
             <AlertDescription>{connectionError}</AlertDescription>
           </Alert>
         </div>
