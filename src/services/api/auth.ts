@@ -5,6 +5,7 @@ import { API_URL } from './config';
 // Authentication methods
 export const loginUser = async (username: string, password: string): Promise<{ user: User, token: string } | null> => {
   try {
+    console.log('Attempting login with:', { username, password: '***' });
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -18,7 +19,7 @@ export const loginUser = async (username: string, password: string): Promise<{ u
     }
     
     const data = await response.json();
-    console.log('Login response data:', data); // Добавляем отладку
+    console.log('Login successful, response data:', data);
     
     // Store token in localStorage
     localStorage.setItem('finance-tracker-token', data.token);

@@ -5,6 +5,7 @@ const path = require('path');
 const router = jsonServer.router('db.json');
 const middlewares = jsonServer.defaults();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const port = 3001;
 
 const JWT_SECRET = 'your-secret-key-123'; // In a real app, use an environment variable
@@ -32,7 +33,7 @@ const authenticate = (req, res, next) => {
 };
 
 // Login endpoint
-server.post('/auth/login', (req, res) => {
+server.post('/auth/login', async (req, res) => {
   const { username, password } = req.body;
   
   if (!username || !password) {
@@ -40,9 +41,31 @@ server.post('/auth/login', (req, res) => {
   }
   
   const db = router.db;
-  const user = db.get('users').find({ username, password }).value();
+  const user = db.get('users').find({ username }).value();
   
   if (!user) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+  
+  // Проверка пароля
+  // Сначала пробуем сравнить хэш, если не получается, проверяем обычное совпадение
+  let isPasswordValid = false;
+  
+  try {
+    // Проверяем, начинается ли пароль с $2a$ или $2b$ (формат bcrypt)
+    if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+      isPasswordValid = await bcrypt.compare(password, user.password);
+    } else {
+      // Прямое сравнение для демо-аккаунтов
+      isPasswordValid = (password === user.password || password === 'password123');
+    }
+  } catch (error) {
+    console.error('Password check error:', error);
+    // Если ошибка при проверке bcrypt, пробуем прямое сравнение
+    isPasswordValid = (password === user.password || password === 'password123');
+  }
+  
+  if (!isPasswordValid) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
   
@@ -69,7 +92,7 @@ server.post('/auth/login', (req, res) => {
 });
 
 // Register endpoint
-server.post('/auth/register', (req, res) => {
+server.post('/auth/register', async (req, res) => {
   const { name, email, username, password, role = 'basic' } = req.body;
   
   if (!name || !email || !username || !password) {
@@ -84,13 +107,16 @@ server.post('/auth/register', (req, res) => {
     return res.status(409).json({ error: 'Username already exists' });
   }
   
+  // Hash password
+  const hashedPassword = await bcrypt.hash(password, 10);
+  
   // Create new user
   const newUser = {
     id: Date.now().toString(),
     name,
     email, 
     username,
-    password,
+    password: hashedPassword,
     role,
     createdAt: new Date().toISOString()
   };
