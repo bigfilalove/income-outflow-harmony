@@ -76,3 +76,51 @@ export const getCurrentMonthYear = (): { month: number; year: number } => {
     year: getYear(now)
   };
 };
+
+// Added missing functions
+
+// Get short month name for charts
+export const getMonthNameShort = (monthIndex: number): string => {
+  const date = new Date();
+  date.setMonth(monthIndex);
+  return date.toLocaleString('ru', { month: 'short' });
+};
+
+// Format month and year for display
+export const formatMonthYear = (date: Date): string => {
+  return format(date, 'LLLL yyyy', { locale: ru });
+};
+
+// Get start and end of month helpers
+export const getStartOfMonth = (date: Date): Date => {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+};
+
+export const getEndOfMonth = (date: Date): Date => {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+};
+
+// List generators for dropdowns
+export const getMonthsList = (): { value: number; label: string }[] => {
+  return Array.from({ length: 12 }, (_, i) => ({
+    value: i + 1,
+    label: getMonthNameByNumber(i, 'long')
+  }));
+};
+
+export const getQuartersList = (): { value: number; label: string }[] => {
+  return [
+    { value: 1, label: "1 квартал" },
+    { value: 2, label: "2 квартал" },
+    { value: 3, label: "3 квартал" },
+    { value: 4, label: "4 квартал" }
+  ];
+};
+
+export const getYearsList = (): { value: number; label: string }[] => {
+  const currentYear = new Date().getFullYear();
+  return Array.from({ length: 5 }, (_, i) => {
+    const year = currentYear - 2 + i;
+    return { value: year, label: year.toString() };
+  });
+};

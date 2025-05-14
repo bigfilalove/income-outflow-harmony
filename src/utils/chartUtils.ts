@@ -1,6 +1,6 @@
 
 import { Transaction } from '@/types/transaction';
-import { getMonthNameShort } from '@/lib/date-utils'; // Using getMonthNameShort instead
+import { getMonthNameShort } from '@/lib/date-utils'; 
 import { getTransactionCategories } from '@/types/transaction';
 
 // Helper function to get month name - using the existing getMonthNameShort function
