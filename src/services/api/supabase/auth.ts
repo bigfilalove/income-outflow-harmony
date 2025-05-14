@@ -1,98 +1,110 @@
 
-import { User } from '@/types/user';
 import { supabase } from '@/lib/supabase';
+import { User } from '@/types/user';
+import { toast } from '@/hooks/use-toast';
 
-// Проверка текущей сессии/аутентификации
+/**
+ * Check authentication status using Supabase
+ */
 export const checkAuthSupabase = async (): Promise<User | null> => {
   try {
-    console.log('[Supabase Auth] Проверка состояния аутентификации...');
+    const { data: { session }, error } = await supabase.auth.getSession();
     
-    // Получаем сессию из Supabase
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session) {
-      console.log('[Supabase Auth] Активная сессия Supabase найдена:', session.user.id);
-      const { user: supabaseUser } = session;
-      
-      // Возвращаем данные пользователя
-      const userRole = (supabaseUser.user_metadata.role as 'admin' | 'user' | 'basic') || 'basic';
-      
-      const user: User = {
-        id: supabaseUser.id,
-        name: supabaseUser.user_metadata.name || supabaseUser.email?.split('@')[0] || 'User',
-        email: supabaseUser.email || '',
-        username: supabaseUser.email?.split('@')[0] || '',
-        password: '', // Мы не храним и не возвращаем пароль
-        role: userRole,
-        createdAt: new Date(supabaseUser.created_at)
-      };
-      
-      return user;
+    if (error || !session) {
+      console.log('No active session', error?.message);
+      return null;
     }
     
-    console.log('[Supabase Auth] Аутентификация не найдена');
-    return null;
+    // Map Supabase user to our app's User type
+    const user: User = {
+      id: session.user.id,
+      name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+      email: session.user.email || '',
+      username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || '',
+      password: '', // Don't store passwords
+      role: session.user.user_metadata?.role || 'user',
+      createdAt: new Date(session.user.created_at)
+    };
+    
+    return user;
   } catch (error) {
-    console.error('[Supabase Auth] Ошибка при проверке состояния аутентификации:', error);
+    console.error('Error checking authentication:', error);
     return null;
   }
 };
 
-// Добавление функции для обновления метаданных пользователя
-export const updateUserMetadata = async (userId: string, metadata: Record<string, any>): Promise<boolean> => {
+/**
+ * Login with email and password using Supabase
+ */
+export const loginWithSupabase = async (
+  username: string, 
+  password: string
+): Promise<{ user: User, token: string } | null> => {
   try {
-    const { error } = await supabase.auth.admin.updateUserById(
-      userId,
-      { user_metadata: metadata }
-    );
+    // Check if username is an email
+    const isEmail = username.includes('@');
+    const email = isEmail ? username : `${username}@example.com`;
+    
+    // Attempt to sign in with Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
     
     if (error) {
-      console.error('[Supabase Auth] Ошибка при обновлении метаданных пользователя:', error);
+      console.error('Login error:', error.message);
+      return null;
+    }
+    
+    if (!data.session || !data.user) {
+      console.error('Login succeeded but no session or user returned');
+      return null;
+    }
+    
+    // Map Supabase user to our app's User type
+    const user: User = {
+      id: data.user.id,
+      name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+      email: data.user.email || '',
+      username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || '',
+      password: '', // Don't store passwords
+      role: data.user.user_metadata?.role || 'user',
+      createdAt: new Date(data.user.created_at)
+    };
+    
+    // Store token in localStorage for backward compatibility
+    localStorage.setItem('finance-tracker-token', data.session.access_token);
+    localStorage.setItem('finance-tracker-user', JSON.stringify(user));
+    
+    return {
+      user,
+      token: data.session.access_token
+    };
+  } catch (error) {
+    console.error('Error during login:', error);
+    return null;
+  }
+};
+
+/**
+ * Log out the current user
+ */
+export const logoutSupabase = async (): Promise<boolean> => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error('Logout error:', error.message);
       return false;
     }
+    
+    // Clean up localStorage items
+    localStorage.removeItem('finance-tracker-token');
+    localStorage.removeItem('finance-tracker-user');
     
     return true;
   } catch (error) {
-    console.error('[Supabase Auth] Ошибка при обновлении метаданных пользователя:', error);
-    return false;
-  }
-};
-
-// Функция для проверки и обновления роли пользователя по email
-export const setUserRoleByEmail = async (email: string, role: 'admin' | 'user' | 'basic'): Promise<boolean> => {
-  try {
-    // Получаем пользователя по email
-    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
-    
-    if (usersError) {
-      console.error('[Supabase Auth] Ошибка при получении списка пользователей:', usersError);
-      return false;
-    }
-    
-    // Находим пользователя по email
-    const user = users.users.find(u => u.email === email || u.email === `${email}@example.com`);
-    
-    if (!user) {
-      console.error(`[Supabase Auth] Пользователь с email ${email} не найден`);
-      return false;
-    }
-    
-    // Обновляем метаданные пользователя, добавляя роль
-    const currentMetadata = user.user_metadata || {};
-    const updatedMetadata = { ...currentMetadata, role };
-    
-    // Обновляем метаданные пользователя
-    const updated = await updateUserMetadata(user.id, updatedMetadata);
-    
-    if (updated) {
-      console.log(`[Supabase Auth] Пользователю ${email} присвоена роль ${role}`);
-      return true;
-    } else {
-      console.error(`[Supabase Auth] Не удалось присвоить роль ${role} пользователю ${email}`);
-      return false;
-    }
-  } catch (error) {
-    console.error('[Supabase Auth] Ошибка при обновлении роли пользователя:', error);
+    console.error('Error during logout:', error);
     return false;
   }
 };

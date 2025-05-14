@@ -1,19 +1,43 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { checkSupabaseConnection } from '@/lib/utils';
+import { ConnectionStatus } from './ConnectionStatus';
 
 export const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>('checking');
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const { loginWithCredentials, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Check Supabase connection on mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const isConnected = await checkSupabaseConnection();
+        if (isConnected) {
+          setConnectionStatus('connected');
+        } else {
+          setConnectionStatus('error');
+          setConnectionError('Could not connect to Supabase. Please check your configuration.');
+        }
+      } catch (err) {
+        console.error('Error checking connection:', err);
+        setConnectionStatus('error');
+        setConnectionError('Error checking Supabase connection');
+      }
+    };
+    
+    checkConnection();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,6 +70,11 @@ export const LoginForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="p-6 pt-0">
+      {/* Connection status indicator */}
+      <div className="mb-4">
+        <ConnectionStatus status={connectionStatus} errorMessage={connectionError} />
+      </div>
+
       <div className="space-y-4">
         <div className="space-y-2">
           <label htmlFor="username" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -92,7 +121,7 @@ export const LoginForm = () => {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full" disabled={isLoading || connectionStatus === 'error'}>
           {isLoading ? (
             <span className="flex items-center justify-center">
               <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
