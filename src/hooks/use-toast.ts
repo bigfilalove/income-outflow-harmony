@@ -1,5 +1,5 @@
 
-import { toast as sonnerToast } from "sonner"
+import { toast as sonnerToast, Toaster as SonnerToaster } from "sonner"
 
 type ToastProps = {
   title?: string
@@ -40,6 +40,8 @@ export const useToast = () => {
   return {
     toast,
     dismiss: sonnerToast.dismiss,
+    // For compatibility with shadcn Toaster component
+    toasts: [], // Empty array since sonner manages its own toast state internally
   }
 }
 
@@ -48,3 +50,6 @@ export type {
   ToastActionElement,
   ToastProps as ShadcnToastProps,
 } from "@/components/ui/toast"
+
+// Re-export the Sonner Toaster component for direct usage
+export { SonnerToaster }
