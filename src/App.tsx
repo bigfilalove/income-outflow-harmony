@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -22,13 +23,13 @@ import BasicTransactions from './pages/BasicTransactions';
 import FinancialReports from './pages/FinancialReports';
 import AdminLogin from './pages/AdminLogin';
 
-// Создаем QueryClient один раз при загрузке приложения
+// Create QueryClient once at app load
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 минут
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
   },
 });
@@ -48,7 +49,7 @@ function App() {
         <AuthProvider>
           <TransactionProvider>
             <BudgetProvider>
-              <EmployeeProvider> {/* Добавляем EmployeeProvider */}
+              <EmployeeProvider> {/* Added EmployeeProvider */}
                 <ThemeProvider defaultTheme="light" storageKey="finance-app-theme">
                   <Routes>
                     <Route path="/" element={<Landing />} />

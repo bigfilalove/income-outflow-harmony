@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -29,7 +29,10 @@ const Register = () => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Пароли не совпадают');
+      toast({
+        title: 'Пароли не совпадают',
+        variant: 'destructive'
+      });
       return;
     }
     
@@ -44,14 +47,22 @@ const Register = () => {
       });
       
       if (success) {
-        toast.success('Регистрация успешна');
+        toast({
+          title: 'Регистрация успешна'
+        });
         navigate('/');
       } else {
-        toast.error('Не удалось зарегистрироваться');
+        toast({
+          title: 'Не удалось зарегистрироваться',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error('Ошибка при регистрации');
+      toast({
+        title: 'Ошибка при регистрации',
+        variant: 'destructive'
+      });
     } finally {
       setIsLoading(false);
     }

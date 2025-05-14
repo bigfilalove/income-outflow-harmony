@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect } from 'react';
 import { Budget, BudgetPeriod } from '@/types/budget';
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { fetchBudgets, createBudget, updateBudget, deleteBudget as apiDeleteBudget } from '@/services/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './AuthContext';
@@ -35,7 +35,8 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Handle authentication errors
   const handleAuthError = (error: any) => {
     if (error?.message?.includes('401') || error?.message?.includes('Authentication')) {
-      toast("Ошибка аутентификации", {
+      toast({
+        title: "Ошибка аутентификации",
         description: "Ваша сессия истекла. Пожалуйста, войдите снова."
       });
       logout();
@@ -97,12 +98,15 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       await addBudgetMutation.mutateAsync(budget);
       
-      toast("Бюджет добавлен", {
+      toast({
+        title: "Бюджет добавлен",
         description: `Бюджет для категории ${budget.category} был успешно добавлен.`
       });
     } catch (error) {
-      toast("Ошибка", {
-        description: 'Не удалось добавить бюджет.'
+      toast({
+        title: "Ошибка",
+        description: 'Не удалось добавить бюджет.',
+        variant: "destructive"
       });
       throw error;
     }
@@ -112,12 +116,15 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       await updateBudgetMutation.mutateAsync({ id, budget });
       
-      toast("Бюджет обновлен", {
+      toast({
+        title: "Бюджет обновлен",
         description: `Бюджет для категории ${budget.category || ''} был успешно обновлен.`
       });
     } catch (error) {
-      toast("Ошибка", {
-        description: 'Не удалось обновить бюджет.'
+      toast({
+        title: "Ошибка",
+        description: 'Не удалось обновить бюджет.',
+        variant: "destructive"
       });
       throw error;
     }
@@ -130,12 +137,15 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       await deleteBudgetMutation.mutateAsync(id);
       
-      toast("Бюджет удален", {
+      toast({
+        title: "Бюджет удален",
         description: `Бюджет для категории ${budget.category} был успешно удален.`
       });
     } catch (error) {
-      toast("Ошибка", {
-        description: 'Не удалось удалить бюджет.'
+      toast({
+        title: "Ошибка",
+        description: 'Не удалось удалить бюджет.',
+        variant: "destructive"
       });
     }
   };

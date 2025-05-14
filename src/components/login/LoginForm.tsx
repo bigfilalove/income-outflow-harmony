@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,7 +29,9 @@ export const LoginForm = () => {
       const success = await loginWithCredentials(username, password);
       
       if (success) {
-        toast.success(`Добро пожаловать!`);
+        toast({
+          title: "Добро пожаловать!"
+        });
         console.log('Login successful, redirecting based on role');
         
         // Get the current user from context after it has been set
@@ -50,11 +52,18 @@ export const LoginForm = () => {
           navigate('/');
         }
       } else {
-        toast.error("Неверное имя пользователя или пароль");
+        toast({
+          title: "Неверное имя пользователя или пароль",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast.error("Ошибка при входе. Проверьте ваши учетные данные.");
+      toast({
+        title: "Ошибка при входе",
+        description: "Проверьте ваши учетные данные.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
