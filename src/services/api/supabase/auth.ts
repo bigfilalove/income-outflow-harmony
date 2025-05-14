@@ -1,6 +1,7 @@
 
 import { User } from '@/types/user';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 // Sample users for demo authentication
 export const demoUsers: User[] = [
@@ -56,36 +57,32 @@ export const loginWithCredentialsSupabase = async (username: string, password: s
   console.log(`[Supabase Auth] Attempting login with: ${username}`);
   
   try {
-    // First, try to authenticate with Supabase using the email (assuming username = email)
+    // Check if it's a demo account first
+    const demoUser = demoUsers.find(u => 
+      (u.username === username || u.email === username) && u.password === password
+    );
+    
+    if (demoUser) {
+      console.log('[Supabase Auth] Demo user login successful:', demoUser.username);
+      // Store user in localStorage for persistence
+      localStorage.setItem('finance-tracker-user', JSON.stringify(demoUser));
+      return demoUser;
+    }
+    
+    // If not a demo user, try to authenticate with Supabase
     const { data: { user: supabaseUser }, error } = await supabase.auth.signInWithPassword({
-      email: username.includes('@') ? username : `${username}@example.com`, // Fallback for demo accounts
+      email: username.includes('@') ? username : `${username}@example.com`, 
       password: password
     });
     
     if (error) {
       console.log('[Supabase Auth] Authentication error:', error.message);
-      
-      // If Supabase login fails, try demo accounts
-      // This allows the app to work without a real Supabase backend
-      const demoUser = demoUsers.find(u => 
-        (u.username === username || u.email === username) && u.password === password
-      );
-      
-      if (demoUser) {
-        console.log('[Supabase Auth] Demo user login successful:', demoUser.username);
-        // Store user in localStorage for persistence
-        localStorage.setItem('finance-tracker-user', JSON.stringify(demoUser));
-        return demoUser;
-      }
-      
-      console.log('[Supabase Auth] No matching demo account found');
       return null;
     }
     
     if (supabaseUser) {
       console.log('[Supabase Auth] Supabase login successful:', supabaseUser.email);
       
-      // Get user metadata and profile
       // Mapping from Supabase user to our User type
       const userRole = (supabaseUser.user_metadata.role as 'admin' | 'user' | 'basic') || 'basic';
       

@@ -16,10 +16,16 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 });
 
 // Add a helper to check if we're connected to Supabase
-export const checkSupabaseConnection = async () => {
+export const checkSupabaseConnection = async (): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.from('transactions').select('count()', { count: 'exact', head: true });
-    if (error) throw error;
+    // Try a simple query first to test connection
+    const { error } = await supabase.from('transactions').select('count()', { count: 'exact', head: true });
+    
+    if (error) {
+      console.error('Error connecting to Supabase:', error.message);
+      return false;
+    }
+    
     console.log('Successfully connected to Supabase');
     return true;
   } catch (error) {

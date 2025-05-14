@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserIcon, ShieldIcon, KeyIcon, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { UserIcon, ShieldIcon, KeyIcon, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { checkSupabaseConnection } from '@/lib/supabase';
@@ -15,28 +15,35 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>("connected"); // Default to connected to avoid UI blocking
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>("checking");
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const { loginWithCredentials, currentUser } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     const verifyConnection = async () => {
+      setConnectionStatus('checking');
+      
       try {
+        // Add a small delay before checking connection to ensure UI shows the checking state
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         const isConnected = await checkSupabaseConnection();
+        
         if (isConnected) {
           setConnectionStatus('connected');
           setConnectionError(null);
+          console.log("Successfully connected to Supabase");
         } else {
-          console.log("Connection error with Supabase, but allowing login with demo accounts");
           setConnectionStatus('error');
           setConnectionError('Не удалось подключиться к Supabase. Вы можете использовать тестовые аккаунты для входа.');
+          console.log("Connection error with Supabase, but allowing login with demo accounts");
         }
       } catch (error) {
         console.error("Connection check error:", error);
-        console.log("Connection error with Supabase, but allowing login with demo accounts");
         setConnectionStatus('error');
         setConnectionError('Ошибка при проверке соединения с Supabase. Вы можете использовать тестовые аккаунты для входа.');
+        console.log("Connection error with Supabase, but allowing login with demo accounts");
       }
     };
     
@@ -105,8 +112,8 @@ const Login = () => {
     if (connectionStatus === 'checking') {
       return (
         <div className="px-6 pb-2">
-          <div className="flex items-center space-x-2 text-muted-foreground animate-pulse">
-            <div className="h-4 w-4 rounded-full bg-muted"></div>
+          <div className="flex items-center space-x-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
             <span>Проверка соединения с Supabase...</span>
           </div>
         </div>
