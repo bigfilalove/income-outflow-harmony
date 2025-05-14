@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { checkSupabaseConnectionDetailed } from '@/utils/supabaseConnectionCheck';
 import { useAuth } from '@/context/AuthContext';
+import { SupabaseConnectionDebug } from '@/components/debug/SupabaseConnectionDebug';
 
 const Login = () => {
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>("checking");

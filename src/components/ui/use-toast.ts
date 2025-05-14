@@ -1,9 +1,4 @@
 
-// Re-export toast functions from the hooks implementation
-import { useToast, toast } from "@/hooks/use-toast"
-
-export { useToast, toast }
-
 // Define Toast types here (no circular dependency)
 export interface Toast {
   id?: string;
@@ -16,3 +11,8 @@ export interface Toast {
 export type ToastActionElement = React.ReactElement
 
 export type ToastProps = Toast
+
+// Re-export toast functions from the hooks implementation
+import { useToast, toast } from "@/hooks/use-toast"
+
+export { useToast, toast }
