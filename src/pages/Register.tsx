@@ -44,8 +44,12 @@ const Register = () => {
       setIsSubmitting(true);
       
       // Create a new user using addDemoUser from auth context
+      // Make sure all required fields are provided
       const result = await addDemoUser({
-        ...data,
+        name: data.name,
+        email: data.email,
+        username: data.username,
+        password: data.password,
         role: 'user',
       });
       

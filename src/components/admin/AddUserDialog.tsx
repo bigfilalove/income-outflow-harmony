@@ -60,7 +60,7 @@ interface AddUserDialogProps {
 }
 
 const AddUserDialog: React.FC<AddUserDialogProps> = ({ addUser }) => {
-  const { users } = useAuth();
+  const { demoUsersList } = useAuth();
   const [open, setOpen] = React.useState(false);
 
   const form = useForm<UserFormValues>({
@@ -78,7 +78,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ addUser }) => {
     console.log("Form submitted with values:", values);
     
     // Проверка на уникальность email
-    const emailExists = users.some(user => user.email.toLowerCase() === values.email.toLowerCase());
+    const emailExists = demoUsersList.some(user => user.email.toLowerCase() === values.email.toLowerCase());
     if (emailExists) {
       form.setError('email', { 
         type: 'manual', 
@@ -88,7 +88,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ addUser }) => {
     }
 
     // Проверка на уникальность username
-    const usernameExists = users.some(user => user.username.toLowerCase() === values.username.toLowerCase());
+    const usernameExists = demoUsersList.some(user => user.username.toLowerCase() === values.username.toLowerCase());
     if (usernameExists) {
       form.setError('username', { 
         type: 'manual', 
@@ -103,7 +103,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ addUser }) => {
       email: values.email,
       username: values.username,
       password: values.password,
-      role: values.role  // Ensure role is properly passed
+      role: values.role
     });
     
     console.log("Adding user with role:", values.role);
