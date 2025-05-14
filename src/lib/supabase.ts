@@ -31,14 +31,34 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
     }
     
     // Then check if we can query a table
-    const { data, error } = await supabase
-      .from('categories')
-      .select('count()', { count: 'exact', head: true })
-      .limit(1);
-    
-    if (error) {
-      console.error('Error connecting to Supabase categories table:', error.message);
-      return false;
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('count()', { count: 'exact', head: true })
+        .limit(1);
+      
+      if (error) {
+        console.error('Error connecting to Supabase categories table:', error.message);
+        return false;
+      }
+    } catch (tableError) {
+      console.error('Error querying Supabase table:', tableError);
+      
+      // Try another table
+      try {
+        const { data, error } = await supabase
+          .from('transactions')
+          .select('count()', { count: 'exact', head: true })
+          .limit(1);
+        
+        if (error) {
+          console.error('Error connecting to Supabase transactions table:', error.message);
+          return false;
+        }
+      } catch (err) {
+        console.error('Fatal error connecting to any Supabase table:', err);
+        return false;
+      }
     }
     
     console.log('Successfully connected to Supabase');

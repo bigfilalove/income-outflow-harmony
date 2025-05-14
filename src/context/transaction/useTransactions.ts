@@ -2,17 +2,20 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchTransactionsFromSupabase } from '@/services/api/supabase/transactions';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { checkSupabaseConnectionDetailed } from '@/utils/supabaseConnectionCheck';
 
 export const useTransactionsQuery = (handleAuthError: (error: unknown) => void) => {
   return useQuery({
     queryKey: ['transactions'],
     queryFn: async () => {
       try {
-        // First check connection to Supabase
-        const isConnected = await checkSupabaseConnection();
-        if (!isConnected) {
-          throw new Error('Не удалось подключиться к Supabase. Проверьте настройки соединения.');
+        // First check connection to Supabase with detailed diagnostics
+        console.log('Checking Supabase connection before fetching transactions...');
+        const connectionResult = await checkSupabaseConnectionDetailed();
+        
+        if (!connectionResult.isConnected) {
+          console.error('Failed to connect to Supabase:', connectionResult.details);
+          throw new Error(connectionResult.details.errorMessage || 'Не удалось подключиться к Supabase. Проверьте настройки соединения.');
         }
 
         console.log('Fetching transactions from Supabase...');
@@ -42,25 +45,4 @@ export const useTransactionsQuery = (handleAuthError: (error: unknown) => void) 
       }
     }
   });
-};
-
-// Helper function to check Supabase connection
-const checkSupabaseConnection = async () => {
-  try {
-    console.log('Checking Supabase connection inside transactions query...');
-    const { data, error } = await supabase
-      .from('categories')
-      .select('count()', { count: 'exact', head: true })
-      .limit(1);
-      
-    if (error) {
-      console.error('Error connecting to Supabase:', error);
-      return false;
-    }
-    console.log('Successfully connected to Supabase');
-    return true;
-  } catch (error) {
-    console.error('Error checking Supabase connection:', error);
-    return false;
-  }
 };

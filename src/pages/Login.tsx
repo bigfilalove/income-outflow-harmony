@@ -6,10 +6,15 @@ import { ConnectionStatus } from '@/components/login/ConnectionStatus';
 import { LoginForm } from '@/components/login/LoginForm';
 import { TestAccounts } from '@/components/login/TestAccounts';
 import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { SupabaseConnectionDebug } from '@/components/debug/SupabaseConnectionDebug';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { checkSupabaseConnectionDetailed } from '@/utils/supabaseConnectionCheck';
 
 const Login = () => {
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>("checking");
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
   useEffect(() => {
     const verifyConnection = async () => {
@@ -19,9 +24,9 @@ const Login = () => {
         // Add a small delay before checking connection to ensure UI shows the checking state
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        const isConnected = await checkSupabaseConnection();
+        const connectionResult = await checkSupabaseConnectionDetailed();
         
-        if (isConnected) {
+        if (connectionResult.isConnected) {
           setConnectionStatus('connected');
           setConnectionError(null);
           console.log("Successfully connected to Supabase");
@@ -32,7 +37,7 @@ const Login = () => {
           });
         } else {
           setConnectionStatus('error');
-          setConnectionError('Не удалось подключиться к Supabase. Вы можете использовать тестовые аккаунты для входа.');
+          setConnectionError(connectionResult.details.errorMessage || 'Не удалось подключиться к Supabase. Вы можете использовать тестовые аккаунты для входа.');
           console.log("Connection error with Supabase, but allowing login with demo accounts");
           
           toast({
@@ -58,27 +63,44 @@ const Login = () => {
     verifyConnection();
   }, []);
 
+  const toggleDebugPanel = () => {
+    setShowDebugPanel(prev => !prev);
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Вход в систему</CardTitle>
-          <CardDescription className="text-center">
-            Введите ваш логин и пароль для входа
-          </CardDescription>
-        </CardHeader>
+      <Tabs defaultValue="login" className="w-full max-w-md space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="login">Вход</TabsTrigger>
+          <TabsTrigger value="connection">Диагностика</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="login" className="space-y-4">
+          <Card className="w-full">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl font-bold text-center">Вход в систему</CardTitle>
+              <CardDescription className="text-center">
+                Введите ваш логин и пароль для входа
+              </CardDescription>
+            </CardHeader>
 
-        <div className="px-6 pb-2">
-          <ConnectionStatus 
-            status={connectionStatus} 
-            errorMessage={connectionError} 
-          />
-        </div>
+            <div className="px-6 pb-2">
+              <ConnectionStatus 
+                status={connectionStatus} 
+                errorMessage={connectionError} 
+              />
+            </div>
 
-        <LoginForm />
-      </Card>
+            <LoginForm />
+          </Card>
 
-      <TestAccounts />
+          <TestAccounts />
+        </TabsContent>
+        
+        <TabsContent value="connection">
+          <SupabaseConnectionDebug />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
