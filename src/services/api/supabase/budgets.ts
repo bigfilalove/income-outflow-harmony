@@ -1,84 +1,78 @@
 
 import { supabase } from '@/lib/supabase';
-import { Budget, BudgetPeriod, ServerBudget } from '@/types/budget';
+import { Budget, BudgetPeriod } from '@/types/budget';
 
-// Получить список бюджетов
-export const fetchBudgetsSupabase = async (
-  period?: BudgetPeriod,
-  year?: number,
-  month?: number,
-  type?: 'income' | 'expense',
-  company?: string
-): Promise<Budget[]> => {
+// Получение всех бюджетов из Supabase
+export const fetchBudgetsFromSupabase = async (): Promise<Budget[]> => {
   try {
-    let query = supabase.from('budgets').select('*');
-    
-    if (period) query = query.eq('period', period);
-    if (year) query = query.eq('year', year);
-    if (month) query = query.eq('month', month);
-    if (type) query = query.eq('type', type);
-    if (company) query = query.eq('company', company);
-    
-    const { data, error } = await query;
-    
+    const { data, error } = await supabase
+      .from('budgets')
+      .select('*')
+      .order('year', { ascending: false })
+      .order('month', { ascending: true });
+
     if (error) {
+      console.error('Error fetching budgets from Supabase:', error);
       throw error;
     }
-    
-    return data.map(budget => ({
+
+    // Преобразуем данные из Supabase в формат приложения
+    return data.map((budget) => ({
       id: budget.id,
       category: budget.category,
       amount: budget.amount,
-      period: budget.period,
+      period: budget.period as BudgetPeriod,
       year: budget.year,
       month: budget.month,
-      type: budget.type,
-      createdBy: budget.created_by,
-      createdAt: new Date(budget.created_at),
-      company: budget.company,
+      type: budget.type as 'expense' | 'income',
+      createdBy: budget.created_by || undefined,
+      createdAt: budget.created_at ? new Date(budget.created_at) : new Date(),
+      company: budget.company || undefined,
     }));
   } catch (error) {
     console.error('Error fetching budgets from Supabase:', error);
-    return [];
+    throw error;
   }
 };
 
-// Создать новый бюджет
-export const createBudgetSupabase = async (budget: Omit<Budget, 'id'>): Promise<Budget> => {
+// Создание нового бюджета
+export const createBudgetInSupabase = async (budget: Omit<Budget, 'id' | 'createdAt'>): Promise<Budget> => {
   try {
-    const supabaseBudget = {
+    // Преобразуем данные из формата приложения в формат Supabase
+    const supabuseBudget = {
       category: budget.category,
       amount: budget.amount,
       period: budget.period,
       year: budget.year,
       month: budget.month,
       type: budget.type,
-      created_by: budget.createdBy,
-      created_at: new Date().toISOString(),
-      company: budget.company,
+      created_by: budget.createdBy || null,
+      company: budget.company || null,
     };
-    
+
     const { data, error } = await supabase
       .from('budgets')
-      .insert(supabaseBudget)
+      .insert(supabuseBudget)
       .select()
       .single();
-    
+
     if (error) {
+      console.error('Error creating budget in Supabase:', error);
       throw error;
     }
-    
+
+    // Возвращаем созданный бюджет в формате приложения
     return {
       id: data.id,
       category: data.category,
       amount: data.amount,
-      period: data.period,
+      period: data.period as BudgetPeriod,
       year: data.year,
       month: data.month,
-      type: data.type,
-      createdBy: data.created_by,
-      createdAt: new Date(data.created_at),
-      company: data.company,
+      type: data.type as 'expense' | 'income',
+      createdBy: data.created_by || undefined,
+      createdAt: data.created_at ? new Date(data.created_at) : new Date(),
+      company: data.company || undefined,
     };
   } catch (error) {
     console.error('Error creating budget in Supabase:', error);
@@ -86,48 +80,45 @@ export const createBudgetSupabase = async (budget: Omit<Budget, 'id'>): Promise<
   }
 };
 
-// Обновить бюджет
-export const updateBudgetSupabase = async (id: string, budget: Partial<Budget>): Promise<Budget> => {
+// Обновление бюджета
+export const updateBudgetInSupabase = async (budget: Budget): Promise<Budget> => {
   try {
-    const supabaseBudget: any = {};
-    
-    if (budget.category !== undefined) supabaseBudget.category = budget.category;
-    if (budget.amount !== undefined) supabaseBudget.amount = budget.amount;
-    if (budget.period !== undefined) supabaseBudget.period = budget.period;
-    if (budget.year !== undefined) supabaseBudget.year = budget.year;
-    if (budget.month !== undefined) supabaseBudget.month = budget.month;
-    if (budget.type !== undefined) supabaseBudget.type = budget.type;
-    if (budget.createdBy !== undefined) supabaseBudget.created_by = budget.createdBy;
-    if (budget.company !== undefined) supabaseBudget.company = budget.company;
-    
-    if (budget.createdAt) {
-      supabaseBudget.created_at = budget.createdAt instanceof Date 
-        ? budget.createdAt.toISOString() 
-        : budget.createdAt;
-    }
-    
+    // Преобразуем данные из формата приложения в формат Supabase
+    const supabuseBudget = {
+      category: budget.category,
+      amount: budget.amount,
+      period: budget.period,
+      year: budget.year,
+      month: budget.month,
+      type: budget.type,
+      created_by: budget.createdBy || null,
+      company: budget.company || null,
+    };
+
     const { data, error } = await supabase
       .from('budgets')
-      .update(supabaseBudget)
-      .eq('id', id)
+      .update(supabuseBudget)
+      .eq('id', budget.id)
       .select()
       .single();
-    
+
     if (error) {
+      console.error('Error updating budget in Supabase:', error);
       throw error;
     }
-    
+
+    // Возвращаем обновленный бюджет в формате приложения
     return {
       id: data.id,
       category: data.category,
       amount: data.amount,
-      period: data.period,
+      period: data.period as BudgetPeriod,
       year: data.year,
       month: data.month,
-      type: data.type,
-      createdBy: data.created_by,
-      createdAt: new Date(data.created_at),
-      company: data.company,
+      type: data.type as 'expense' | 'income',
+      createdBy: data.created_by || undefined,
+      createdAt: data.created_at ? new Date(data.created_at) : new Date(),
+      company: data.company || undefined,
     };
   } catch (error) {
     console.error('Error updating budget in Supabase:', error);
@@ -135,15 +126,16 @@ export const updateBudgetSupabase = async (id: string, budget: Partial<Budget>):
   }
 };
 
-// Удалить бюджет
-export const deleteBudgetSupabase = async (id: string): Promise<void> => {
+// Удаление бюджета
+export const deleteBudgetFromSupabase = async (id: string): Promise<void> => {
   try {
     const { error } = await supabase
       .from('budgets')
       .delete()
       .eq('id', id);
-    
+
     if (error) {
+      console.error('Error deleting budget from Supabase:', error);
       throw error;
     }
   } catch (error) {

@@ -1,85 +1,84 @@
 
 import { supabase } from '@/lib/supabase';
-import { CategoryType } from '@/types/transaction';
+import { CategoryList } from '@/types/transaction';
 
-export interface Category {
-  id: string;
-  name: string;
-  type: CategoryType;
-  createdAt: Date;
-}
-
-// Получить список категорий
-export const fetchCategoriesSupabase = async (type?: CategoryType): Promise<Category[]> => {
-  try {
-    let query = supabase.from('categories').select('*');
-    
-    if (type) {
-      query = query.eq('type', type);
-    }
-    
-    const { data, error } = await query;
-    
-    if (error) {
-      throw error;
-    }
-    
-    return data.map(category => ({
-      id: category.id,
-      name: category.name,
-      type: category.type,
-      createdAt: new Date(category.created_at),
-    }));
-  } catch (error) {
-    console.error('Error fetching categories from Supabase:', error);
-    return [];
-  }
-};
-
-// Создать новую категорию
-export const createCategorySupabase = async (name: string, type: CategoryType): Promise<Category | null> => {
+// Получение всех категорий из Supabase
+export const fetchCategoriesFromSupabase = async (): Promise<CategoryList> => {
   try {
     const { data, error } = await supabase
       .from('categories')
-      .insert({
-        name,
-        type,
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-    
+      .select('*');
+
     if (error) {
+      console.error('Error fetching categories from Supabase:', error);
       throw error;
     }
-    
-    return {
-      id: data.id,
-      name: data.name,
-      type: data.type,
-      createdAt: new Date(data.created_at),
+
+    // Преобразуем данные из Supabase в формат приложения
+    const categoryList: CategoryList = {
+      income: [],
+      expense: [],
+      reimbursement: [],
+      transfer: [],
     };
+
+    data.forEach((category) => {
+      if (category.type === 'income') {
+        categoryList.income.push(category.name);
+      } else if (category.type === 'expense') {
+        categoryList.expense.push(category.name);
+      } else if (category.type === 'reimbursement') {
+        categoryList.reimbursement.push(category.name);
+      } else if (category.type === 'transfer') {
+        categoryList.transfer.push(category.name);
+      }
+    });
+
+    return categoryList;
   } catch (error) {
-    console.error('Error creating category in Supabase:', error);
-    return null;
+    console.error('Error fetching categories from Supabase:', error);
+    // Возвращаем дефолтные категории в случае ошибки
+    return {
+      income: ['Продажа лестницы', 'Продажа прочих изделий', 'Инвестиции', 'Возврат подотчетной суммы', 'Другое'],
+      expense: ['ФОТ', 'Металл', 'IT-инфраструктура', 'Маркетинг', 'Комиссии банка – Т-Банк', 'Под отчетные средства', 'Аренда офисного помещения', 'Налоги', 'Другое'],
+      reimbursement: ['Другое'],
+      transfer: [],
+    };
   }
 };
 
-// Удалить категорию
-export const deleteCategorySupabase = async (id: string): Promise<boolean> => {
+// Добавление новой категории
+export const addCategoryToSupabase = async (name: string, type: 'income' | 'expense' | 'reimbursement' | 'transfer'): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('categories')
+      .insert({ name, type });
+
+    if (error) {
+      console.error('Error adding category to Supabase:', error);
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error adding category to Supabase:', error);
+    throw error;
+  }
+};
+
+// Удаление категории
+export const deleteCategoryFromSupabase = async (name: string, type: 'income' | 'expense' | 'reimbursement' | 'transfer'): Promise<void> => {
   try {
     const { error } = await supabase
       .from('categories')
       .delete()
-      .eq('id', id);
-    
+      .eq('name', name)
+      .eq('type', type);
+
     if (error) {
+      console.error('Error deleting category from Supabase:', error);
       throw error;
     }
-    
-    return true;
   } catch (error) {
     console.error('Error deleting category from Supabase:', error);
-    return false;
+    throw error;
   }
 };
