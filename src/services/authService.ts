@@ -1,0 +1,106 @@
+
+import { User } from '@/types/user';
+import { loginWithCredentials as apiLoginWithCredentials, logout as apiLogout } from '@/services/api';
+import { toast } from 'sonner';
+
+export const login = (userId: string, users: User[]) => {
+  const user = users.find(u => u.id === userId);
+  if (user) {
+    localStorage.setItem('finance-tracker-current-user', userId);
+    localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now());
+    return user;
+  }
+  return null;
+};
+
+export const loginWithCredentials = async (
+  username: string, 
+  password: string, 
+  users: User[]
+): Promise<User | null> => {
+  try {
+    console.log(`Attempting to login with username: ${username}`);
+    
+    // First try direct API authentication (which includes both Supabase and demo accounts)
+    const user = await apiLoginWithCredentials(username, password);
+    
+    if (user) {
+      console.log('Authentication successful:', user);
+      return user;
+    }
+    
+    // Fallback: Try local authentication with our predefined users
+    const localUser = users.find(u => u.username === username && u.password === password);
+    
+    if (localUser) {
+      console.log('Local authentication successful:', localUser);
+      localStorage.setItem('finance-tracker-current-user', localUser.id);
+      localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now());
+      return localUser;
+    }
+    
+    console.log('Authentication failed for username:', username);
+    toast.error("Не удалось войти в систему. Проверьте логин и пароль.");
+    return null;
+  } catch (error) {
+    console.error('Login error:', error);
+    toast.error("Ошибка при входе в систему.");
+    return null;
+  }
+};
+
+export const logout = () => {
+  localStorage.removeItem('finance-tracker-current-user');
+  localStorage.removeItem('finance-tracker-token');
+  localStorage.removeItem('finance-tracker-user');
+  apiLogout(); // Clear token from localStorage
+};
+
+export const addUser = async (
+  userData: Omit<User, 'id' | 'createdAt'>,
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>
+): Promise<boolean> => {
+  try {
+    // Create a new user locally
+    const newUser: User = {
+      ...userData,
+      id: String(Date.now()),
+      role: userData.role || 'user',
+      createdAt: new Date()
+    };
+    
+    setUsers(prev => [...prev, newUser]);
+    return true;
+  } catch (error) {
+    console.error("Failed to create user:", error);
+    toast.error("Не удалось создать пользователя");
+    return false;
+  }
+};
+
+export const removeUser = (
+  userId: string, 
+  currentUserId: string | undefined, 
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>
+) => {
+  setUsers(prev => prev.filter(user => user.id !== userId));
+  if (currentUserId === userId) {
+    logout();
+    return true;
+  }
+  return false;
+};
+
+export const updateAdminPassword = (
+  newPassword: string,
+  setAdminPassword: React.Dispatch<React.SetStateAction<string>>
+) => {
+  setAdminPassword(newPassword);
+};
+
+export const verifyAdminPassword = (
+  password: string,
+  adminPassword: string
+): boolean => {
+  return password === adminPassword;
+};
