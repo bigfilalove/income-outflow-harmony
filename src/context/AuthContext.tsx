@@ -9,14 +9,8 @@ interface AuthContextType {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  demoUsersList: User[];
-  adminPassword: string;
   loginWithCredentials: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-  addDemoUser: (userData: Omit<User, 'id' | 'createdAt'>) => Promise<boolean>;
-  removeDemoUser: (userId: string) => void;
-  updateAdminPassword: (newPassword: string) => void;
-  verifyAdminPassword: (password: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,14 +21,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     session,
     isAuthenticated,
     isLoading,
-    demoUsersList,
-    adminPassword,
     loginWithCredentials,
-    logout,
-    addDemoUser,
-    removeDemoUser,
-    updateAdminPassword,
-    verifyAdminPassword
+    logout
   } = useAuthProvider();
 
   return (
@@ -44,14 +32,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         isAuthenticated,
         isLoading,
-        demoUsersList,
-        adminPassword,
         loginWithCredentials,
-        logout,
-        addDemoUser,
-        removeDemoUser,
-        updateAdminPassword,
-        verifyAdminPassword
+        logout
       }}
     >
       {children}

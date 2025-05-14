@@ -2,55 +2,6 @@
 import { User } from '@/types/user';
 import { supabase } from '@/lib/supabase';
 
-// Sample users for demo authentication
-export const demoUsers: User[] = [
-  {
-    id: '1',
-    name: 'Администратор',
-    email: 'admin@example.com',
-    username: 'admin',
-    password: 'password123',
-    role: 'admin',
-    createdAt: new Date('2023-01-01')
-  },
-  {
-    id: '2',
-    name: 'Пользователь',
-    email: 'user@example.com',
-    username: 'user',
-    password: 'password123',
-    role: 'user',
-    createdAt: new Date('2023-01-02')
-  },
-  {
-    id: '3',
-    name: 'Базовый пользователь',
-    email: 'basic@example.com',
-    username: 'basic',
-    password: 'password123',
-    role: 'basic',
-    createdAt: new Date('2023-01-03')
-  },
-  {
-    id: '4',
-    name: 'Бухгалтер',
-    email: 'accountant@example.com',
-    username: 'accountant',
-    password: 'password123',
-    role: 'user',
-    createdAt: new Date('2023-01-04')
-  },
-  {
-    id: '5',
-    name: 'Менеджер',
-    email: 'manager@example.com',
-    username: 'manager',
-    password: 'password123',
-    role: 'user',
-    createdAt: new Date('2023-01-05')
-  }
-];
-
 // Проверка текущей сессии/аутентификации
 export const checkAuthSupabase = async (): Promise<User | null> => {
   try {
@@ -77,15 +28,6 @@ export const checkAuthSupabase = async (): Promise<User | null> => {
       };
       
       return user;
-    }
-    
-    // Если нет сессии Supabase, проверяем localStorage на наличие демо-пользователя
-    const storedUser = localStorage.getItem('finance-tracker-user');
-    const storedToken = localStorage.getItem('finance-tracker-token');
-    
-    if (storedUser && storedToken) {
-      console.log('[Supabase Auth] Сессии Supabase нет, но найден сохраненный пользователь');
-      return JSON.parse(storedUser);
     }
     
     console.log('[Supabase Auth] Аутентификация не найдена');

@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { checkSupabaseConnection } from '@/lib/supabase';
 import { ConnectionStatus } from '@/components/login/ConnectionStatus';
 import { LoginForm } from '@/components/login/LoginForm';
-import { TestAccounts } from '@/components/login/TestAccounts';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { checkSupabaseConnectionDetailed } from '@/utils/supabaseConnectionCheck';
@@ -59,24 +58,24 @@ const Login = () => {
           });
         } else {
           setConnectionStatus('error');
-          setConnectionError(connectionResult.details.errorMessage || 'Не удалось подключиться к Supabase. Вы можете использовать тестовые аккаунты для входа.');
-          console.log("Connection error with Supabase, but allowing login with demo accounts");
+          setConnectionError(connectionResult.details.errorMessage || 'Не удалось подключиться к Supabase.');
+          console.log("Connection error with Supabase");
           
           toast({
             title: "Ошибка соединения",
-            description: "Не удалось подключиться к Supabase. Используйте тестовые аккаунты.",
+            description: "Не удалось подключиться к Supabase.",
             variant: "destructive"
           });
         }
       } catch (error) {
         console.error("Connection check error:", error);
         setConnectionStatus('error');
-        setConnectionError('Ошибка при проверке соединения с Supabase. Вы можете использовать тестовые аккаунты для входа.');
-        console.log("Connection error with Supabase, but allowing login with demo accounts");
+        setConnectionError('Ошибка при проверке соединения с Supabase.');
+        console.log("Connection error with Supabase");
         
         toast({
           title: "Ошибка соединения",
-          description: "Ошибка при проверке соединения с Supabase. Используйте тестовые аккаунты.",
+          description: "Ошибка при проверке соединения с Supabase.",
           variant: "destructive"
         });
       }
@@ -116,8 +115,6 @@ const Login = () => {
 
             <LoginForm />
           </Card>
-
-          <TestAccounts />
         </TabsContent>
         
         <TabsContent value="connection">
