@@ -1,6 +1,6 @@
 
-// Import from components
-import type { Toast, ToastActionElement } from "@/components/ui/use-toast"
+// Import types from UI components
+import type { Toast, ToastActionElement } from "@/components/ui/use-toast";
 
 // Re-export the types for other components to use
 export type { Toast, ToastActionElement };

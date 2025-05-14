@@ -2,17 +2,19 @@
 // Define Toast types here (no circular dependency)
 export interface Toast {
   id?: string;
-  title?: React.ReactNode;
-  description?: React.ReactNode;
-  action?: React.ReactElement;
+  title?: string;
+  description?: string;
+  action?: React.ReactNode;
   variant?: "default" | "destructive";
 }
 
-export type ToastActionElement = React.ReactElement
+export type ToastActionElement = React.ReactElement<{
+  altText: string;
+}>;
 
-export type ToastProps = Toast
+export type ToastProps = Toast;
 
 // Re-export toast functions from the hooks implementation
-import { useToast, toast } from "@/hooks/use-toast"
+import { useToast, toast } from "@/hooks/use-toast";
 
-export { useToast, toast }
+export { useToast, toast };

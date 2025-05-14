@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { checkSupabaseConnection } from '@/lib/supabase';
 import { ConnectionStatus } from '@/components/login/ConnectionStatus';
-import { LoginForm } from '@/components/login/LoginForm';
-import { TestAccounts } from '@/components/login/TestAccounts';
+import LoginForm from '@/components/login/LoginForm';
+import TestAccounts from '@/components/login/TestAccounts';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { checkSupabaseConnectionDetailed } from '@/utils/supabaseConnectionCheck';
