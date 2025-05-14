@@ -82,8 +82,9 @@ const TransactionForm: React.FC = () => {
     e.preventDefault();
 
     if (!amount || !description || !category) {
-      toast("Ошибка", {
-        description: "Пожалуйста, заполните все обязательные поля",
+      toast({
+        title: "Ошибка",
+        description: "Пожалуйста, заполните все обязательные поля"
       });
       return;
     }
@@ -94,8 +95,9 @@ const TransactionForm: React.FC = () => {
     if (hasAllocations) {
       const allocatedTotal = projectAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
       if (allocatedTotal !== numAmount) {
-        toast("Ошибка", {
-          description: "Сумма распределений должна быть равна общей сумме транзакции",
+        toast({
+          title: "Ошибка",
+          description: "Сумма распределений должна быть равна общей сумме транзакции"
         });
         return;
       }
@@ -103,8 +105,9 @@ const TransactionForm: React.FC = () => {
       // Проверка наличия дубликатов проектов
       const projectsSet = new Set(projectAllocations.map(a => a.project));
       if (projectAllocations.length !== projectsSet.size) {
-        toast("Ошибка", {
-          description: "Один проект используется несколько раз в распределении",
+        toast({
+          title: "Ошибка",
+          description: "Один проект используется несколько раз в распределении"
         });
         return;
       }

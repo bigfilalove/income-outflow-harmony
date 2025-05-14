@@ -1,4 +1,3 @@
-
 // context/TransactionProvider.tsx
 import React, { createContext } from 'react';
 import { Transaction } from '@/types/transaction';
@@ -9,6 +8,7 @@ import { TransactionContextType } from './types';
 import { useTransactionsQuery } from './useTransactions';
 import { useTransactionOperations } from './useTransactionOperations';
 import { checkSupabaseConnection } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
 
