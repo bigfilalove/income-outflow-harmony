@@ -10,45 +10,33 @@ export const setAdminRoleForUser = async (emailOrUsername: string): Promise<bool
   try {
     console.log('[Supabase Users] Attempting to assign admin role for:', emailOrUsername);
     
-    // First check if user exists by email
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(emailOrUsername);
+    // First try to find the user by listing users and filtering
+    const { data: usersList, error: listError } = await supabase.auth.admin.listUsers();
     
-    // If not found by email, try with constructed email
-    let userId = userData?.user?.id;
-    
-    if (!userId && !emailOrUsername.includes('@')) {
-      // Try with constructed email
-      const constructedEmail = `${emailOrUsername}@example.com`;
-      const { data: constructedData, error: constructedError } = await supabase.auth.admin.getUserByEmail(constructedEmail);
-      
-      if (constructedError) {
-        console.error(`[Supabase Users] User not found with constructed email ${constructedEmail}:`, constructedError);
-      } else {
-        userId = constructedData?.user?.id;
-      }
+    if (listError) {
+      console.error('[Supabase Users] Error listing users:', listError);
+      return false;
     }
     
-    if (!userId) {
+    // Find user by email or username (constructed email)
+    let user = usersList.users.find(u => 
+      u.email === emailOrUsername || 
+      (u.email && u.email.startsWith(emailOrUsername + '@'))
+    );
+    
+    if (!user) {
       console.error(`[Supabase Users] User with email/login ${emailOrUsername} not found`);
       return false;
     }
     
-    console.log(`[Supabase Users] Found user for update: ${userId}`);
-    
-    // Get the current user's metadata
-    const { data: { user }, error: getUserError } = await supabase.auth.admin.getUserById(userId);
-    
-    if (getUserError || !user) {
-      console.error('[Supabase Users] Error getting user details:', getUserError);
-      return false;
-    }
+    console.log(`[Supabase Users] Found user for update: ${user.id}`);
     
     // Update user's metadata to include admin role
     const currentMetadata = user.user_metadata || {};
     const updatedMetadata = { ...currentMetadata, role: 'admin' };
     
     const { error: updateError } = await supabase.auth.admin.updateUserById(
-      userId,
+      user.id,
       { user_metadata: updatedMetadata }
     );
     
