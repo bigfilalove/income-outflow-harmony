@@ -1,7 +1,7 @@
 
 import { User } from '@/types/user';
 import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 // Sample users for demo authentication
 export const demoUsers: User[] = [
