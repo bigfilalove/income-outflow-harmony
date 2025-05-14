@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
+import { useAdmin } from '@/context/AdminContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +12,8 @@ import { Label } from '@/components/ui/label';
 
 const AdminLogin = () => {
   const [password, setPassword] = useState('');
-  const { verifyAdminPassword, demoUsersList, loginWithCredentials } = useAuth();
+  const { loginWithCredentials } = useAuth();
+  const { verifyAdminPassword, demoUsersList } = useAdmin();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {

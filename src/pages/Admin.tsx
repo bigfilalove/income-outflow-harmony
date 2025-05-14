@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
-import { useAuth } from '@/context/AuthContext';
+import { useAdmin } from '@/context/AdminContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,7 +19,7 @@ const Admin = () => {
     removeDemoUser, 
     adminPassword, 
     updateAdminPassword 
-  } = useAuth();
+  } = useAdmin();
   
   const handleTabChange = (value: string) => {
     setActiveTab(value);

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/context/AuthContext';
+import { useAdmin } from '@/context/AdminContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -12,7 +13,7 @@ import { AtSign, Lock, User as UserIcon } from 'lucide-react';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { addDemoUser } = useAuth();
+  const { addDemoUser } = useAdmin();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Define the validation schema using zod
@@ -43,8 +44,7 @@ const Register = () => {
     try {
       setIsSubmitting(true);
       
-      // Create a new user using addDemoUser from auth context
-      // Make sure all required fields are provided
+      // Create a new user using addDemoUser from admin context
       const result = await addDemoUser({
         name: data.name,
         email: data.email,

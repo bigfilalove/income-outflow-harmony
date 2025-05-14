@@ -1,91 +1,60 @@
 
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
-/**
- * Detailed result type for Supabase connection check
- */
 export interface ConnectionCheckResult {
-  isConnected: boolean;
-  details: {
-    url: string;
-    errorMessage: string;
-    errorCode: string;
-    fetchStatus: string;
-    authEnabled?: boolean;
-    tablesAccessible?: boolean;
-  }
+  url: string;
+  errorMessage: string;
+  errorCode: string;
+  fetchStatus: string;
+  tablesAccessible?: boolean;
 }
 
-/**
- * Check connection to Supabase with detailed diagnostics
- */
-export const checkSupabaseConnectionDetailed = async (): Promise<ConnectionCheckResult> => {
-  const result: ConnectionCheckResult = {
-    isConnected: false,
-    details: {
-      url: '',
-      errorMessage: '',
-      errorCode: '',
-      fetchStatus: '',
-      authEnabled: false,
-      tablesAccessible: false
-    }
-  };
-  
+export const checkSupabaseConnection = async (): Promise<ConnectionCheckResult> => {
   try {
-    // Get Supabase URL
-    const supabaseUrl = (supabase as any).getUrl();
-    result.details.url = supabaseUrl;
-    
-    // Check if the URL is valid
-    if (!supabaseUrl) {
-      throw new Error('Неверный URL Supabase');
-    }
-    
-    // Try a simple query to test the connection
-    const start = Date.now();
-    const { data, error } = await supabase.from('transactions').select('count').limit(1);
-    const elapsed = Date.now() - start;
+    // Test the connection to Supabase
+    const { data, error } = await supabase.from('profiles').select('count').limit(1);
     
     if (error) {
-      throw error;
+      console.error('Supabase connection error:', error);
+      return {
+        url: supabase.supabaseUrl,
+        errorMessage: error.message,
+        errorCode: error.code,
+        fetchStatus: 'error',
+        tablesAccessible: false
+      };
     }
     
-    result.isConnected = true;
-    result.details.fetchStatus = `Успешно (${elapsed}ms)`;
-    result.details.tablesAccessible = true;
+    return {
+      url: supabase.supabaseUrl,
+      errorMessage: '',
+      errorCode: '',
+      fetchStatus: 'success',
+      tablesAccessible: true
+    };
     
-    // Check if auth is enabled
-    try {
-      await supabase.auth.getSession();
-      result.details.authEnabled = true;
-    } catch (authError) {
-      result.details.authEnabled = false;
-    }
-    
-    return result;
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error checking Supabase connection:', error);
     
-    result.isConnected = false;
-    result.details.errorMessage = error.message || 'Неизвестная ошибка';
-    result.details.errorCode = error.code || 'UNKNOWN';
-    result.details.fetchStatus = 'Ошибка';
-    
-    return result;
+    return {
+      url: supabase.supabaseUrl,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      errorCode: 'UNKNOWN',
+      fetchStatus: 'failed',
+      tablesAccessible: false
+    };
   }
 };
 
-/**
- * Simple function to check Supabase connection and notify the user
- * Used in Admin panel
- */
 export const checkAndNotifySupabaseConnection = async (): Promise<boolean> => {
-  try {
-    const result = await checkSupabaseConnectionDetailed();
-    return result.isConnected;
-  } catch (error) {
-    console.error('Error checking Supabase connection:', error);
+  const result = await checkSupabaseConnection();
+  
+  if (result.tablesAccessible) {
+    toast.success('Соединение с Supabase установлено');
+    return true;
+  } else {
+    toast.error(`Ошибка соединения с Supabase: ${result.errorMessage}`);
     return false;
   }
 };

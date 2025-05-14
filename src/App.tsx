@@ -1,107 +1,34 @@
-
-import React from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import { ThemeProvider } from "./components/theme-provider";
-import { useTheme } from 'next-themes';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { EmployeeProvider } from '@/context/employee';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { TransactionProvider } from './context/transaction';
-import { BudgetProvider } from './context/BudgetContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Transactions from './pages/Transactions';
-import Analytics from './pages/Analytics';
-import AdvancedAnalytics from './pages/AdvancedAnalytics';
-import Budgeting from './pages/Budgeting';
-import Admin from './pages/Admin';
-import NotFound from './pages/NotFound';
-import Landing from './pages/Landing';
-import BasicTransactions from './pages/BasicTransactions';
-import FinancialReports from './pages/FinancialReports';
-import AdminLogin from './pages/AdminLogin';
-
-// Create QueryClient once at app load
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
+import React, { Suspense } from 'react';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { ThemeProvider } from "@/components/ui/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
+import { RouterProvider } from 'react-router-dom';
+import { router } from './router';
+import { HelmetProvider } from 'react-helmet-async';
+import './index.css';
+import { AuthProvider } from './context/AuthContext';
+import { AdminProvider } from './context/AdminContext';
 
 function App() {
-  const { theme } = useTheme();
-  const location = useLocation();
-  
-  React.useEffect(() => {
-    // Log the current route
-    console.log("Current route:", location.pathname);
-  }, [location]);
-  
+  const [queryClient] = React.useState(() => new QueryClient());
+
   return (
-    <div className={theme}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TransactionProvider>
-            <BudgetProvider>
-              <EmployeeProvider>
-                <ThemeProvider defaultTheme="light" storageKey="finance-app-theme">
-                  <Routes>
-                    <Route path="/" element={<Landing />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/admin-login" element={<AdminLogin />} />
-                    <Route path="/transactions" element={
-                      <ProtectedRoute>
-                        <Transactions />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/analytics" element={
-                      <ProtectedRoute>
-                        <Analytics />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/advanced-analytics" element={
-                      <ProtectedRoute>
-                        <AdvancedAnalytics />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/budgeting" element={
-                      <ProtectedRoute>
-                        <Budgeting />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin" element={
-                      <ProtectedRoute requireAdmin={true}>
-                        <Admin />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/basic-transactions" element={
-                      <ProtectedRoute>
-                        <BasicTransactions />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/financial-reports" element={
-                      <ProtectedRoute>
-                        <FinancialReports />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                  <Toaster />
-                </ThemeProvider>
-              </EmployeeProvider>
-            </BudgetProvider>
-          </TransactionProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center">Загрузка...</div>}>
+        <HelmetProvider>
+          <ThemeProvider defaultTheme="light" storageKey="finance-tracker-theme">
+            <AuthProvider>
+              <AdminProvider>
+                <RouterProvider router={router} />
+              </AdminProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </HelmetProvider>
+      </Suspense>
+      <Toaster />
+    </QueryClientProvider>
   );
 }
 
 export default App;
+
