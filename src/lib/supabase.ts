@@ -7,6 +7,13 @@ import { toast } from '@/hooks/use-toast';
 const supabaseUrl = 'https://rjumbzllcnboghomakdw.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqdW1iemxsY25ib2dob21ha2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxODgwMzUsImV4cCI6MjA1OTc2NDAzNX0.y67rxShDBronCSG4R_7HSvty3pD1zEj431fbUCrO174';
 
+// Extend the SupabaseClient type
+declare module '@supabase/supabase-js' {
+  interface SupabaseClient<Database, SchemaName, Schema> {
+    getUrl(): string;
+  }
+}
+
 // Создаем Supabase клиент с явной конфигурацией
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {

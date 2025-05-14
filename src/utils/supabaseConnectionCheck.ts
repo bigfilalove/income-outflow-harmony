@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -22,7 +21,7 @@ export const checkSupabaseConnectionDetailed = async (): Promise<ConnectionCheck
   const result: ConnectionCheckResult = {
     isConnected: false,
     details: {
-      url: supabase.getUrl(), // Use getUrl() instead of accessing protected property
+      url: supabase.getUrl(), // Now properly typed
       authEnabled: false,
       tablesAccessible: false,
       errorMessage: ''
