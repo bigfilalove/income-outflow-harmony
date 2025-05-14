@@ -66,8 +66,7 @@ const InvestmentForm: React.FC = () => {
         setConnectionError('Проблема подключения к Supabase. Пожалуйста, проверьте ваше интернет-соединение.');
       } else {
         toast("Ошибка", {
-          description: `Не удалось добавить инвестицию: ${error.message}`,
-          variant: "destructive"
+          description: `Не удалось добавить инвестицию: ${error.message}`
         });
       }
     },

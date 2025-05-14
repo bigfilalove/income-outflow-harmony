@@ -22,7 +22,9 @@ export const mapServerToClient = (serverTransaction: ServerTransaction): Transac
     fromCompany: serverTransaction.fromCompany || undefined,
     toCompany: serverTransaction.toCompany || undefined,
     projectAllocations: serverTransaction.projectAllocations || undefined,
-    hasAllocations: serverTransaction.hasAllocations
+    hasAllocations: serverTransaction.hasAllocations,
+    isInvestment: serverTransaction.isInvestment || false,
+    investor: serverTransaction.investor || undefined
   };
 };
 
@@ -45,7 +47,9 @@ export const mapClientToServer = (clientTransaction: Omit<Transaction, 'id'>): O
     fromCompany: clientTransaction.fromCompany || null,
     toCompany: clientTransaction.toCompany || null,
     projectAllocations: clientTransaction.projectAllocations,
-    hasAllocations: clientTransaction.hasAllocations || false
+    hasAllocations: clientTransaction.hasAllocations || false,
+    isInvestment: clientTransaction.isInvestment || false,
+    investor: clientTransaction.investor || null
   };
 };
 

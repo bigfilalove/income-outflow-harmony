@@ -20,6 +20,7 @@ export const fetchCategoriesFromSupabase = async (): Promise<CategoryList> => {
       expense: [],
       reimbursement: [],
       transfer: [],
+      investment: [],
     };
 
     data.forEach((category) => {
@@ -31,6 +32,8 @@ export const fetchCategoriesFromSupabase = async (): Promise<CategoryList> => {
         categoryList.reimbursement.push(category.name);
       } else if (category.type === 'transfer') {
         categoryList.transfer.push(category.name);
+      } else if (category.type === 'investment') {
+        categoryList.investment.push(category.name);
       }
     });
 
@@ -43,6 +46,7 @@ export const fetchCategoriesFromSupabase = async (): Promise<CategoryList> => {
       expense: ['ФОТ', 'Металл', 'IT-инфраструктура', 'Маркетинг', 'Комиссии банка – Т-Банк', 'Под отчетные средства', 'Аренда офисного помещения', 'Налоги', 'Другое'],
       reimbursement: ['Другое'],
       transfer: [],
+      investment: ['Вклад собственника', 'Инвестиции партнера', 'Другое'],
     };
   }
 };

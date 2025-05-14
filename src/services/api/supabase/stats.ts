@@ -20,7 +20,8 @@ export const fetchCategoryStats = async (): Promise<Record<string, { category: s
       income: [],
       expense: [],
       reimbursement: [],
-      transfer: []
+      transfer: [],
+      investment: []
     };
     
     // Count occurrences of each category
@@ -42,7 +43,7 @@ export const fetchCategoryStats = async (): Promise<Record<string, { category: s
   } catch (error) {
     console.error('Error in fetchCategoryStats:', error);
     // Return empty stats on error
-    return { income: [], expense: [], reimbursement: [], transfer: [] };
+    return { income: [], expense: [], reimbursement: [], transfer: [], investment: [] };
   }
 };
 
@@ -63,7 +64,8 @@ export const fetchCategoriesByType = async (): Promise<CategoryList> => {
       income: [],
       expense: [],
       reimbursement: [],
-      transfer: []
+      transfer: [],
+      investment: []
     };
     
     if (data) {
@@ -84,6 +86,7 @@ export const fetchCategoriesByType = async (): Promise<CategoryList> => {
       expense: ['ФОТ', 'Металл', 'IT-инфраструктура', 'Маркетинг', 'Комиссии банка – Т-Банк', 'Под отчетные средства', 'Аренда офисного помещения', 'Налоги', 'Другое'],
       reimbursement: ['Другое'],
       transfer: ['Перевод между счетами'],
+      investment: ['Вклад собственника', 'Инвестиции партнера', 'Другое'],
     };
   }
 };
