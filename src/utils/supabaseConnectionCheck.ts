@@ -1,117 +1,103 @@
 
 import { supabase } from '@/lib/supabase';
-import { toast } from '@/hooks/use-toast';
 
-export type ConnectionCheckResult = {
+/**
+ * Detailed connection check with diagnostics
+ */
+export const checkSupabaseConnectionDetailed = async (): Promise<{
   isConnected: boolean;
   details: {
-    url: string;
-    authEnabled: boolean;
-    tablesAccessible: boolean;
+    url?: string;
+    authEnabled?: boolean;
+    tablesAccessible?: boolean;
     errorMessage?: string;
+    error?: any;
   };
-};
-
-// Более подробная проверка соединения с Supabase
-export const checkSupabaseConnectionDetailed = async (): Promise<ConnectionCheckResult> => {
-  console.log('Running detailed Supabase connection check...');
-  
-  const result: ConnectionCheckResult = {
+}> => {
+  const result = {
     isConnected: false,
     details: {
-      url: 'https://rjumbzllcnboghomakdw.supabase.co', // Используем фиксированный URL из проекта
+      url: supabase.supabaseUrl,
       authEnabled: false,
-      tablesAccessible: false
+      tablesAccessible: false,
+      errorMessage: ''
     }
   };
 
   try {
-    // Проверка аутентификации
-    console.log('Checking Supabase auth connection...');
+    // Check auth system
     const { data: authData, error: authError } = await supabase.auth.getSession();
     
     if (authError) {
-      console.error('Supabase auth check failed:', authError.message);
-      result.details.errorMessage = `Auth error: ${authError.message}`;
+      result.details.errorMessage = `Ошибка аутентификации: ${authError.message}`;
+      result.details.error = authError;
       return result;
     }
     
     result.details.authEnabled = true;
-    console.log('Supabase auth check successful');
-    
-    // Проверка доступа к таблицам (пробуем различные таблицы)
-    console.log('Checking Supabase table access...');
+
+    // Try to access different tables to diagnose problems
     const tables = ['categories', 'transactions', 'companies'];
-    let foundWorkingTable = false;
-    let lastError = null;
     
     for (const table of tables) {
+      console.log(`Trying to access table: ${table}`);
       try {
-        console.log(`Trying to access table: ${table}`);
         const { data, error } = await supabase
           .from(table)
-          .select('count(*)', { count: 'exact', head: true })
+          .select('id')
           .limit(1);
         
-        if (!error) {
-          console.log(`Successfully accessed table: ${table}`);
-          foundWorkingTable = true;
-          break;
+        if (error) {
+          console.warn(`Could not access table ${table}: `, error);
+          result.details.errorMessage = `Ошибка доступа к таблице ${table}: ${error.message}`;
+          result.details.error = error;
         } else {
-          console.warn(`Could not access table ${table}:`, error.message);
-          lastError = error;
+          // If we successfully access at least one table, mark as accessible
+          result.details.tablesAccessible = true;
         }
-      } catch (tableError) {
-        console.error(`Error accessing table ${table}:`, tableError);
-        lastError = tableError;
+      } catch (e) {
+        console.warn(`Could not access table ${table}: `, e);
       }
     }
     
-    result.details.tablesAccessible = foundWorkingTable;
-    
-    // Общая оценка соединения
+    // Connection is good if auth works and at least one table is accessible
     result.isConnected = result.details.authEnabled && result.details.tablesAccessible;
     
     if (!result.isConnected && !result.details.errorMessage) {
-      result.details.errorMessage = lastError 
-        ? `Ошибка доступа к таблицам: ${lastError.message}` 
-        : 'Не удалось подключиться к таблицам базы данных. Возможно, требуется аутентификация или таблицы не существуют.';
+      result.details.errorMessage = 'Ошибка доступа к таблицам: ';
     }
     
     return result;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
-    console.error('Fatal error during Supabase connection check:', error);
-    result.details.errorMessage = errorMessage;
+    console.error('Fatal error checking Supabase connection:', error);
+    result.details.errorMessage = `Критическая ошибка соединения: ${error instanceof Error ? error.message : String(error)}`;
+    result.details.error = error;
     return result;
   }
 };
 
-// Проверка и тост-уведомление
-export const checkAndNotifySupabaseConnection = async (): Promise<boolean> => {
+/**
+ * Simple connection check that returns boolean
+ */
+export const checkSupabaseConnection = async (): Promise<boolean> => {
   try {
     const result = await checkSupabaseConnectionDetailed();
-    
-    if (result.isConnected) {
-      toast({
-        title: "Соединение с Supabase установлено",
-        description: "База данных доступна и готова к работе"
-      });
-      return true;
-    } else {
-      toast({
-        title: "Ошибка соединения с Supabase",
-        description: result.details.errorMessage || "Не удалось подключиться к базе данных",
-        variant: "destructive"
-      });
-      return false;
-    }
+    return result.isConnected;
   } catch (error) {
-    toast({
-      title: "Ошибка при проверке соединения",
-      description: "Произошла непредвиденная ошибка при проверке соединения",
-      variant: "destructive"
-    });
+    console.error('Error checking Supabase connection:', error);
+    return false;
+  }
+};
+
+/**
+ * Check connection and show toast notification with result
+ */
+export const checkAndNotifySupabaseConnection = async (): Promise<boolean> => {
+  try {
+    const connectionResult = await checkSupabaseConnectionDetailed();
+    return connectionResult.isConnected;
+  } catch (error) {
+    console.error('Error in connection check:', error);
     return false;
   }
 };

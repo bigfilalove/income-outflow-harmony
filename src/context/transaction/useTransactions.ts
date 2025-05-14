@@ -22,27 +22,63 @@ export const useTransactionsQuery = (handleAuthError: (error: unknown) => void) 
         const data = await fetchTransactionsFromSupabase();
         console.log('Fetched transactions:', data);
         return data;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error in transactions fetching:', error);
-        toast({
-          title: "Ошибка при загрузке данных",
-          description: "Не удалось загрузить транзакции из Supabase",
-          variant: "destructive"
-        });
+        
+        // Only show toast for non-connection errors
+        // Connection errors will be handled in the UI
+        if (error.message && 
+            !error.message.includes('Failed to fetch') && 
+            !error.message.includes('network') && 
+            !error.message.includes('connection') &&
+            !error.message.includes('Supabase')) {
+          toast({
+            title: "Ошибка при загрузке данных",
+            description: error.message || "Не удалось загрузить транзакции из Supabase",
+            variant: "destructive"
+          });
+        }
+        
+        // Return empty array for failed fetches to allow UI to render
+        // but still propagate the error for error handling
         throw error;
       }
     },
-    retry: (failureCount, error) => {
-      if (error instanceof Error && error.message.includes('401')) {
-        return false; // Don't retry on auth errors
+    retry: (failureCount, error: any) => {
+      // Don't retry auth errors
+      if (error instanceof Error && 
+         (error.message.includes('401') || 
+          error.message.includes('auth') || 
+          error.message.includes('Authentication'))) {
+        return false;
       }
-      return failureCount < 2; // Retry twice for other errors
+      
+      // Don't retry network/connection errors more than once
+      if (error instanceof Error && 
+         (error.message.includes('Failed to fetch') || 
+          error.message.includes('network') || 
+          error.message.includes('connection'))) {
+        return failureCount < 1;
+      }
+      
+      // Retry other errors twice
+      return failureCount < 2;
     },
     meta: {
       onError: (error: unknown) => {
         console.error('Error in transactions query:', error);
-        handleAuthError(error);
+        
+        // Only pass auth errors to auth handler
+        if (error instanceof Error && 
+           (error.message.includes('401') || 
+            error.message.includes('auth') || 
+            error.message.includes('Authentication'))) {
+          handleAuthError(error);
+        }
       }
-    }
+    },
+    // Return empty array instead of undefined for failed queries
+    // This allows components to still render with empty data
+    placeholderData: []
   });
 };

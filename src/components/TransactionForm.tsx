@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -20,24 +21,36 @@ import CompanySelect from '@/components/transaction/CompanySelect';
 import ProjectSelect from '@/components/transaction/ProjectSelect';
 import ProjectAllocations from '@/components/transaction/ProjectAllocations';
 import { toast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { TransactionType, ReimbursementStatus, ProjectAllocation } from '@/types/transaction';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuth } from '@/context/AuthContext';
 
 const TransactionForm: React.FC = () => {
   const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [date, setDate] = useState<Date>(new Date());
   const [isReimbursement, setIsReimbursement] = useState(false);
-  const [reimbursedTo, setReimbursedTo] = useState('');
-  const [createdBy, setCreatedBy] = useState('');
+  const [reimbursedTo, setReimbursedTo] = useState(currentUser?.name || '');
+  const [createdBy, setCreatedBy] = useState(currentUser?.name || '');
   const [company, setCompany] = useState('');
   const [project, setProject] = useState('');
   const [hasAllocations, setHasAllocations] = useState(false);
   const [projectAllocations, setProjectAllocations] = useState<ProjectAllocation[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+
+  // Prefill creator and reimbursement fields with current user when available
+  React.useEffect(() => {
+    if (currentUser?.name) {
+      setCreatedBy(currentUser.name);
+      setReimbursedTo(currentUser.name);
+    }
+  }, [currentUser]);
 
   // Мутация для добавления транзакции
   const mutation = useMutation({
@@ -54,19 +67,26 @@ const TransactionForm: React.FC = () => {
       setCategory('');
       setDate(new Date());
       setIsReimbursement(false);
-      setReimbursedTo('');
-      setCreatedBy('');
+      setReimbursedTo(currentUser?.name || '');
       setCompany('');
       setProject('');
       setHasAllocations(false);
       setProjectAllocations([]);
+      setConnectionError(null);
     },
-    onError: (error) => {
-      toast({
-        title: "Ошибка",
-        description: `Не удалось добавить транзакцию: ${error.message}`,
-        variant: "destructive"
-      });
+    onError: (error: any) => {
+      console.error('Transaction creation error:', error);
+      if (error.message && error.message.includes('Failed to fetch') || 
+          error.message.includes('network') || 
+          error.message.includes('connection')) {
+        setConnectionError('Проблема подключения к Supabase. Пожалуйста, проверьте ваше интернет-соединение.');
+      } else {
+        toast({
+          title: "Ошибка",
+          description: `Не удалось добавить транзакцию: ${error.message}`,
+          variant: "destructive"
+        });
+      }
     },
     onSettled: () => {
       setIsSubmitting(false);
@@ -114,6 +134,7 @@ const TransactionForm: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    setConnectionError(null);
 
     const transaction = {
       amount: numAmount,
@@ -143,6 +164,15 @@ const TransactionForm: React.FC = () => {
       <CardHeader>
         <CardTitle>Новая транзакция</CardTitle>
         <CardDescription>Добавьте доход или расход</CardDescription>
+        
+        {connectionError && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {connectionError}
+            </AlertDescription>
+          </Alert>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">

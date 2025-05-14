@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import TransactionForm from '@/components/TransactionForm';
@@ -8,17 +8,47 @@ import { Transaction } from '@/types/transaction';
 import { useTransactions } from '@/context/transaction';
 import { formatCurrency, formatDateShort } from '@/lib/formatters';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const BasicTransactions = () => {
   const { currentUser } = useAuth();
-  const { transactions } = useTransactions();
+  const { transactions, error, isLoading } = useTransactions();
+  const [offlineMode, setOfflineMode] = useState(false);
+
+  // Check if we're in offline mode based on error
+  React.useEffect(() => {
+    if (error && 
+        (error.message.includes('Failed to fetch') || 
+         error.message.includes('network') || 
+         error.message.includes('connection') ||
+         error.message.includes('Supabase'))) {
+      setOfflineMode(true);
+    } else {
+      setOfflineMode(false);
+    }
+  }, [error]);
 
   // Filter only reimbursements for the current user, if any
   const myReimbursements = transactions.filter(t => 
     t.isReimbursement && 
     t.reimbursedTo === currentUser?.name
   );
+
+  const renderConnectionError = () => {
+    if (offlineMode) {
+      return (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Проблема с соединением</AlertTitle>
+          <AlertDescription>
+            Не удалось подключиться к базе данных Supabase. Вы можете продолжить работу в автономном режиме, но данные не будут сохранены до восстановления соединения.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -32,6 +62,8 @@ const BasicTransactions = () => {
             </div>
           )}
         </div>
+        
+        {renderConnectionError()}
         
         <div className="max-w-md mx-auto space-y-6">
           <TransactionForm />

@@ -1,55 +1,38 @@
 
-import { toast as sonnerToast, Toaster as SonnerToaster } from "sonner"
+import { useToast as useToastOriginal } from "@/components/ui/use-toast"
+import type { Toast } from "@/components/ui/use-toast"
 
-type ToastProps = {
-  title?: string
-  description?: string
-  variant?: "default" | "destructive"
-  duration?: number
-  action?: {
-    label: string
-    onClick: () => void
-  }
-}
-
-// This is a wrapper around sonner's toast that follows the shadcn pattern
-export function toast({
-  title,
-  description,
-  variant = "default",
-  duration,
-  action,
-  ...props
-}: ToastProps) {
-  return sonnerToast(title, {
-    description,
-    duration,
-    action: action
-      ? {
-          label: action.label,
-          onClick: action.onClick,
-        }
-      : undefined,
-    // Map variant to sonner's style
-    className: variant === "destructive" ? "destructive" : undefined,
-    ...props,
-  })
-}
-
+/**
+ * Use the toast hook with additional functionality
+ */
 export const useToast = () => {
-  return {
-    toast,
-    dismiss: sonnerToast.dismiss,
-    // For compatibility with shadcn Toaster component
-    toasts: [], // Empty array since sonner manages its own toast state internally
-  }
+  return useToastOriginal()
 }
 
-// Preserve older type definitions for backward compatibility
-export type {
-  ToastActionElement,
-  ToastProps as ShadcnToastProps,
-} from "@/components/ui/toast"
+// Store toasts that have been shown to prevent duplicates
+const shownToasts = new Set<string>();
 
-// Re-export the Sonner Toaster component for direct usage
-export { SonnerToaster }
+/**
+ * Expose toast function directly for use outside of React components
+ */
+export const toast = (props: Toast) => {
+  // Create a key from the toast to prevent duplicates
+  const toastKey = `${props.title}-${props.description}`;
+  
+  // For destructive/error toasts, prevent duplicates within 5 seconds
+  if (props.variant === 'destructive' && shownToasts.has(toastKey)) {
+    return;
+  }
+  
+  // Add to shown toasts
+  if (props.variant === 'destructive') {
+    shownToasts.add(toastKey);
+    setTimeout(() => {
+      shownToasts.delete(toastKey);
+    }, 5000);
+  }
+  
+  // Use the toast implementation from the toast context
+  const { toast: contextToast } = useToastOriginal();
+  return contextToast(props);
+};
