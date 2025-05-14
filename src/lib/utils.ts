@@ -12,7 +12,12 @@ export function cn(...inputs: ClassValue[]) {
  */
 export async function checkSupabaseConnection(): Promise<boolean> {
   try {
-    const { error } = await supabase.from('profiles').select('count').limit(1).single();
+    if (!supabase) {
+      console.error('Supabase client not initialized');
+      return false;
+    }
+    
+    const { error } = await supabase.from('categories').select('count').limit(1);
     return !error;
   } catch (error) {
     console.error('Supabase connection check failed:', error);
@@ -25,6 +30,11 @@ export async function checkSupabaseConnection(): Promise<boolean> {
  */
 export async function checkAuthSession(): Promise<boolean> {
   try {
+    if (!supabase) {
+      console.error('Supabase client not initialized');
+      return false;
+    }
+    
     const { data, error } = await supabase.auth.getSession();
     return !error && !!data.session;
   } catch (error) {

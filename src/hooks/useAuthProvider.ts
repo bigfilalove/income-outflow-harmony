@@ -1,157 +1,157 @@
 
-import { useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { useState, useEffect, useCallback } from 'react';
+import { User } from '@/types/user';
+import { Session } from '@supabase/supabase-js';
+import { checkAuthSupabase, loginWithSupabase, logoutSupabase } from '@/services/api/supabase/auth';
 import { supabase } from '@/lib/supabase';
-import { User as AppUser } from '@/types/user';
+import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
-/**
- * Расширенный хук для управления состоянием аутентификации
- * Поддерживает Supabase Auth
- */
 export const useAuthProvider = () => {
-  // Состояние аутентификации Supabase
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
-  
-  // Состояние пользователя приложения
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
-  // Инициализация проверки авторизации и настройка слушателя изменений
+  // Initialize auth state
   useEffect(() => {
-    setIsLoading(true);
-    
-    // Устанавливаем слушатель изменений состояния аутентификации
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Событие аутентификации:', event, !!session);
-        
-        // Синхронно обновляем состояние сессии и пользователя
-        setSession(session);
-        setSupabaseUser(session?.user ?? null);
-        
-        // Асинхронно обрабатываем изменение состояния
-        if (session) {
-          // Избегаем использования setTimeout, чтобы предотвратить задержки
-          const userRole = session.user?.user_metadata?.role as 'admin' | 'user' | 'basic';
-          const appUser: AppUser = {
-            id: session.user.id,
-            name: session.user.user_metadata.name || session.user.email?.split('@')[0] || 'Пользователь',
-            email: session.user.email || '',
-            username: session.user.email?.split('@')[0] || '',
-            password: '', // Не храним пароль
-            role: userRole || 'basic',
-            createdAt: new Date(session.user.created_at)
-          };
-          
-          setCurrentUser(appUser);
-          setIsAuthenticated(true);
-          
-          // Сохраняем пользователя в localStorage для резервного сохранения
-          localStorage.setItem('finance-tracker-user', JSON.stringify(appUser));
-          localStorage.setItem('finance-tracker-token', session.access_token);
-        } else {
-          setCurrentUser(null);
-          setIsAuthenticated(false);
-          localStorage.removeItem('finance-tracker-user');
-          localStorage.removeItem('finance-tracker-token');
-        }
-        
-        setIsLoading(false);
-      }
-    );
-
-    // Проверяем существующую сессию при загрузке
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Ошибка получения сессии:', error);
-      }
-      
-      // Слушатель onAuthStateChange уже обработает обновление состояния
-      // Это нужно только для начальной загрузки
-      if (!session) {
-        setIsLoading(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Методы аутентификации
-  
-  // Логин с помощью учетных данных
-  const loginWithCredentials = async (
-    username: string, 
-    password: string
-  ): Promise<boolean> => {
-    try {
-      console.log('Попытка входа с учетными данными:', username);
+    const initAuth = async () => {
       setIsLoading(true);
       
-      // Пробуем Supabase аутентификацию
-      const isEmail = username.includes('@');
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: isEmail ? username : `${username}@example.com`,
-        password: password
-      });
+      try {
+        // First set up the auth listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          (event, newSession) => {
+            console.log('Auth state changed:', event);
+            setSession(newSession);
+            
+            if (newSession?.user) {
+              // Map Supabase user to our app's User type
+              const appUser: User = {
+                id: newSession.user.id,
+                name: newSession.user.user_metadata?.name || newSession.user.email?.split('@')[0] || 'User',
+                email: newSession.user.email || '',
+                username: newSession.user.user_metadata?.username || newSession.user.email?.split('@')[0] || '',
+                password: '', // Don't store passwords
+                role: newSession.user.user_metadata?.role || 'user',
+                createdAt: new Date(newSession.user.created_at)
+              };
+              
+              setCurrentUser(appUser);
+              setIsAuthenticated(true);
+            } else {
+              setCurrentUser(null);
+              setIsAuthenticated(false);
+            }
+          }
+        );
+        
+        // Now check for existing session
+        const { data } = await supabase.auth.getSession();
+        setSession(data.session);
+        
+        if (data.session?.user) {
+          const authUser = await checkAuthSupabase();
+          if (authUser) {
+            setCurrentUser(authUser);
+            setIsAuthenticated(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    initAuth();
+  }, []);
+
+  // Login with username and password
+  const loginWithCredentials = useCallback(async (username: string, password: string): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      const result = await loginWithSupabase(username, password);
       
-      if (error) {
-        console.error('Ошибка входа через Supabase:', error.message);
+      if (result) {
+        setCurrentUser(result.user);
+        setIsAuthenticated(true);
+        
+        // Redirect based on role
+        if (result.user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+        
         toast({
-          title: "Не удалось войти в систему",
-          description: "Проверьте логин и пароль",
+          title: "Вход выполнен успешно",
+          description: `Добро пожаловать, ${result.user.name}!`,
+        });
+        
+        return true;
+      } else {
+        toast({
+          title: "Ошибка при входе в систему",
+          description: "Неверные учетные данные или пользователь не существует",
           variant: "destructive"
         });
-        setIsLoading(false);
         return false;
       }
-      
-      // Сессия и пользователь будут обновлены через onAuthStateChange
-      console.log('Вход через Supabase успешен');
-      
-      // Небольшая задержка перед установкой флага, чтобы onAuthStateChange успел сработать
-      // но уже возвращаем true, чтобы UI знал, что логин успешен
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 300);
-      
-      return true;
     } catch (error) {
-      console.error('Ошибка входа:', error);
+      console.error('Login error:', error);
       toast({
         title: "Ошибка при входе в систему",
+        description: error instanceof Error ? error.message : "Неизвестная ошибка",
         variant: "destructive"
       });
-      setIsLoading(false);
       return false;
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [navigate]);
 
-  // Выход из системы
-  const logout = async () => {
-    setIsLoading(true);
-    
-    // Supabase пользователь
-    await supabase.auth.signOut();
-    // Сессия и пользователь будут обновлены через onAuthStateChange
-    
-    console.log('Выход выполнен успешно');
-    setIsLoading(false);
-  };
+  // Logout
+  const logout = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const success = await logoutSupabase();
+      
+      if (success) {
+        setCurrentUser(null);
+        setIsAuthenticated(false);
+        setSession(null);
+        navigate('/login');
+        
+        toast({
+          title: "Выход выполнен успешно",
+          description: "Вы вышли из системы",
+        });
+      } else {
+        toast({
+          title: "Ошибка при выходе из системы",
+          description: "Не удалось выйти из системы",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Ошибка при выходе из системы",
+        description: error instanceof Error ? error.message : "Неизвестная ошибка",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [navigate]);
 
   return {
-    // Состояние
     currentUser,
     session,
-    supabaseUser,
     isAuthenticated,
     isLoading,
-    
-    // Методы
     loginWithCredentials,
     logout
   };
