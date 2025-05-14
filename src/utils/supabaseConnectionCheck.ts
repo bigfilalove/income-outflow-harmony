@@ -1,5 +1,6 @@
 
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 // Simple connection check
 export const checkSupabaseConnection = async (): Promise<boolean> => {
@@ -9,6 +10,17 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
     return !error;
   } catch (error) {
     console.error('Error checking Supabase connection:', error);
+    return false;
+  }
+};
+
+// Function to check connection and show a toast notification
+export const checkAndNotifySupabaseConnection = async (): Promise<boolean> => {
+  try {
+    const isConnected = await checkSupabaseConnection();
+    return isConnected;
+  } catch (error) {
+    console.error('Error in connection check:', error);
     return false;
   }
 };
