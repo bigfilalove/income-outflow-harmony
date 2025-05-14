@@ -13,37 +13,37 @@ export const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { loginWithCredentials, currentUser, isAuthenticated } = useAuth();
+  const { loginWithCredentials, currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check if user is already authenticated
+  // Проверяем, авторизован ли пользователь
   useEffect(() => {
-    if (isAuthenticated && currentUser) {
-      console.log('User already authenticated, redirecting:', currentUser);
-      console.log('User role:', currentUser.role);
+    if (!authLoading && isAuthenticated && currentUser) {
+      console.log('Пользователь уже авторизован, перенаправление:', currentUser);
+      console.log('Роль пользователя:', currentUser.role);
       redirectBasedOnRole();
     }
-  }, [isAuthenticated, currentUser]);
+  }, [isAuthenticated, currentUser, authLoading]);
 
   const redirectBasedOnRole = () => {
     if (!currentUser) return;
     
     const userRole = currentUser.role;
-    console.log('User role for redirection:', userRole);
+    console.log('Роль пользователя для перенаправления:', userRole);
     
-    // Redirect based on role
+    // Перенаправление на основе роли
     if (userRole === 'admin') {
-      console.log('Redirecting admin to /admin');
+      console.log('Перенаправление администратора на /admin');
       navigate('/admin', { replace: true });
     } else if (userRole === 'user') {
-      console.log('Redirecting user to /transactions');
+      console.log('Перенаправление пользователя на /transactions');
       navigate('/transactions', { replace: true });
     } else if (userRole === 'basic') {
-      console.log('Redirecting basic user to /basic-transactions');
+      console.log('Перенаправление базового пользователя на /basic-transactions');
       navigate('/basic-transactions', { replace: true });
     } else {
-      console.log('Unknown role, redirecting to home');
+      console.log('Неизвестная роль, перенаправление на главную');
       navigate('/', { replace: true });
     }
   };
@@ -51,46 +51,22 @@ export const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // We allow login regardless of Supabase connection status
-    // because we have demo accounts that work without Supabase
-    
     setIsLoading(true);
     
     try {
-      console.log('Attempting login with:', { username, password: '********' });
+      console.log('Попытка входа с:', { username, password: '********' });
       const success = await loginWithCredentials(username, password);
       
       if (success) {
         toast({
           title: "Добро пожаловать!"
         });
-        console.log('Login successful');
+        console.log('Вход успешен');
         
-        // Wait for auth state to fully update before redirecting
+        // Даем немного времени для обновления состояния аутентификации
         setTimeout(() => {
-          if (currentUser) {
-            console.log('After login delay - current user:', currentUser);
-            console.log('After login delay - user role:', currentUser.role);
-            redirectBasedOnRole();
-          } else {
-            console.log('No current user after login delay - checking localStorage');
-            const storedUser = localStorage.getItem('finance-tracker-user');
-            if (storedUser) {
-              const parsedUser = JSON.parse(storedUser);
-              console.log('User from localStorage:', parsedUser);
-              console.log('User role from localStorage:', parsedUser.role);
-              
-              // Manual redirection based on localStorage if context isn't updated yet
-              if (parsedUser.role === 'admin') {
-                navigate('/admin', { replace: true });
-              } else if (parsedUser.role === 'user') {
-                navigate('/transactions', { replace: true });
-              } else {
-                navigate('/basic-transactions', { replace: true });
-              }
-            }
-          }
-        }, 500);
+          redirectBasedOnRole();
+        }, 300);
       } else {
         toast({
           title: "Неверное имя пользователя или пароль",
@@ -98,7 +74,7 @@ export const LoginForm = () => {
         });
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Ошибка входа:', error);
       toast({
         title: "Ошибка при входе",
         description: "Проверьте ваши учетные данные.",

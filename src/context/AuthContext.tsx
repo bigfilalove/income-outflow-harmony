@@ -1,20 +1,20 @@
-import React, { createContext, useContext, useEffect } from 'react';
+
+import React, { createContext, useContext } from 'react';
 import { User } from '@/types/user';
-import { useAuthState } from '@/hooks/useAuthState';
-import { initialUsers } from '@/utils/initialUsers';
-import * as authService from '@/services/authService';
+import { Session } from '@supabase/supabase-js';
+import { useAuthProvider } from '@/hooks/useAuthProvider';
 
 interface AuthContextType {
   currentUser: User | null;
-  users: User[];
+  session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  demoUsersList: User[];
   adminPassword: string;
-  login: (userId: string) => void;
   loginWithCredentials: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-  addUser: (userData: Omit<User, 'id' | 'createdAt'>) => Promise<boolean>;
-  removeUser: (userId: string) => void;
+  addDemoUser: (userData: Omit<User, 'id' | 'createdAt'>) => Promise<boolean>;
+  removeDemoUser: (userId: string) => void;
   updateAdminPassword: (newPassword: string) => void;
   verifyAdminPassword: (password: string) => boolean;
 }
@@ -24,85 +24,32 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const {
     currentUser,
-    setCurrentUser,
+    session,
     isAuthenticated,
-    setIsAuthenticated,
     isLoading,
-    users,
-    setUsers,
+    demoUsersList,
     adminPassword,
-    setAdminPassword
-  } = useAuthState();
-
-  // Initialize users if empty
-  React.useEffect(() => {
-    if (users.length === 0) {
-      setUsers(initialUsers);
-    }
-  }, [users.length, setUsers]);
-
-  // Authentication methods
-  const login = (userId: string) => {
-    const user = authService.login(userId, users);
-    if (user) {
-      setCurrentUser(user);
-      setIsAuthenticated(true);
-      console.log('User logged in successfully:', user.username);
-    }
-  };
-
-  const loginWithCredentials = async (username: string, password: string): Promise<boolean> => {
-    console.log('Attempting login with credentials');
-    const user = await authService.loginWithCredentials(username, password, users);
-    if (user) {
-      setCurrentUser(user);
-      setIsAuthenticated(true);
-      console.log('User authenticated successfully:', user.username);
-      return true;
-    }
-    return false;
-  };
-
-  const logout = () => {
-    authService.logout();
-    setCurrentUser(null);
-    setIsAuthenticated(false);
-    console.log('User logged out');
-  };
-
-  const addUser = async (userData: Omit<User, 'id' | 'createdAt'>): Promise<boolean> => {
-    return authService.addUser(userData, setUsers);
-  };
-
-  const removeUser = (userId: string) => {
-    const shouldLogout = authService.removeUser(userId, currentUser?.id, setUsers);
-    if (shouldLogout) {
-      setCurrentUser(null);
-      setIsAuthenticated(false);
-    }
-  };
-
-  const updateAdminPassword = (newPassword: string) => {
-    authService.updateAdminPassword(newPassword, setAdminPassword);
-  };
-
-  const verifyAdminPassword = (password: string) => {
-    return authService.verifyAdminPassword(password, adminPassword);
-  };
+    loginWithCredentials,
+    logout,
+    addDemoUser,
+    removeDemoUser,
+    updateAdminPassword,
+    verifyAdminPassword
+  } = useAuthProvider();
 
   return (
     <AuthContext.Provider
       value={{
         currentUser,
-        users,
+        session,
         isAuthenticated,
         isLoading,
+        demoUsersList,
         adminPassword,
-        login,
         loginWithCredentials,
         logout,
-        addUser,
-        removeUser,
+        addDemoUser,
+        removeDemoUser,
         updateAdminPassword,
         verifyAdminPassword
       }}
@@ -115,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth должен использоваться внутри AuthProvider');
   }
   return context;
 };

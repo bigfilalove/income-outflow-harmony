@@ -11,21 +11,26 @@ import { Label } from '@/components/ui/label';
 
 const AdminLogin = () => {
   const [password, setPassword] = useState('');
-  const { verifyAdminPassword, users, login } = useAuth();
+  const { verifyAdminPassword, demoUsersList, loginWithCredentials } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (verifyAdminPassword(password)) {
       // Находим пользователя с ролью админа для автоматического входа
-      const adminUser = users.find(user => user.role === 'admin');
+      const adminUser = demoUsersList.find(user => user.role === 'admin');
       
       if (adminUser) {
         // Выполняем логин как админ
-        login(adminUser.id);
-        toast.success('Вход выполнен успешно');
-        navigate('/admin');
+        const success = await loginWithCredentials(adminUser.username, adminUser.password);
+        
+        if (success) {
+          toast.success('Вход выполнен успешно');
+          navigate('/admin');
+        } else {
+          toast.error('Ошибка при входе как администратор');
+        }
       } else {
         toast.error('Ошибка: администратор не найден в системе');
       }

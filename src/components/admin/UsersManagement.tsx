@@ -7,7 +7,7 @@ import AddUserDialog from './AddUserDialog';
 
 interface UsersManagementProps {
   users: User[];
-  addUser: (user: Omit<User, 'id' | 'createdAt'>) => void;
+  addUser: (user: Omit<User, 'id' | 'createdAt'>) => Promise<boolean>;
   removeUser: (userId: string) => void;
 }
 

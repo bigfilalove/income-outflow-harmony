@@ -1,14 +1,13 @@
 
 // Re-export all API functions
-export * from './auth';
 export * from './transactions';
 export * from './predictions';
 export * from './budgets';
 
-// Re-export Supabase API functions
+// Экспортируем функции Supabase API
 export * from './supabase';
 
-// Export the Supabase implementations directly 
+// Напрямую экспортируем реализации Supabase
 export { fetchTransactionsFromSupabase as fetchTransactions } from './supabase/transactions';
 export { createTransactionInSupabase as createTransaction } from './supabase/transactions';
 export { updateTransactionInSupabase as updateTransaction } from './supabase/transactions';
@@ -16,6 +15,6 @@ export { deleteTransactionFromSupabase as deleteTransaction } from './supabase/t
 export { updateTransactionStatusInSupabase as updateTransactionStatus } from './supabase/transactions';
 export { fetchCategoriesFromSupabase as fetchCategories } from './supabase/categories';
 export { fetchBudgetsFromSupabase as fetchBudgets } from './supabase/budgets';
-export { loginWithCredentialsSupabase as loginWithCredentials } from './supabase/auth';
-export { logoutSupabase as logout } from './supabase/auth';
+
+// Export auth functions
 export { checkAuthSupabase as checkAuth } from './supabase/auth';

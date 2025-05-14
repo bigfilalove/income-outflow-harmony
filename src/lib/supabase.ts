@@ -3,34 +3,35 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
 import { toast } from '@/hooks/use-toast';
 
-// Use the values from the integrated Supabase client
+// Используем значения из интегрированного Supabase клиента
 const supabaseUrl = 'https://rjumbzllcnboghomakdw.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqdW1iemxsY25ib2dob21ha2R3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxODgwMzUsImV4cCI6MjA1OTc2NDAzNX0.y67rxShDBronCSG4R_7HSvty3pD1zEj431fbUCrO174';
 
-// Create Supabase client with explicit configuration
+// Создаем Supabase клиент с явной конфигурацией
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     storageKey: 'finance-tracker-auth',
+    storage: localStorage,
     debug: process.env.NODE_ENV === 'development'
   }
 });
 
-// Add a helper to check if we're connected to Supabase
+// Добавляем хелпер для проверки соединения с Supabase
 export const checkSupabaseConnection = async (): Promise<boolean> => {
   try {
-    console.log('Checking Supabase connection...');
+    console.log('Проверка соединения с Supabase...');
     
-    // First check if we can reach Supabase at all
+    // Сначала проверяем, можем ли мы достичь Supabase вообще
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError) {
-      console.error('Error getting session from Supabase:', sessionError.message);
+      console.error('Ошибка получения сессии из Supabase:', sessionError.message);
       return false;
     }
     
-    // Then check if we can query a table
+    // Затем проверяем, можем ли мы запросить таблицу
     try {
       const { data, error } = await supabase
         .from('categories')
@@ -38,13 +39,13 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
         .limit(1);
       
       if (error) {
-        console.error('Error connecting to Supabase categories table:', error.message);
+        console.error('Ошибка соединения с таблицей категорий Supabase:', error.message);
         return false;
       }
     } catch (tableError) {
-      console.error('Error querying Supabase table:', tableError);
+      console.error('Ошибка запроса к таблице Supabase:', tableError);
       
-      // Try another table
+      // Пробуем другую таблицу
       try {
         const { data, error } = await supabase
           .from('transactions')
@@ -52,34 +53,34 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
           .limit(1);
         
         if (error) {
-          console.error('Error connecting to Supabase transactions table:', error.message);
+          console.error('Ошибка соединения с таблицей транзакций Supabase:', error.message);
           return false;
         }
       } catch (err) {
-        console.error('Fatal error connecting to any Supabase table:', err);
+        console.error('Фатальная ошибка соединения с любой таблицей Supabase:', err);
         return false;
       }
     }
     
-    console.log('Successfully connected to Supabase');
+    console.log('Успешно подключено к Supabase');
     return true;
   } catch (error) {
-    console.error('Fatal error connecting to Supabase:', error);
+    console.error('Фатальная ошибка подключения к Supabase:', error);
     return false;
   }
 };
 
-// Add a function to get current session
+// Функция для получения текущей сессии
 export const getCurrentSession = async () => {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
     if (error) {
-      console.error('Error getting current session:', error.message);
+      console.error('Ошибка получения текущей сессии:', error.message);
       return null;
     }
     return session;
   } catch (error) {
-    console.error('Error getting current session:', error);
+    console.error('Ошибка получения текущей сессии:', error);
     return null;
   }
 };

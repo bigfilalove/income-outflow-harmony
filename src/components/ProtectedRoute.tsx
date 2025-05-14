@@ -19,29 +19,30 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     console.log('Protected route check:', { 
       isAuthenticated, 
       currentUser: !!currentUser,
-      isLoading
+      isLoading,
+      userRole: currentUser?.role
     });
     
-    // Only finish checking once the auth state has loaded
+    // Заканчиваем проверку только после загрузки состояния аутентификации
     if (!isLoading) {
       setChecking(false);
     }
   }, [isAuthenticated, currentUser, isLoading]);
 
-  // Show nothing while checking authentication to prevent flashes
+  // Отображаем ничего во время проверки аутентификации, чтобы избежать мигания
   if (checking || isLoading) {
     return null;
   }
 
-  // Simple authentication check - only relying on the auth context
-  if (!isAuthenticated) {
-    console.log('Not authenticated, redirecting to login');
+  // Проверка аутентификации
+  if (!isAuthenticated || !currentUser) {
+    console.log('Не аутентифицирован, перенаправление на логин');
     return <Navigate to="/login" replace />;
   }
 
-  // For admin routes, check the role
-  if (requireAdmin && currentUser?.role !== 'admin') {
-    console.log('Not an admin, redirecting to home');
+  // Для маршрутов администратора проверяем роль
+  if (requireAdmin && currentUser.role !== 'admin') {
+    console.log('Не администратор, перенаправление на главную', currentUser.role);
     return <Navigate to="/" replace />;
   }
 
