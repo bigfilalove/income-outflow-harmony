@@ -19,7 +19,7 @@ export const checkSupabaseConnectionDetailed = async (): Promise<ConnectionCheck
   const result: ConnectionCheckResult = {
     isConnected: false,
     details: {
-      url: supabase.supabaseUrl,
+      url: supabase.supabaseUrl || 'https://rjumbzllcnboghomakdw.supabase.co',
       authEnabled: false,
       tablesAccessible: false
     }
