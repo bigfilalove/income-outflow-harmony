@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -16,7 +17,7 @@ import { Transaction } from '@/types/transaction';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { checkSupabaseConnection } from '@/lib/supabase';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const TransactionList: React.FC = () => {
@@ -26,11 +27,20 @@ const TransactionList: React.FC = () => {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const isMobile = useIsMobile();
   const [isSupabaseConnected, setIsSupabaseConnected] = useState<boolean | null>(null);
+  const [checkingConnection, setCheckingConnection] = useState(true);
 
   useEffect(() => {
     const checkConnection = async () => {
-      const connected = await checkSupabaseConnection();
-      setIsSupabaseConnected(connected);
+      setCheckingConnection(true);
+      try {
+        const connected = await checkSupabaseConnection();
+        setIsSupabaseConnected(connected);
+      } catch (e) {
+        console.error("Error checking Supabase connection:", e);
+        setIsSupabaseConnected(false);
+      } finally {
+        setCheckingConnection(false);
+      }
     };
     
     checkConnection();
@@ -78,15 +88,25 @@ const TransactionList: React.FC = () => {
 
   // Connection status component
   const renderConnectionStatus = () => {
-    if (isSupabaseConnected === null) {
+    if (checkingConnection) {
       return <div className="animate-pulse text-center py-2 text-muted-foreground">Проверка соединения с Supabase...</div>;
-    } else if (!isSupabaseConnected) {
+    } else if (isSupabaseConnected === false) {
       return (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Ошибка соединения</AlertTitle>
           <AlertDescription>
-            Не удалось подключиться к Supabase. Проверьте настройки подключения.
+            Не удалось подключиться к Supabase. Проверьте настройки подключения и убедитесь, что сервис доступен.
+          </AlertDescription>
+        </Alert>
+      );
+    } else if (isSupabaseConnected === true && transactions.length === 0 && !isLoading) {
+      return (
+        <Alert variant="default" className="mb-4">
+          <Info className="h-4 w-4" />
+          <AlertTitle>Подключение успешно</AlertTitle>
+          <AlertDescription>
+            Подключение к Supabase установлено, но транзакции не найдены. Возможно, вам нужно добавить данные.
           </AlertDescription>
         </Alert>
       );

@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserIcon, ShieldIcon, KeyIcon, AlertCircle } from 'lucide-react';
+import { UserIcon, ShieldIcon, KeyIcon, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { checkSupabaseConnection } from '@/lib/supabase';
@@ -15,15 +15,26 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>("checking");
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const { loginWithCredentials, currentUser } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     const verifyConnection = async () => {
-      const isConnected = await checkSupabaseConnection();
-      if (!isConnected) {
-        setConnectionError('Не удалось подключиться к Supabase. Проверьте настройки соединения.');
+      try {
+        const isConnected = await checkSupabaseConnection();
+        if (isConnected) {
+          setConnectionStatus('connected');
+          setConnectionError(null);
+        } else {
+          setConnectionStatus('error');
+          setConnectionError('Не удалось подключиться к Supabase. Проверьте настройки соединения.');
+        }
+      } catch (error) {
+        console.error("Connection check error:", error);
+        setConnectionStatus('error');
+        setConnectionError('Ошибка при проверке соединения с Supabase.');
       }
     };
     
@@ -32,6 +43,12 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (connectionStatus === 'error') {
+      toast.error("Невозможно войти без подключения к Supabase");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -76,6 +93,39 @@ const Login = () => {
     { username: 'manager', password: 'password123', role: 'Менеджер' }
   ];
 
+  // Connection status component
+  const renderConnectionStatus = () => {
+    if (connectionStatus === 'checking') {
+      return (
+        <div className="px-6 pb-2">
+          <div className="flex items-center space-x-2 text-muted-foreground animate-pulse">
+            <div className="h-4 w-4 rounded-full bg-muted"></div>
+            <span>Проверка соединения с Supabase...</span>
+          </div>
+        </div>
+      );
+    } else if (connectionStatus === 'error') {
+      return (
+        <div className="px-6 pb-2">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Ошибка соединения</AlertTitle>
+            <AlertDescription>{connectionError}</AlertDescription>
+          </Alert>
+        </div>
+      );
+    } else {
+      return (
+        <div className="px-6 pb-2">
+          <div className="flex items-center space-x-2 text-green-600">
+            <CheckCircle2 className="h-4 w-4" />
+            <span>Подключение к Supabase установлено</span>
+          </div>
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -86,15 +136,7 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
 
-        {connectionError && (
-          <div className="px-6 pb-2">
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Ошибка соединения</AlertTitle>
-              <AlertDescription>{connectionError}</AlertDescription>
-            </Alert>
-          </div>
-        )}
+        {renderConnectionStatus()}
 
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -109,6 +151,7 @@ const Login = () => {
                   onChange={(e) => setUsername(e.target.value)}
                   className="pr-10"
                   required
+                  disabled={connectionStatus === 'error' || isLoading}
                 />
                 <UserIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               </div>
@@ -125,13 +168,18 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pr-10"
                   required
+                  disabled={connectionStatus === 'error' || isLoading}
                 />
                 <KeyIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               </div>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-2">
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isLoading || connectionStatus === 'error' || connectionStatus === 'checking'}
+            >
               {isLoading ? 'Вход...' : 'Войти'}
             </Button>
             <div className="relative w-full text-center my-2">
@@ -142,7 +190,12 @@ const Login = () => {
                 <span className="bg-background px-2 text-muted-foreground">или</span>
               </div>
             </div>
-            <Button variant="outline" className="w-full" onClick={handleAdminLogin}>
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={handleAdminLogin} 
+              disabled={connectionStatus === 'error' || connectionStatus === 'checking'}
+            >
               <ShieldIcon className="mr-2 h-4 w-4" />
               Вход для администраторов
             </Button>
