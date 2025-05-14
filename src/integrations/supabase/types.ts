@@ -39,6 +39,84 @@ export type Database = {
         }
         Relationships: []
       }
+      budgets: {
+        Row: {
+          amount: number
+          category: string
+          company: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          month: number
+          period: string
+          type: string
+          year: number
+        }
+        Insert: {
+          amount: number
+          category: string
+          company?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          month: number
+          period: string
+          type: string
+          year: number
+        }
+        Update: {
+          amount?: number
+          category?: string
+          company?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          month?: number
+          period?: string
+          type?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      companies: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       file_containers: {
         Row: {
           created_at: string
@@ -207,6 +285,66 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          category: string
+          company: string | null
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string
+          from_company: string | null
+          has_allocations: boolean | null
+          id: string
+          is_reimbursement: boolean | null
+          is_transfer: boolean | null
+          project: string | null
+          reimbursed_to: string | null
+          reimbursement_status: string | null
+          to_company: string | null
+          type: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          company?: string | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          description: string
+          from_company?: string | null
+          has_allocations?: boolean | null
+          id?: string
+          is_reimbursement?: boolean | null
+          is_transfer?: boolean | null
+          project?: string | null
+          reimbursed_to?: string | null
+          reimbursement_status?: string | null
+          to_company?: string | null
+          type: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          company?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string
+          from_company?: string | null
+          has_allocations?: boolean | null
+          id?: string
+          is_reimbursement?: boolean | null
+          is_transfer?: boolean | null
+          project?: string | null
+          reimbursed_to?: string | null
+          reimbursement_status?: string | null
+          to_company?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -225,6 +363,36 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          password: string
+          role: string | null
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          password: string
+          role?: string | null
+          username: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          password?: string
+          role?: string | null
+          username?: string
         }
         Relationships: []
       }
