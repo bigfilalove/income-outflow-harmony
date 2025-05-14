@@ -9,6 +9,7 @@ import { checkAuth } from '@/services/api';
 export const useAuthState = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [users, setUsers] = useState<User[]>(() => {
     const savedUsers = localStorage.getItem('finance-tracker-users');
     return savedUsers ? JSON.parse(savedUsers) : [];
@@ -31,10 +32,26 @@ export const useAuthState = () => {
   // Check for stored auth on mount
   useEffect(() => {
     const checkStoredUser = async () => {
-      const storedUser = await checkAuth();
-      if (storedUser) {
-        setCurrentUser(storedUser);
-        setIsAuthenticated(true);
+      setIsLoading(true);
+      try {
+        console.log('Checking for stored authentication...');
+        const storedUser = await checkAuth();
+        
+        if (storedUser) {
+          console.log('Found stored authentication:', storedUser.username);
+          setCurrentUser(storedUser);
+          setIsAuthenticated(true);
+        } else {
+          console.log('No stored authentication found');
+          setCurrentUser(null);
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        setCurrentUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -46,6 +63,7 @@ export const useAuthState = () => {
     setCurrentUser,
     isAuthenticated,
     setIsAuthenticated,
+    isLoading,
     users,
     setUsers,
     adminPassword,

@@ -9,6 +9,7 @@ interface AuthContextType {
   currentUser: User | null;
   users: User[];
   isAuthenticated: boolean;
+  isLoading: boolean;
   adminPassword: string;
   login: (userId: string) => void;
   loginWithCredentials: (username: string, password: string) => Promise<boolean>;
@@ -27,6 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUser,
     isAuthenticated,
     setIsAuthenticated,
+    isLoading,
     users,
     setUsers,
     adminPassword,
@@ -91,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currentUser,
         users,
         isAuthenticated,
+        isLoading,
         adminPassword,
         login,
         loginWithCredentials,

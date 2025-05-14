@@ -1,13 +1,14 @@
 
 import { User } from '@/types/user';
 import { loginWithCredentials as apiLoginWithCredentials, logout as apiLogout } from '@/services/api';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 export const login = (userId: string, users: User[]) => {
   const user = users.find(u => u.id === userId);
   if (user) {
     localStorage.setItem('finance-tracker-current-user', userId);
     localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now());
+    localStorage.setItem('finance-tracker-user', JSON.stringify(user));
     return user;
   }
   return null;
@@ -26,6 +27,7 @@ export const loginWithCredentials = async (
     
     if (user) {
       console.log('Authentication successful:', user);
+      localStorage.setItem('finance-tracker-user', JSON.stringify(user));
       return user;
     }
     
@@ -36,15 +38,22 @@ export const loginWithCredentials = async (
       console.log('Local authentication successful:', localUser);
       localStorage.setItem('finance-tracker-current-user', localUser.id);
       localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now());
+      localStorage.setItem('finance-tracker-user', JSON.stringify(localUser));
       return localUser;
     }
     
     console.log('Authentication failed for username:', username);
-    toast.error("Не удалось войти в систему. Проверьте логин и пароль.");
+    toast({
+      title: "Не удалось войти в систему. Проверьте логин и пароль.",
+      variant: "destructive"
+    });
     return null;
   } catch (error) {
     console.error('Login error:', error);
-    toast.error("Ошибка при входе в систему.");
+    toast({
+      title: "Ошибка при входе в систему.",
+      variant: "destructive"
+    });
     return null;
   }
 };
@@ -73,7 +82,10 @@ export const addUser = async (
     return true;
   } catch (error) {
     console.error("Failed to create user:", error);
-    toast.error("Не удалось создать пользователя");
+    toast({
+      title: "Не удалось создать пользователя",
+      variant: "destructive"
+    });
     return false;
   }
 };
