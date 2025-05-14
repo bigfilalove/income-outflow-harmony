@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { TransactionContextType } from './types';
 import { useTransactionsQuery } from './useTransactions';
 import { useTransactionOperations } from './useTransactionOperations';
+import { checkSupabaseConnection } from '@/lib/supabase';
 
 export const TransactionContext = createContext<TransactionContextType | undefined>(undefined);
 
@@ -26,6 +27,22 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       navigate('/login');
     }
   };
+  
+  // Verify Supabase connection on mount
+  React.useEffect(() => {
+    const verifyConnection = async () => {
+      const isConnected = await checkSupabaseConnection();
+      if (!isConnected) {
+        toast({
+          title: "Ошибка подключения",
+          description: "Не удалось подключиться к базе данных. Пожалуйста, проверьте интернет-соединение.",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    verifyConnection();
+  }, []);
   
   // Fetch transactions query
   const { 
@@ -55,35 +72,56 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return transactions.find(t => t.id === id);
   };
 
-  // Fetch categories statistics
+  // Fetch categories statistics - we'll use Supabase for this now
   const getCategoriesStats = async (): Promise<Record<string, { category: string; count: number }[]>> => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Токен отсутствует. Пожалуйста, войдите в систему.');
-    }
-
     try {
-      const response = await fetch('http://localhost:5050/api/transactions/categories-stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) {
-        const errorMessage = `HTTP error! status: ${response.status}`;
-        if (response.status === 401) {
-          throw new Error('Unauthorized: 401');
-        }
-        throw new Error(errorMessage);
+      // Check Supabase connection first
+      const isConnected = await checkSupabaseConnection();
+      if (!isConnected) {
+        throw new Error('Не удалось подключиться к базе данных для получения статистики категорий.');
       }
-      const stats = await response.json();
+      
+      // Query categories from Supabase instead of the old API
+      const { data, error } = await supabase
+        .from('categories')
+        .select('name, type, id');
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Process the data to match the expected return format
+      const stats: Record<string, { category: string; count: number }[]> = {
+        income: [],
+        expense: [],
+        reimbursement: [],
+        transfer: []
+      };
+      
+      // Count occurrences of each category
+      if (data) {
+        for (const category of data) {
+          const type = category.type as keyof typeof stats;
+          if (stats[type]) {
+            const existingCategory = stats[type].find(c => c.category === category.name);
+            if (existingCategory) {
+              existingCategory.count += 1;
+            } else {
+              stats[type].push({ category: category.name, count: 1 });
+            }
+          }
+        }
+      }
+      
       return stats;
     } catch (error) {
-      if (error.message.includes('401')) {
-        handleAuthError(error);
-        throw error; // Rethrow for component handling
-      }
       console.error('Ошибка при загрузке статистики категорий:', error);
-      return { income: [], expense: [], reimbursement: [] };
+      toast({
+        title: "Ошибка",
+        description: 'Не удалось загрузить статистику категорий.',
+        variant: "destructive"
+      });
+      return { income: [], expense: [], reimbursement: [], transfer: [] };
     }
   };
 

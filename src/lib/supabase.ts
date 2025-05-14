@@ -22,21 +22,44 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
   try {
     console.log('Checking Supabase connection...');
     
-    // Use a table that exists in the database
+    // First check if we can reach Supabase at all
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('Error getting session from Supabase:', sessionError.message);
+      return false;
+    }
+    
+    // Then check if we can query a table
     const { data, error } = await supabase
       .from('categories')
       .select('count()', { count: 'exact', head: true })
       .limit(1);
     
     if (error) {
-      console.error('Error connecting to Supabase:', error.message);
+      console.error('Error connecting to Supabase categories table:', error.message);
       return false;
     }
     
     console.log('Successfully connected to Supabase');
     return true;
   } catch (error) {
-    console.error('Error connecting to Supabase:', error);
+    console.error('Fatal error connecting to Supabase:', error);
     return false;
+  }
+};
+
+// Add a function to get current session
+export const getCurrentSession = async () => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('Error getting current session:', error.message);
+      return null;
+    }
+    return session;
+  } catch (error) {
+    console.error('Error getting current session:', error);
+    return null;
   }
 };

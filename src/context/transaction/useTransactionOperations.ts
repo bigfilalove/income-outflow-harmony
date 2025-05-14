@@ -1,19 +1,20 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Transaction, getCompanies, saveCompanies, getProjects, saveProjects } from '@/types/transaction';
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { 
-  createTransaction, 
-  deleteTransaction as apiDeleteTransaction, 
-  updateTransactionStatus, 
-  updateTransaction as apiUpdateTransaction 
-} from '@/services/api';
+  createTransactionInSupabase, 
+  deleteTransactionFromSupabase, 
+  updateTransactionStatusInSupabase, 
+  updateTransactionInSupabase 
+} from '@/services/api/supabase/transactions';
 
 export const useTransactionOperations = (handleAuthError: (error: unknown) => void) => {
   const queryClient = useQueryClient();
   
   // Add transaction mutation
   const addTransactionMutation = useMutation({
-    mutationFn: createTransaction,
+    mutationFn: createTransactionInSupabase,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
@@ -24,7 +25,7 @@ export const useTransactionOperations = (handleAuthError: (error: unknown) => vo
 
   // Update transaction mutation
   const updateTransactionMutation = useMutation({
-    mutationFn: apiUpdateTransaction,
+    mutationFn: updateTransactionInSupabase,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
@@ -35,7 +36,7 @@ export const useTransactionOperations = (handleAuthError: (error: unknown) => vo
 
   // Delete transaction mutation
   const deleteTransactionMutation = useMutation({
-    mutationFn: apiDeleteTransaction,
+    mutationFn: deleteTransactionFromSupabase,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
@@ -47,7 +48,7 @@ export const useTransactionOperations = (handleAuthError: (error: unknown) => vo
   // Update reimbursement status mutation
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: 'completed' }) => 
-      updateTransactionStatus(id, status),
+      updateTransactionStatusInSupabase(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
@@ -65,7 +66,8 @@ export const useTransactionOperations = (handleAuthError: (error: unknown) => vo
         toastTitle = 'Возмещение добавлено';
       }
       
-      toast(toastTitle, {
+      toast({
+        title: toastTitle,
         description: `${transaction.description} было успешно добавлено.`
       });
       
@@ -87,8 +89,10 @@ export const useTransactionOperations = (handleAuthError: (error: unknown) => vo
         window.dispatchEvent(new Event('projectsUpdated'));
       }
     } catch (error) {
-      toast("Ошибка", {
-        description: 'Не удалось добавить транзакцию.'
+      toast({
+        title: "Ошибка",
+        description: 'Не удалось добавить транзакцию.',
+        variant: "destructive"
       });
       throw error;
     }
@@ -103,7 +107,8 @@ export const useTransactionOperations = (handleAuthError: (error: unknown) => vo
         toastTitle = 'Возмещение обновлено';
       }
       
-      toast(toastTitle, {
+      toast({
+        title: toastTitle,
         description: `${transaction.description} было успешно обновлено.`
       });
       
@@ -123,8 +128,10 @@ export const useTransactionOperations = (handleAuthError: (error: unknown) => vo
         window.dispatchEvent(new Event('projectsUpdated'));
       }
     } catch (error) {
-      toast("Ошибка", {
-        description: 'Не удалось обновить транзакцию.'
+      toast({
+        title: "Ошибка",
+        description: 'Не удалось обновить транзакцию.',
+        variant: "destructive"
       });
       throw error;
     }
@@ -142,12 +149,15 @@ export const useTransactionOperations = (handleAuthError: (error: unknown) => vo
         toastTitle = 'Возмещение удалено';
       }
       
-      toast(toastTitle, {
+      toast({
+        title: toastTitle,
         description: `${transaction.description} было успешно удалено.`
       });
     } catch (error) {
-      toast("Ошибка", {
-        description: 'Не удалось удалить транзакцию.'
+      toast({
+        title: "Ошибка",
+        description: 'Не удалось удалить транзакцию.',
+        variant: "destructive"
       });
       throw error; // Перебрасываем ошибку
     }
@@ -160,12 +170,15 @@ export const useTransactionOperations = (handleAuthError: (error: unknown) => vo
     try {
       await updateStatusMutation.mutateAsync({ id, status });
       
-      toast("Статус обновлен", {
+      toast({
+        title: "Статус обновлен",
         description: `Возмещение для "${transaction.description}" отмечено как выполненное.`
       });
     } catch (error) {
-      toast("Ошибка", {
-        description: 'Не удалось обновить статус возмещения.'
+      toast({
+        title: "Ошибка",
+        description: 'Не удалось обновить статус возмещения.',
+        variant: "destructive"
       });
       throw error; // Перебрасываем ошибку
     }

@@ -10,6 +10,10 @@ export * from './supabase';
 
 // Export the Supabase implementations directly 
 export { fetchTransactionsFromSupabase as fetchTransactions } from './supabase/transactions';
+export { createTransactionInSupabase as createTransaction } from './supabase/transactions';
+export { updateTransactionInSupabase as updateTransaction } from './supabase/transactions';
+export { deleteTransactionFromSupabase as deleteTransaction } from './supabase/transactions';
+export { updateTransactionStatusInSupabase as updateTransactionStatus } from './supabase/transactions';
 export { fetchCategoriesFromSupabase as fetchCategories } from './supabase/categories';
 export { fetchBudgetsFromSupabase as fetchBudgets } from './supabase/budgets';
 export { loginWithCredentialsSupabase as loginWithCredentials } from './supabase/auth';

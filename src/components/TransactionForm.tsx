@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -11,7 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { createTransaction } from '@/services/api';
+import { createTransactionInSupabase } from '@/services/api/supabase/transactions';
 import TransactionTypeTabs from '@/components/transaction/TransactionTypeTabs';
 import TransactionDatePicker from '@/components/transaction/TransactionDatePicker';
 import ReimbursementFields from '@/components/transaction/ReimbursementFields';
@@ -20,7 +19,7 @@ import CategorySelect from '@/components/transaction/CategorySelect';
 import CompanySelect from '@/components/transaction/CompanySelect';
 import ProjectSelect from '@/components/transaction/ProjectSelect';
 import ProjectAllocations from '@/components/transaction/ProjectAllocations';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { TransactionType, ReimbursementStatus, ProjectAllocation } from '@/types/transaction';
 
@@ -42,11 +41,12 @@ const TransactionForm: React.FC = () => {
 
   // Мутация для добавления транзакции
   const mutation = useMutation({
-    mutationFn: createTransaction,
+    mutationFn: createTransactionInSupabase,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      toast("Транзакция добавлена", {
-        description: "Транзакция успешно добавлена.",
+      toast({
+        title: "Транзакция добавлена",
+        description: "Транзакция успешно добавлена."
       });
       // Сброс формы
       setAmount('');
@@ -62,8 +62,10 @@ const TransactionForm: React.FC = () => {
       setProjectAllocations([]);
     },
     onError: (error) => {
-      toast("Ошибка", {
+      toast({
+        title: "Ошибка",
         description: `Не удалось добавить транзакцию: ${error.message}`,
+        variant: "destructive"
       });
     },
     onSettled: () => {
