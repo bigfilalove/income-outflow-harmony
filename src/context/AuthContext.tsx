@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, RegisterData } from '@/types/user';
-import { loginWithCredentials, logout as apiLogout, checkAuth } from '@/services/api';
+import { loginWithCredentials as apiLoginWithCredentials, logout as apiLogout, checkAuth } from '@/services/api';
 import { toast } from 'sonner';
 
 // Sample users data with usernames and passwords
@@ -117,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log(`Attempting to login with username: ${username}`);
       
       // First try direct API authentication (which includes both Supabase and demo accounts)
-      const user = await loginWithCredentials(username, password);
+      const user = await apiLoginWithCredentials(username, password);
       
       if (user) {
         console.log('Authentication successful:', user);
