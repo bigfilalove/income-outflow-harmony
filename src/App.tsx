@@ -1,9 +1,10 @@
+
 import React, { Suspense } from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
-import { ThemeProvider } from "@/components/ui/theme-provider"
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from "./components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { RouterProvider } from 'react-router-dom';
-import { router } from './router';
+import { router } from '@/router';
 import { HelmetProvider } from 'react-helmet-async';
 import './index.css';
 import { AuthProvider } from './context/AuthContext';
@@ -31,4 +32,3 @@ function App() {
 }
 
 export default App;
-
