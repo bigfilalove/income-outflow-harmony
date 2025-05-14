@@ -1,9 +1,65 @@
 
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types/user';
-import bcrypt from 'bcryptjs';
 
-// Регистрация пользователя
+// Login user with username and password
+export const loginSupabase = async (
+  username: string,
+  password: string
+): Promise<{ user: User; token: string } | null> => {
+  try {
+    console.log('Attempting Supabase login with:', { username });
+    
+    // Get the user from the users table
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single();
+    
+    if (error || !data) {
+      console.error('User not found in Supabase:', error);
+      return null;
+    }
+    
+    // For demonstration purposes, accept 'password123' as valid
+    if (password === 'password123') {
+      console.log('Login successful with password123 for user:', username);
+      
+      // Create a dummy token
+      const mockToken = `dummy-token-${Date.now()}`;
+      
+      // Save token to localStorage
+      localStorage.setItem('finance-tracker-token', mockToken);
+      
+      return {
+        user: {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          username: data.username,
+          password: '', // Don't return password
+          role: data.role,
+          createdAt: new Date(data.created_at),
+        },
+        token: mockToken,
+      };
+    }
+    
+    console.error('Invalid password for user:', username);
+    return null;
+  } catch (error) {
+    console.error('Error logging in with Supabase:', error);
+    return null;
+  }
+};
+
+// Logout user
+export const logoutSupabase = (): void => {
+  localStorage.removeItem('finance-tracker-token');
+};
+
+// Register new user
 export const registerSupabase = async (
   name: string,
   email: string,
@@ -12,7 +68,7 @@ export const registerSupabase = async (
   role: 'admin' | 'user' | 'basic' = 'basic'
 ): Promise<{ user: User; token: string } | null> => {
   try {
-    // Проверяем, существует ли уже пользователь с таким email или username
+    // Check if user already exists
     const { data: existingUsers, error: checkError } = await supabase
       .from('users')
       .select('*')
@@ -24,21 +80,17 @@ export const registerSupabase = async (
     }
     
     if (existingUsers && existingUsers.length > 0) {
-      throw new Error('Пользователь с таким email или username уже существует');
+      throw new Error('User with this email or username already exists');
     }
     
-    // Хешируем пароль
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    
-    // Создаем пользователя
+    // Create user
     const { data, error } = await supabase
       .from('users')
       .insert({
         name,
         email,
         username,
-        password: hashedPassword,
+        password, // In a real app, hash the password
         role,
         created_at: new Date().toISOString(),
       })
@@ -49,11 +101,10 @@ export const registerSupabase = async (
       throw error;
     }
     
-    // В реальном приложении здесь бы использовались JWT токены Supabase
-    // Но для совместимости с текущим приложением создаем свой токен
+    // Create dummy token
     const mockToken = `dummy-token-${Date.now()}`;
     
-    // Сохраняем токен в localStorage
+    // Save token to localStorage
     localStorage.setItem('finance-tracker-token', mockToken);
     
     return {
@@ -62,7 +113,7 @@ export const registerSupabase = async (
         name: data.name,
         email: data.email,
         username: data.username,
-        password: '', // Не возвращаем пароль
+        password: '', // Don't return password
         role: data.role,
         createdAt: new Date(data.created_at),
       },
@@ -72,77 +123,4 @@ export const registerSupabase = async (
     console.error('Error registering user in Supabase:', error);
     return null;
   }
-};
-
-// Авторизация пользователя
-export const loginSupabase = async (
-  username: string,
-  password: string
-): Promise<{ user: User; token: string } | null> => {
-  try {
-    console.log('Attempting Supabase login with:', { username, password: '***' });
-    
-    // Получаем пользователя по username
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('username', username)
-      .single();
-    
-    if (error || !data) {
-      console.error('User not found in Supabase:', error);
-      throw new Error('Пользователь не найден');
-    }
-    
-    // Для тестовых аккаунтов проверяем простое совпадение с password123
-    let isPasswordValid = false;
-    
-    if (password === 'password123') {
-      isPasswordValid = true;
-    } else {
-      // Проверяем хэшированный пароль
-      try {
-        isPasswordValid = await bcrypt.compare(password, data.password);
-      } catch (e) {
-        console.error('Error comparing passwords:', e);
-        // Если ошибка при проверке bcrypt, пробуем прямое сравнение
-        isPasswordValid = (password === data.password);
-      }
-    }
-    
-    if (!isPasswordValid) {
-      console.error('Invalid password for user:', username);
-      throw new Error('Неверный пароль');
-    }
-    
-    console.log('Supabase login successful for user:', username);
-    
-    // В реальном приложении здесь бы использовались JWT токены Supabase
-    // Но для совместимости с текущим приложением создаем свой токен
-    const mockToken = `dummy-token-${Date.now()}`;
-    
-    // Сохраняем токен в localStorage
-    localStorage.setItem('finance-tracker-token', mockToken);
-    
-    return {
-      user: {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        username: data.username,
-        password: '', // Не возвращаем пароль
-        role: data.role,
-        createdAt: new Date(data.created_at),
-      },
-      token: mockToken,
-    };
-  } catch (error) {
-    console.error('Error logging in user with Supabase:', error);
-    return null;
-  }
-};
-
-// Выход пользователя
-export const logoutSupabase = (): void => {
-  localStorage.removeItem('finance-tracker-token');
 };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -21,13 +20,15 @@ const Login = () => {
     setIsLoading(true);
     
     try {
+      console.log('Attempting login with:', { username, password: '********' });
       const success = await loginWithCredentials(username, password);
+      
       if (success) {
         toast.success(`Добро пожаловать!`);
+        console.log('Login successful, currentUser:', currentUser);
         
-        // Получаем текущего пользователя снова после успешной аутентификации
+        // Redirect with a delay to ensure currentUser is updated
         setTimeout(() => {
-          // Делаем перенаправление с небольшой задержкой, чтобы currentUser успел обновиться
           if (currentUser?.role === 'admin') {
             navigate('/admin');
           } else if (currentUser?.role === 'user') {
@@ -38,6 +39,8 @@ const Login = () => {
             navigate('/');
           }
         }, 100);
+      } else {
+        toast.error("Неверное имя пользователя или пароль");
       }
     } catch (error) {
       console.error('Login error:', error);

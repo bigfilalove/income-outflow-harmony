@@ -1,7 +1,21 @@
-
-import { Transaction } from '@/types/transaction';
-import { API_URL, createAuthHeaders } from './config';
+import { API_URL, createAuthHeaders, get, post, put, del } from './config';
+import { Transaction, ServerTransaction } from '@/types/transaction';
 import { mapServerToClient, mapClientToServer } from './mappers';
+import { fetchTransactionsFromSupabase } from './supabase/transactions';
+
+// Export the Supabase implementation of fetchTransactions
+export { fetchTransactionsFromSupabase as fetchTransactions };
+
+// Legacy implementation for reference
+export const fetchTransactionsLegacy = async (): Promise<Transaction[]> => {
+  try {
+    const data = await get<ServerTransaction[]>('/transactions');
+    return data.map(mapServerToClient);
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    throw new Error('Failed to fetch transactions');
+  }
+};
 
 // Transaction methods with authentication
 export const fetchTransactions = async (): Promise<Transaction[]> => {
