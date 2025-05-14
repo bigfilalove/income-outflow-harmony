@@ -3,19 +3,46 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckCircle2, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, RefreshCw, Database, ShieldAlert, Key } from 'lucide-react';
 import { checkSupabaseConnectionDetailed, ConnectionCheckResult } from '@/utils/supabaseConnectionCheck';
 import { supabase } from '@/lib/supabase';
 
 export const SupabaseConnectionDebug = () => {
   const [connectionResult, setConnectionResult] = useState<ConnectionCheckResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
   
   const checkConnection = async () => {
     setIsLoading(true);
+    setErrorDetails(null);
     try {
       const result = await checkSupabaseConnectionDetailed();
       setConnectionResult(result);
+      
+      // Дополнительная проверка ошибок, если таблицы недоступны
+      if (!result.details.tablesAccessible) {
+        try {
+          // Пробуем получить более подробную информацию об ошибке
+          const { error } = await supabase
+            .from('categories')
+            .select('count(*)')
+            .limit(1);
+            
+          if (error) {
+            if (error.code === '42P01') {
+              setErrorDetails('Таблица не существует. Необходимо создать таблицы в базе данных Supabase.');
+            } else if (error.code === 'PGRST116') {
+              setErrorDetails('Отсутствует Row Level Security (RLS). Необходимо настроить политики RLS для таблиц.');
+            } else if (error.code === '42501' || error.message.includes('permission')) {
+              setErrorDetails('Недостаточно прав доступа. Проверьте настройки RLS и убедитесь, что вы авторизованы.');
+            } else {
+              setErrorDetails(`Код ошибки: ${error.code}, Сообщение: ${error.message}`);
+            }
+          }
+        } catch (detailError) {
+          console.error('Error getting detailed error info:', detailError);
+        }
+      }
     } catch (error) {
       console.error('Error during connection check:', error);
     } finally {
@@ -82,6 +109,7 @@ export const SupabaseConnectionDebug = () => {
                     ) : (
                       <XCircle className="h-4 w-4 text-red-500" />
                     )}
+                    <Key className="h-4 w-4 mr-1" />
                     Аутентификация
                   </h4>
                   <p className="text-sm text-muted-foreground">
@@ -98,6 +126,7 @@ export const SupabaseConnectionDebug = () => {
                     ) : (
                       <XCircle className="h-4 w-4 text-red-500" />
                     )}
+                    <Database className="h-4 w-4 mr-1" />
                     Таблицы данных
                   </h4>
                   <p className="text-sm text-muted-foreground">
@@ -107,6 +136,16 @@ export const SupabaseConnectionDebug = () => {
                   </p>
                 </div>
               </div>
+              
+              {errorDetails && (
+                <Alert variant="warning" className="bg-amber-50 border-amber-200">
+                  <ShieldAlert className="h-4 w-4 text-amber-600" />
+                  <AlertTitle className="text-amber-800">Дополнительная информация</AlertTitle>
+                  <AlertDescription className="text-amber-700">
+                    {errorDetails}
+                  </AlertDescription>
+                </Alert>
+              )}
               
               <div className="border rounded-md p-4">
                 <h4 className="font-medium mb-2">Информация о конфигурации</h4>
@@ -128,7 +167,8 @@ export const SupabaseConnectionDebug = () => {
                 <li>Проверьте правильность URL и ключа API Supabase в конфигурации приложения</li>
                 <li>Убедитесь, что проект Supabase активен и не находится в режиме обслуживания</li>
                 <li>Проверьте, созданы ли необходимые таблицы в базе данных</li>
-                <li>Если используется Row Level Security, убедитесь, что правила доступа настроены правильно</li>
+                <li>Если используется Row Level Security (RLS), убедитесь, что правила доступа настроены правильно</li>
+                <li>Возможно, требуется аутентификация для доступа к таблицам. Попробуйте сначала войти в систему</li>
               </ul>
             </div>
           </>

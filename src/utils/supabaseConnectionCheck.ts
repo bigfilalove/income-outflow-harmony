@@ -19,7 +19,7 @@ export const checkSupabaseConnectionDetailed = async (): Promise<ConnectionCheck
   const result: ConnectionCheckResult = {
     isConnected: false,
     details: {
-      url: 'https://rjumbzllcnboghomakdw.supabase.co', // Use hardcoded URL from the project
+      url: 'https://rjumbzllcnboghomakdw.supabase.co', // Используем фиксированный URL из проекта
       authEnabled: false,
       tablesAccessible: false
     }
@@ -43,11 +43,12 @@ export const checkSupabaseConnectionDetailed = async (): Promise<ConnectionCheck
     console.log('Checking Supabase table access...');
     const tables = ['categories', 'transactions', 'companies'];
     let foundWorkingTable = false;
+    let lastError = null;
     
     for (const table of tables) {
       try {
         console.log(`Trying to access table: ${table}`);
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from(table)
           .select('count(*)', { count: 'exact', head: true })
           .limit(1);
@@ -58,9 +59,11 @@ export const checkSupabaseConnectionDetailed = async (): Promise<ConnectionCheck
           break;
         } else {
           console.warn(`Could not access table ${table}:`, error.message);
+          lastError = error;
         }
       } catch (tableError) {
         console.error(`Error accessing table ${table}:`, tableError);
+        lastError = tableError;
       }
     }
     
@@ -70,7 +73,9 @@ export const checkSupabaseConnectionDetailed = async (): Promise<ConnectionCheck
     result.isConnected = result.details.authEnabled && result.details.tablesAccessible;
     
     if (!result.isConnected && !result.details.errorMessage) {
-      result.details.errorMessage = 'Не удалось подключиться к таблицам базы данных';
+      result.details.errorMessage = lastError 
+        ? `Ошибка доступа к таблицам: ${lastError.message}` 
+        : 'Не удалось подключиться к таблицам базы данных. Возможно, требуется аутентификация или таблицы не существуют.';
     }
     
     return result;
