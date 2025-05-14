@@ -15,7 +15,7 @@ import Budgeting from './pages/Budgeting';
 import FinancialReports from './pages/FinancialReports';
 import { TransactionProvider } from './context/transaction';
 
-// Root layout with TransactionProvider
+// Root layout with providers
 const RootLayout = () => {
   return (
     <TransactionProvider>

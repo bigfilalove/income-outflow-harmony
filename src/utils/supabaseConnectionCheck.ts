@@ -1,109 +1,67 @@
 
 import { supabase } from '@/lib/supabase';
-import { toast } from '@/hooks/use-toast';
 
-export interface ConnectionCheckResult {
-  url: string;
-  errorMessage: string;
-  errorCode: string;
-  fetchStatus: string;
-  tablesAccessible?: boolean;
+// Simple connection check
+export const checkSupabaseConnection = async (): Promise<boolean> => {
+  try {
+    // Try a simple query to test connection
+    const { data, error } = await supabase.from('categories').select('id').limit(1);
+    return !error;
+  } catch (error) {
+    console.error('Error checking Supabase connection:', error);
+    return false;
+  }
+};
+
+// More detailed connection check with diagnostics
+export const checkSupabaseConnectionDetailed = async (): Promise<{
   isConnected: boolean;
   details: {
-    url: string;
-    errorMessage: string;
-    errorCode: string;
-    authEnabled?: boolean;
-    tablesAccessible?: boolean;
+    timestamp: string;
+    errorMessage?: string;
+    errorCode?: string;
+    duration?: number;
   };
-}
-
-export const checkSupabaseConnection = async (): Promise<ConnectionCheckResult> => {
+}> => {
+  const startTime = Date.now();
   try {
-    // First, check if supabase object is available
-    if (!supabase) {
-      throw new Error('Supabase client not initialized');
-    }
+    // Try a simple query to test connection
+    const { data, error } = await supabase.from('categories').select('id').limit(1);
     
-    // Test the connection to Supabase
-    const { data, error } = await supabase.from('categories').select('count').limit(1);
+    const endTime = Date.now();
+    const duration = endTime - startTime;
     
     if (error) {
-      console.error('Supabase connection error:', error);
+      console.error('Supabase connection check failed:', error);
       return {
-        url: typeof supabase.getUrl === 'function' ? supabase.getUrl() : '',
-        errorMessage: error.message,
-        errorCode: error.code,
-        fetchStatus: 'error',
-        tablesAccessible: false,
         isConnected: false,
         details: {
-          url: typeof supabase.getUrl === 'function' ? supabase.getUrl() : '',
+          timestamp: new Date().toISOString(),
           errorMessage: error.message,
           errorCode: error.code,
-          authEnabled: false,
-          tablesAccessible: false
+          duration
         }
       };
     }
     
     return {
-      url: typeof supabase.getUrl === 'function' ? supabase.getUrl() : '',
-      errorMessage: '',
-      errorCode: '',
-      fetchStatus: 'success',
-      tablesAccessible: true,
       isConnected: true,
       details: {
-        url: typeof supabase.getUrl === 'function' ? supabase.getUrl() : '',
-        errorMessage: '',
-        errorCode: '',
-        authEnabled: true,
-        tablesAccessible: true
+        timestamp: new Date().toISOString(),
+        duration
       }
     };
-    
-  } catch (error) {
-    console.error('Error checking Supabase connection:', error);
+  } catch (error: any) {
+    const endTime = Date.now();
+    console.error('Error in Supabase connection check:', error);
     
     return {
-      url: typeof supabase.getUrl === 'function' ? supabase.getUrl() : '',
-      errorMessage: error instanceof Error ? error.message : 'Unknown error',
-      errorCode: 'UNKNOWN',
-      fetchStatus: 'failed',
-      tablesAccessible: false,
       isConnected: false,
       details: {
-        url: typeof supabase.getUrl === 'function' ? supabase.getUrl() : '',
-        errorMessage: error instanceof Error ? error.message : 'Unknown error',
-        errorCode: 'UNKNOWN',
-        authEnabled: false,
-        tablesAccessible: false
+        timestamp: new Date().toISOString(),
+        errorMessage: error?.message || 'Unknown error occurred',
+        duration: endTime - startTime
       }
     };
-  }
-};
-
-export const checkSupabaseConnectionDetailed = async (): Promise<ConnectionCheckResult> => {
-  // For now, this is just a wrapper around the basic check
-  return await checkSupabaseConnection();
-};
-
-export const checkAndNotifySupabaseConnection = async (): Promise<boolean> => {
-  const result = await checkSupabaseConnection();
-  
-  if (result.isConnected) {
-    toast({
-      title: "Соединение с Supabase установлено",
-      description: "Успешное подключение к Supabase"
-    });
-    return true;
-  } else {
-    toast({
-      title: "Ошибка соединения с Supabase",
-      description: result.errorMessage,
-      variant: "destructive"
-    });
-    return false;
   }
 };

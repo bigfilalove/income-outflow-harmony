@@ -46,7 +46,10 @@ const TransactionList: React.FC = () => {
     checkConnection();
   }, []);
 
-  const filteredTransactions = transactions.filter(t => {
+  // Safe access to transactions with fallback to empty array
+  const safeTransactions = Array.isArray(transactions) ? transactions : [];
+
+  const filteredTransactions = safeTransactions.filter(t => {
     const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          t.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (t.reimbursedTo && t.reimbursedTo.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -100,7 +103,7 @@ const TransactionList: React.FC = () => {
           </AlertDescription>
         </Alert>
       );
-    } else if (isSupabaseConnected === true && transactions.length === 0 && !isLoading) {
+    } else if (isSupabaseConnected === true && filteredTransactions.length === 0 && !isLoading) {
       return (
         <Alert variant="default" className="mb-4">
           <Info className="h-4 w-4" />

@@ -10,12 +10,16 @@ import ImportTransactionsDialog from '@/components/transaction/ImportTransaction
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, Bug } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SupabaseConnectionDebug from '@/components/debug/SupabaseConnectionDebug';
+import { useTransactions } from '@/context/transaction';
 
 const Transactions = () => {
   const { currentUser } = useAuth();
+  const { error } = useTransactions();
   const [activeTab, setActiveTab] = useState<"transaction" | "transfer">("transaction");
+  const [showDebug, setShowDebug] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -42,7 +46,27 @@ const Transactions = () => {
               <span>Продвинутая аналитика</span>
             </Button>
           </Link>
+          
+          {/* Debug button for development/troubleshooting */}
+          {(process.env.NODE_ENV === 'development' || error) && (
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="ml-auto" 
+              onClick={() => setShowDebug(!showDebug)}
+              title="Toggle Debug View"
+            >
+              <Bug className="h-4 w-4" />
+            </Button>
+          )}
         </div>
+        
+        {/* Debug panel */}
+        {showDebug && (
+          <div className="mb-6">
+            <SupabaseConnectionDebug />
+          </div>
+        )}
         
         <div className="grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2">

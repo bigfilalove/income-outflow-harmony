@@ -23,7 +23,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         description: "Ваша сессия истекла. Пожалуйста, войдите снова."
       });
       logout();
-      // We'll handle navigation through a callback instead of direct useNavigate
+      // Navigation will happen via the auth context
     }
   };
   
