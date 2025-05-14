@@ -25,16 +25,33 @@ const Login = () => {
           setConnectionStatus('connected');
           setConnectionError(null);
           console.log("Successfully connected to Supabase");
+          
+          toast({
+            title: "Соединение установлено",
+            description: "Успешное подключение к Supabase"
+          });
         } else {
           setConnectionStatus('error');
           setConnectionError('Не удалось подключиться к Supabase. Вы можете использовать тестовые аккаунты для входа.');
           console.log("Connection error with Supabase, but allowing login with demo accounts");
+          
+          toast({
+            title: "Ошибка соединения",
+            description: "Не удалось подключиться к Supabase. Используйте тестовые аккаунты.",
+            variant: "destructive"
+          });
         }
       } catch (error) {
         console.error("Connection check error:", error);
         setConnectionStatus('error');
         setConnectionError('Ошибка при проверке соединения с Supabase. Вы можете использовать тестовые аккаунты для входа.');
         console.log("Connection error with Supabase, but allowing login with demo accounts");
+        
+        toast({
+          title: "Ошибка соединения",
+          description: "Ошибка при проверке соединения с Supabase. Используйте тестовые аккаунты.",
+          variant: "destructive"
+        });
       }
     };
     

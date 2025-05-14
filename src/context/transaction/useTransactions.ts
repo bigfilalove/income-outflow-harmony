@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { fetchTransactionsFromSupabase } from '@/services/api/supabase/transactions';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 
 export const useTransactionsQuery = (handleAuthError: (error: unknown) => void) => {
@@ -35,7 +35,6 @@ export const useTransactionsQuery = (handleAuthError: (error: unknown) => void) 
       }
       return failureCount < 2; // Retry twice for other errors
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
     meta: {
       onError: (error: unknown) => {
         console.error('Error in transactions query:', error);
@@ -48,7 +47,12 @@ export const useTransactionsQuery = (handleAuthError: (error: unknown) => void) 
 // Helper function to check Supabase connection
 const checkSupabaseConnection = async () => {
   try {
-    const { data, error } = await supabase.from('transactions').select('count()', { count: 'exact', head: true });
+    console.log('Checking Supabase connection inside transactions query...');
+    const { data, error } = await supabase
+      .from('categories')
+      .select('count()', { count: 'exact', head: true })
+      .limit(1);
+      
     if (error) {
       console.error('Error connecting to Supabase:', error);
       return false;
