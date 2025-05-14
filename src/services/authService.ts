@@ -43,7 +43,7 @@ export const loginWithCredentials = async (
       localStorage.setItem('finance-tracker-current-user', localUser.id);
       localStorage.setItem('finance-tracker-token', 'dummy-token-' + Date.now());
       localStorage.setItem('finance-tracker-user', JSON.stringify(localUser));
-      console.log('Local user data stored in localStorage');
+      console.log('Local user data stored in localStorage with role:', localUser.role);
       return localUser;
     }
     
@@ -76,14 +76,17 @@ export const addUser = async (
   setUsers: React.Dispatch<React.SetStateAction<User[]>>
 ): Promise<boolean> => {
   try {
+    console.log("Creating new user with role:", userData.role);
+    
     // Create a new user locally
     const newUser: User = {
       ...userData,
       id: String(Date.now()),
-      role: userData.role || 'user',
+      role: userData.role || 'basic', // Ensure role is set
       createdAt: new Date()
     };
     
+    console.log("New user created:", newUser);
     setUsers(prev => [...prev, newUser]);
     return true;
   } catch (error) {

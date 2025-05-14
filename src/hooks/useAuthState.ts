@@ -43,6 +43,8 @@ export const useAuthState = () => {
         if (storedUserStr && storedToken) {
           console.log('Found user in localStorage');
           const storedUser = JSON.parse(storedUserStr);
+          console.log('Stored user details:', storedUser);
+          console.log('Stored user role:', storedUser.role);
           setCurrentUser(storedUser);
           setIsAuthenticated(true);
           setIsLoading(false);
@@ -54,6 +56,7 @@ export const useAuthState = () => {
         
         if (apiUser) {
           console.log('Found stored authentication from API:', apiUser.username);
+          console.log('API user role:', apiUser.role);
           setCurrentUser(apiUser);
           setIsAuthenticated(true);
         } else {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -20,6 +21,7 @@ export const LoginForm = () => {
   useEffect(() => {
     if (isAuthenticated && currentUser) {
       console.log('User already authenticated, redirecting:', currentUser);
+      console.log('User role:', currentUser.role);
       redirectBasedOnRole();
     }
   }, [isAuthenticated, currentUser]);
@@ -32,12 +34,16 @@ export const LoginForm = () => {
     
     // Redirect based on role
     if (userRole === 'admin') {
+      console.log('Redirecting admin to /admin');
       navigate('/admin', { replace: true });
     } else if (userRole === 'user') {
+      console.log('Redirecting user to /transactions');
       navigate('/transactions', { replace: true });
     } else if (userRole === 'basic') {
+      console.log('Redirecting basic user to /basic-transactions');
       navigate('/basic-transactions', { replace: true });
     } else {
+      console.log('Unknown role, redirecting to home');
       navigate('/', { replace: true });
     }
   };
@@ -56,15 +62,35 @@ export const LoginForm = () => {
       
       if (success) {
         toast({
-          title: "Добро пож��ловать!"
+          title: "Добро пожаловать!"
         });
         console.log('Login successful');
-        // Wait a moment for auth state to update
+        
+        // Wait for auth state to fully update before redirecting
         setTimeout(() => {
           if (currentUser) {
+            console.log('After login delay - current user:', currentUser);
+            console.log('After login delay - user role:', currentUser.role);
             redirectBasedOnRole();
+          } else {
+            console.log('No current user after login delay - checking localStorage');
+            const storedUser = localStorage.getItem('finance-tracker-user');
+            if (storedUser) {
+              const parsedUser = JSON.parse(storedUser);
+              console.log('User from localStorage:', parsedUser);
+              console.log('User role from localStorage:', parsedUser.role);
+              
+              // Manual redirection based on localStorage if context isn't updated yet
+              if (parsedUser.role === 'admin') {
+                navigate('/admin', { replace: true });
+              } else if (parsedUser.role === 'user') {
+                navigate('/transactions', { replace: true });
+              } else {
+                navigate('/basic-transactions', { replace: true });
+              }
+            }
           }
-        }, 300);
+        }, 500);
       } else {
         toast({
           title: "Неверное имя пользователя или пароль",

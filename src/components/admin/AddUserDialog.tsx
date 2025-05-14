@@ -75,6 +75,8 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ addUser }) => {
   });
 
   function onSubmit(values: UserFormValues) {
+    console.log("Form submitted with values:", values);
+    
     // Проверка на уникальность email
     const emailExists = users.some(user => user.email.toLowerCase() === values.email.toLowerCase());
     if (emailExists) {
@@ -101,8 +103,10 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ addUser }) => {
       email: values.email,
       username: values.username,
       password: values.password,
-      role: values.role
+      role: values.role  // Ensure role is properly passed
     });
+    
+    console.log("Adding user with role:", values.role);
     
     toast.success('Пользователь успешно добавлен');
     form.reset();
