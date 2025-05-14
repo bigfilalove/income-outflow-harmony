@@ -1,159 +1,184 @@
 
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import { AtSign, Lock, User as UserIcon } from 'lucide-react';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { addUser } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    username: '',
-    password: '',
-    confirmPassword: ''
+  const { addDemoUser } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Define the validation schema using zod
+  const registerSchema = z.object({
+    name: z.string().min(2, 'Имя должно содержать не менее 2 символов'),
+    email: z.string().email('Введите корректный email адрес'),
+    username: z.string().min(3, 'Имя пользователя должно содержать не менее 3 символов'),
+    password: z.string().min(6, 'Пароль должен содержать не менее 6 символов'),
   });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: 'Пароли не совпадают',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
+  
+  type RegisterFormData = z.infer<typeof registerSchema>;
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      username: '',
+      password: '',
+    },
+  });
+  
+  const onSubmit = async (data: RegisterFormData) => {
     try {
-      setIsLoading(true);
-      const success = await addUser({
-        name: formData.name,
-        email: formData.email,
-        username: formData.username,
-        password: formData.password,
-        role: 'basic' // Add the default role property
+      setIsSubmitting(true);
+      
+      // Create a new user using addDemoUser from auth context
+      const result = await addDemoUser({
+        ...data,
+        role: 'user',
       });
       
-      if (success) {
-        toast({
-          title: 'Регистрация успешна'
-        });
-        navigate('/');
+      if (result) {
+        toast.success('Регистрация успешна!');
+        navigate('/login');
       } else {
-        toast({
-          title: 'Не удалось зарегистрироваться',
-          variant: 'destructive'
-        });
+        toast.error('Не удалось зарегистрировать пользователя');
       }
     } catch (error) {
       console.error('Registration error:', error);
-      toast({
-        title: 'Ошибка при регистрации',
-        variant: 'destructive'
-      });
+      toast.error('Произошла ошибка при регистрации');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
-
+  
   return (
-    <div className="h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Регистрация</CardTitle>
-          <CardDescription>Создайте новую учетную запись</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Имя</Label>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+            Создать аккаунт
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Или{' '}
+            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+              войдите, если у вас уже есть аккаунт
+            </Link>
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+          <div className="rounded-md shadow-sm space-y-4">
+            <div>
+              <label htmlFor="name" className="sr-only">
+                Имя
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <UserIcon className="h-5 w-5 text-gray-400" />
+                </div>
                 <Input
                   id="name"
-                  name="name"
-                  placeholder="Иван Иванов"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
+                  type="text"
+                  autoComplete="name"
+                  className="pl-10"
+                  placeholder="Имя"
+                  {...register('name')}
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+              )}
+            </div>
+            
+            <div>
+              <label htmlFor="email" className="sr-only">
+                Email
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <AtSign className="h-5 w-5 text-gray-400" />
+                </div>
                 <Input
                   id="email"
-                  name="email"
                   type="email"
-                  placeholder="example@mail.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
+                  autoComplete="email"
+                  className="pl-10"
+                  placeholder="Email адрес"
+                  {...register('email')}
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="username">Логин</Label>
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              )}
+            </div>
+            
+            <div>
+              <label htmlFor="username" className="sr-only">
+                Имя пользователя
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <UserIcon className="h-5 w-5 text-gray-400" />
+                </div>
                 <Input
                   id="username"
-                  name="username"
-                  placeholder="ivan_ivanov"
-                  value={formData.username}
-                  onChange={handleChange}
-                  required
+                  type="text"
+                  autoComplete="username"
+                  className="pl-10"
+                  placeholder="Имя пользователя"
+                  {...register('username')}
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Пароль</Label>
+              {errors.username && (
+                <p className="mt-1 text-sm text-red-600">{errors.username.message}</p>
+              )}
+            </div>
+            
+            <div>
+              <label htmlFor="password" className="sr-only">
+                Пароль
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
                 <Input
                   id="password"
-                  name="password"
                   type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
+                  autoComplete="new-password"
+                  className="pl-10"
+                  placeholder="Пароль"
+                  {...register('password')}
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
-              </Button>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+              )}
             </div>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <div className="text-sm text-muted-foreground">
-            Уже есть аккаунт?{' '}
-            <Link to="/login" className="text-primary font-medium">
-              Войти
-            </Link>
           </div>
-        </CardFooter>
-      </Card>
+          
+          <div>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Регистрация...' : 'Зарегистрироваться'}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
