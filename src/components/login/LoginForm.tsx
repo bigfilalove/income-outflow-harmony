@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -19,18 +18,16 @@ export const LoginForm = () => {
 
   // Check if user is already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && currentUser) {
+      console.log('User already authenticated, redirecting:', currentUser);
       redirectBasedOnRole();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, currentUser]);
 
   const redirectBasedOnRole = () => {
-    // Get the current user from context or localStorage
-    const userRole = currentUser?.role || 
-      (localStorage.getItem('finance-tracker-user') 
-        ? JSON.parse(localStorage.getItem('finance-tracker-user') || '{}').role 
-        : null);
+    if (!currentUser) return;
     
+    const userRole = currentUser.role;
     console.log('User role for redirection:', userRole);
     
     // Redirect based on role
@@ -59,14 +56,15 @@ export const LoginForm = () => {
       
       if (success) {
         toast({
-          title: "Добро пожаловать!"
+          title: "Добро пож��ловать!"
         });
-        console.log('Login successful, redirecting based on role');
-        
-        // Wait a short moment to ensure localStorage is updated before redirecting
+        console.log('Login successful');
+        // Wait a moment for auth state to update
         setTimeout(() => {
-          redirectBasedOnRole();
-        }, 100);
+          if (currentUser) {
+            redirectBasedOnRole();
+          }
+        }, 300);
       } else {
         toast({
           title: "Неверное имя пользователя или пароль",

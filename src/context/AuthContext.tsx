@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { User } from '@/types/user';
 import { useAuthState } from '@/hooks/useAuthState';
 import { initialUsers } from '@/utils/initialUsers';
@@ -48,14 +47,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user) {
       setCurrentUser(user);
       setIsAuthenticated(true);
+      console.log('User logged in successfully:', user.username);
     }
   };
 
   const loginWithCredentials = async (username: string, password: string): Promise<boolean> => {
+    console.log('Attempting login with credentials');
     const user = await authService.loginWithCredentials(username, password, users);
     if (user) {
       setCurrentUser(user);
       setIsAuthenticated(true);
+      console.log('User authenticated successfully:', user.username);
       return true;
     }
     return false;
@@ -65,6 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     authService.logout();
     setCurrentUser(null);
     setIsAuthenticated(false);
+    console.log('User logged out');
   };
 
   const addUser = async (userData: Omit<User, 'id' | 'createdAt'>): Promise<boolean> => {

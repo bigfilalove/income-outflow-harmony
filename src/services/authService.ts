@@ -12,6 +12,7 @@ export const login = (userId: string, users: User[]) => {
     console.log('User logged in and stored in localStorage:', user);
     return user;
   }
+  console.log('Failed to find user with ID:', userId);
   return null;
 };
 
@@ -63,6 +64,7 @@ export const loginWithCredentials = async (
 };
 
 export const logout = () => {
+  console.log('Logging out, clearing localStorage items');
   localStorage.removeItem('finance-tracker-current-user');
   localStorage.removeItem('finance-tracker-token');
   localStorage.removeItem('finance-tracker-user');

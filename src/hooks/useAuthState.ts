@@ -36,7 +36,7 @@ export const useAuthState = () => {
       try {
         console.log('Checking for stored authentication...');
         
-        // First, try to get user from localStorage (faster check)
+        // Get user from localStorage
         const storedUserStr = localStorage.getItem('finance-tracker-user');
         const storedToken = localStorage.getItem('finance-tracker-token');
         
@@ -46,7 +46,7 @@ export const useAuthState = () => {
           setCurrentUser(storedUser);
           setIsAuthenticated(true);
           setIsLoading(false);
-          return; // Exit early if we have user in localStorage
+          return;
         }
         
         // If not in localStorage, check with API
