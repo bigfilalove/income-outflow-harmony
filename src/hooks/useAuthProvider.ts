@@ -4,7 +4,7 @@ import { User } from '@/types/user';
 import { Session } from '@supabase/supabase-js';
 import { checkAuthSupabase, loginWithSupabase, logoutSupabase } from '@/services/api/supabase/auth';
 import { supabase } from '@/lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, NavigateFunction } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
 export const useAuthProvider = () => {
@@ -12,7 +12,14 @@ export const useAuthProvider = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
+  
+  // Use try-catch to prevent the hook from throwing if used outside Router context
+  let navigate: NavigateFunction | undefined;
+  try {
+    navigate = useNavigate();
+  } catch (error) {
+    console.warn('useNavigate is not available in this context');
+  }
 
   // Initialize auth state
   useEffect(() => {
@@ -66,6 +73,8 @@ export const useAuthProvider = () => {
     };
     
     initAuth();
+    // This effect should only run once on component mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Login with username and password
@@ -79,10 +88,12 @@ export const useAuthProvider = () => {
         setIsAuthenticated(true);
         
         // Redirect based on role
-        if (result.user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/');
+        if (navigate) {
+          if (result.user.role === 'admin') {
+            navigate('/admin');
+          } else {
+            navigate('/');
+          }
         }
         
         toast({
@@ -122,7 +133,10 @@ export const useAuthProvider = () => {
         setCurrentUser(null);
         setIsAuthenticated(false);
         setSession(null);
-        navigate('/login');
+        
+        if (navigate) {
+          navigate('/login');
+        }
         
         toast({
           title: "Выход выполнен успешно",
