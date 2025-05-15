@@ -1,11 +1,17 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Edit, Trash, Check, X } from 'lucide-react';
-import { fetchCompanies, createCompany, updateCompany, deleteCompany } from '@/lib/companies';
 import { toast } from 'sonner';
+import { 
+  fetchCompaniesFromSupabase as fetchCompanies, 
+  createCompanyInSupabase as createCompany, 
+  updateCompanyInSupabase as updateCompany,
+  deleteCompanyFromSupabase as deleteCompany
+} from '@/services/api/supabase/companies';
 
 interface CompaniesManagementProps {
   updateCompanies?: () => void;
@@ -100,7 +106,7 @@ const CompaniesManagement: React.FC<CompaniesManagementProps> = ({ updateCompani
   };
 
   if (isLoading) return <div>Загрузка...</div>;
-  if (error) return <div>Ошибка: {error.message}</div>;
+  if (error) return <div>Ошибка: {(error as Error).message}</div>;
 
   return (
     <Card>
