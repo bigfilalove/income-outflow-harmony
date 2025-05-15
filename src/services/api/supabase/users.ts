@@ -2,6 +2,7 @@
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { User } from '@/types/user';
+import { AdminUserAttributes } from '@supabase/supabase-js';
 
 /**
  * Sets admin role for a user by email or username
@@ -19,7 +20,8 @@ export const setAdminRoleForUser = async (emailOrUsername: string): Promise<bool
     }
     
     // Find user by email or username (constructed email)
-    let user = data?.users.find(u => 
+    const users = data?.users || [];
+    let user = users.find(u => 
       u.email === emailOrUsername || 
       (u.email && u.email.startsWith(emailOrUsername + '@'))
     );
@@ -66,7 +68,8 @@ export const getAllUsers = async (): Promise<User[]> => {
     }
     
     // Map Supabase users to our app's User type
-    return data.users.map(user => ({
+    const users = data?.users || [];
+    return users.map(user => ({
       id: user.id,
       email: user.email || '',
       name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
