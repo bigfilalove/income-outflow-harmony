@@ -1,30 +1,26 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { toast } from '@/hooks/use-toast';
 import { createTransactionInSupabase } from '@/services/api/supabase/transactions';
+import { TransactionType, ReimbursementStatus, ProjectAllocation } from '@/types/transaction';
+import { useAuth } from '@/context/AuthContext';
+
+// Import our new components
+import TransactionFormHeader from '@/components/transaction/form/TransactionFormHeader';
+import TransactionFormButton from '@/components/transaction/form/TransactionFormButton';
+import TransactionDetails from '@/components/transaction/form/TransactionDetails';
+import TransactionCategoryField from '@/components/transaction/form/TransactionCategoryField';
+
+// Import existing components
 import TransactionTypeTabs from '@/components/transaction/TransactionTypeTabs';
 import TransactionDatePicker from '@/components/transaction/TransactionDatePicker';
 import ReimbursementFields from '@/components/transaction/ReimbursementFields';
 import CreatorField from '@/components/transaction/CreatorField';
-import CategorySelect from '@/components/transaction/CategorySelect';
 import CompanySelect from '@/components/transaction/CompanySelect';
 import ProjectSelect from '@/components/transaction/ProjectSelect';
 import ProjectAllocations from '@/components/transaction/ProjectAllocations';
-import { toast } from '@/hooks/use-toast';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { TransactionType, ReimbursementStatus, ProjectAllocation } from '@/types/transaction';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/context/AuthContext';
 
 const TransactionForm: React.FC = () => {
   const queryClient = useQueryClient();
@@ -45,7 +41,7 @@ const TransactionForm: React.FC = () => {
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
   // Prefill creator and reimbursement fields with current user when available
-  React.useEffect(() => {
+  useEffect(() => {
     if (currentUser?.name) {
       setCreatedBy(currentUser.name);
       setReimbursedTo(currentUser.name);
@@ -161,19 +157,7 @@ const TransactionForm: React.FC = () => {
 
   return (
     <Card className="animate-slideUp">
-      <CardHeader>
-        <CardTitle>Новая транзакция</CardTitle>
-        <CardDescription>Добавьте доход или расход</CardDescription>
-        
-        {connectionError && (
-          <Alert variant="destructive" className="mt-2">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {connectionError}
-            </AlertDescription>
-          </Alert>
-        )}
-      </CardHeader>
+      <TransactionFormHeader connectionError={connectionError} />
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <TransactionTypeTabs
@@ -202,37 +186,18 @@ const TransactionForm: React.FC = () => {
               />
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="amount">Сумма</Label>
-              <Input
-                id="amount"
-                type="number"
-                placeholder="10000"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-              />
-            </div>
+            <TransactionDetails
+              amount={amount}
+              description={description}
+              onAmountChange={setAmount}
+              onDescriptionChange={setDescription}
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Описание</Label>
-              <Input
-                id="description"
-                placeholder="Описание транзакции"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">Категория</Label>
-              <CategorySelect
-                value={category}
-                onChange={setCategory}
-                type={categoryType} // Передаём тип для фильтрации
-              />
-            </div>
+            <TransactionCategoryField
+              category={category}
+              categoryType={categoryType}
+              onCategoryChange={setCategory}
+            />
 
             {amount && (
               <ProjectAllocations
@@ -258,25 +223,11 @@ const TransactionForm: React.FC = () => {
             />
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            variant={transactionType === 'income' ? 'default' : 'outline'}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Добавление...
-              </>
-            ) : isReimbursement ? (
-              'Добавить возмещение'
-            ) : transactionType === 'income' ? (
-              'Добавить доход'
-            ) : (
-              'Добавить расход'
-            )}
-          </Button>
+          <TransactionFormButton
+            isSubmitting={isSubmitting}
+            isReimbursement={isReimbursement}
+            transactionType={transactionType}
+          />
         </form>
       </CardContent>
     </Card>
