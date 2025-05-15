@@ -6,6 +6,7 @@ import { toast } from '@/hooks/use-toast';
 import { createTransactionInSupabase } from '@/services/api/supabase/transactions';
 import { TransactionType, ReimbursementStatus, ProjectAllocation } from '@/types/transaction';
 import { useAuth } from '@/context/AuthContext';
+import { Label } from '@/components/ui/label';
 
 // Import our new components
 import TransactionFormHeader from '@/components/transaction/form/TransactionFormHeader';
