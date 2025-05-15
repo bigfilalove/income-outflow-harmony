@@ -152,6 +152,50 @@ export type Database = {
           },
         ]
       }
+      investment_expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string
+          id: string
+          investment_id: string
+          project: string | null
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description: string
+          id?: string
+          investment_id: string
+          project?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string
+          id?: string
+          investment_id?: string
+          project?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_expenses_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_instances: {
         Row: {
           created_at: string

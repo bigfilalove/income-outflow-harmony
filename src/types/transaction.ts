@@ -32,8 +32,8 @@ export interface Transaction {
   isTransfer?: boolean;
   fromCompany?: string;
   toCompany?: string;
-  isInvestment?: boolean; // New flag for owner investments
-  investor?: string; // Who made the investment
+  isInvestment?: boolean; 
+  investor?: string;
   projectAllocations?: ProjectAllocation[];
   hasAllocations?: boolean;
 }
