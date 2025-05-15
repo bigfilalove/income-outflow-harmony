@@ -1,163 +1,185 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/context/AuthContext";
-import { InvestmentExpense } from "@/types/investment";
-import CategorySelect from "@/components/transaction/CategorySelect";
-import ProjectSelect from "@/components/transaction/ProjectSelect";
-import TransactionDatePicker from "@/components/transaction/TransactionDatePicker";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addInvestmentExpense } from "@/services/api/supabase/investments/investment-expenses";
-import { toast } from "sonner";
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CategorySelect } from '@/components/transaction/CategorySelect';
+import { ProjectSelect } from '@/components/transaction/ProjectSelect';
+import { getTransactionCategories } from '@/types/transaction';
+import { InvestmentExpense } from '@/types/investment';
+import { useQueryClient } from '@tanstack/react-query';
+import { addInvestmentExpense, updateInvestmentExpense } from '@/services/api/supabase/investments/investment-expenses';
+import { toast } from 'sonner';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface InvestmentExpenseFormProps {
   investmentId: string;
-  onSuccess?: () => void;
+  onSuccess: () => void;
+  onCancel: () => void;
+  isOpen: boolean;
+  expense?: InvestmentExpense; // For editing existing expense
+  isEditing?: boolean;
 }
 
-const InvestmentExpenseForm: React.FC<InvestmentExpenseFormProps> = ({ 
+const InvestmentExpenseForm: React.FC<InvestmentExpenseFormProps> = ({
   investmentId,
-  onSuccess 
+  onSuccess,
+  onCancel,
+  isOpen,
+  expense,
+  isEditing = false
 }) => {
-  const { currentUser } = useAuth();
   const queryClient = useQueryClient();
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [project, setProject] = useState('');
-  const [date, setDate] = useState<Date>(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Form state
+  const [amount, setAmount] = useState(expense?.amount ? String(expense.amount) : '');
+  const [description, setDescription] = useState(expense?.description || '');
+  const [category, setCategory] = useState(expense?.category || '');
+  const [date, setDate] = useState<Date>(expense?.date || new Date());
+  const [project, setProject] = useState(expense?.project || '');
+  const [createdBy, setCreatedBy] = useState(expense?.created_by || '');
 
-  // Предустановка creator
-  const createdBy = currentUser?.name || '';
+  // Get expense categories
+  const categories = getTransactionCategories().expense;
 
-  // Мутация для добавления расхода
-  const mutation = useMutation({
-    mutationFn: addInvestmentExpense,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['investment-expenses', investmentId] });
-      toast("Расход добавлен", {
-        description: "Расход по инвестиции успешно добавлен"
-      });
-      resetForm();
-      if (onSuccess) onSuccess();
-    },
-    onError: (error: any) => {
-      toast("Ошибка", {
-        description: `Не удалось добавить расход: ${error.message}`
-      });
-    },
-    onSettled: () => {
-      setIsSubmitting(false);
-    }
-  });
-
-  const resetForm = () => {
-    setAmount('');
-    setDescription('');
-    setCategory('');
-    setProject('');
-    setDate(new Date());
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!amount || !description || !category) {
-      toast("Ошибка", {
-        description: "Пожалуйста, заполните все обязательные поля"
-      });
-      return;
-    }
-
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount <= 0) {
-      toast("Ошибка", {
-        description: "Пожалуйста, введите корректную сумму"
-      });
+      toast.error('Пожалуйста, заполните все обязательные поля');
       return;
     }
 
     setIsSubmitting(true);
 
-    const expense: Omit<InvestmentExpense, 'id' | 'created_at'> = {
-      investment_id: investmentId,
-      amount: numAmount,
-      description,
-      category,
-      date,
-      project: project || undefined,
-      created_by: createdBy
-    };
+    try {
+      const expenseData = {
+        investment_id: investmentId,
+        amount: parseFloat(amount),
+        description,
+        category,
+        date,
+        project: project || undefined,
+        created_by: createdBy || undefined
+      };
 
-    mutation.mutate(expense);
+      if (isEditing && expense) {
+        // Update existing expense
+        await updateInvestmentExpense({
+          ...expenseData,
+          id: expense.id,
+          created_at: expense.created_at
+        });
+        toast.success('Расход успешно обновлен');
+      } else {
+        // Add new expense
+        await addInvestmentExpense(expenseData);
+        toast.success('Расход успешно добавлен');
+      }
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['investment-expenses', investmentId] });
+      
+      // Reset form and close dialog
+      onSuccess();
+    } catch (error: any) {
+      toast.error(`Ошибка: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Добавить расход по инвестиции</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>
+            {isEditing ? 'Редактировать расход' : 'Добавить расход к инвестиции'}
+          </DialogTitle>
+        </DialogHeader>
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Сумма расхода</Label>
+            <Label htmlFor="amount">Сумма</Label>
             <Input
               id="amount"
               type="number"
-              placeholder="Сумма"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              placeholder="Введите сумму"
               required
             />
           </div>
-
+          
           <div className="space-y-2">
             <Label htmlFor="description">Описание</Label>
             <Input
               id="description"
-              placeholder="Описание расхода"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              placeholder="Описание расхода"
               required
             />
           </div>
-
+          
           <div className="space-y-2">
+            <Label htmlFor="category">Категория</Label>
             <CategorySelect
+              type="expense"
               value={category}
               onChange={setCategory}
-              type="expense"
+              required
             />
           </div>
-
+          
           <div className="space-y-2">
+            <Label htmlFor="date">Дата</Label>
+            <DatePicker
+              date={date}
+              onSelect={setDate}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="project">Проект (необязательно)</Label>
             <ProjectSelect
               value={project}
               onChange={setProject}
-              label="Проект (необязательно)"
-              required={false}
             />
           </div>
-
-          <TransactionDatePicker
-            date={date}
-            onDateChange={(newDate) => newDate && setDate(newDate)}
-          />
-
-          <Button 
-            type="submit" 
-            disabled={isSubmitting}
-            className="w-full"
-          >
-            {isSubmitting ? "Добавление..." : "Добавить расход"}
-          </Button>
+          
+          <div className="space-y-2">
+            <Label htmlFor="createdBy">Создатель (необязательно)</Label>
+            <Input
+              id="createdBy"
+              value={createdBy}
+              onChange={(e) => setCreatedBy(e.target.value)}
+              placeholder="Кто создал расход"
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              Отмена
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Сохранение...' : isEditing ? 'Обновить' : 'Добавить'}
+            </Button>
+          </DialogFooter>
         </form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 };
 
