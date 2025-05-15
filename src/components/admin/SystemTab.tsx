@@ -2,9 +2,11 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import PasswordManagement from './PasswordManagement';
+import PasswordManagement, { PasswordManagementProps } from './PasswordManagement';
 
-const SystemTab: React.FC = () => {
+interface SystemTabProps extends PasswordManagementProps {}
+
+const SystemTab: React.FC<SystemTabProps> = ({ adminPassword, updateAdminPassword }) => {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <Card className="col-span-full">
@@ -21,7 +23,10 @@ const SystemTab: React.FC = () => {
               Изменение пароля администратора
             </p>
             <Separator className="my-4" />
-            <PasswordManagement />
+            <PasswordManagement 
+              adminPassword={adminPassword} 
+              updateAdminPassword={updateAdminPassword} 
+            />
           </div>
         </CardContent>
       </Card>

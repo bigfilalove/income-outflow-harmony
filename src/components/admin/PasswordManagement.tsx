@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
-interface PasswordManagementProps {
+export interface PasswordManagementProps {
   adminPassword: string;
   updateAdminPassword: (newPassword: string) => void;
 }
