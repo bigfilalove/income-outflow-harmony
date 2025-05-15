@@ -11,32 +11,32 @@ export interface ProjectAllocationsProps {
   totalAmount: number;
   onChange: (allocations: ProjectAllocation[]) => void;
   onToggleAllocations: (enabled: boolean) => void;
-  transactionType: 'income' | 'expense'; // Restricting to only income and expense
+  transactionType?: TransactionType; // Updated to accept TransactionType
 }
 
 export interface ProjectAllocationItemProps {
   allocation: ProjectAllocation;
   index: number;
-  onChange: (index: number, field: keyof ProjectAllocation, value: string | number) => void;
+  projects: string[];
+  onUpdate: (index: number, field: keyof ProjectAllocation, value: string | number) => void; // Added the missing onUpdate
   onRemove: (index: number) => void;
   disabled?: boolean;
   allocations: ProjectAllocation[];
-  projects: string[];
-  transactionType: 'income' | 'expense';
+  transactionType?: TransactionType; // Updated to accept TransactionType
 }
 
 export interface AllocationSummaryProps {
   allocatedTotal: number;
   remainingAmount: number;
   editMode: boolean;
-  transactionType: 'income' | 'expense';
+  transactionType?: TransactionType; // Updated to accept TransactionType
 }
 
 export interface AllocationWarningsProps {
   remainingAmount: number;
   totalAmount: number;
   hasDuplicateProjects: boolean;
-  transactionType: 'income' | 'expense';
+  transactionType?: TransactionType; // Updated to accept TransactionType
 }
 
 export interface AllocationActionsProps {
@@ -45,5 +45,5 @@ export interface AllocationActionsProps {
   projects: string[];
   onChange: (allocations: ProjectAllocation[]) => void;
   addAllocation: () => void;
-  transactionType: 'income' | 'expense';
+  transactionType?: TransactionType; // Updated to accept TransactionType
 }

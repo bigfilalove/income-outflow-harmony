@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -136,6 +137,9 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
   
   const categoryType: CategoryType = isReimbursement ? 'reimbursement' : transactionType;
   
+  // For project allocations, ensure we pass only 'income' or 'expense' type
+  const allocationTransactionType = transactionType === 'transfer' ? 'expense' : transactionType;
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : 'sm:max-w-md max-h-[80vh] overflow-y-auto'}`}>
@@ -210,7 +214,7 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
                 allocations={projectAllocations}
                 onChange={setProjectAllocations}
                 onToggleAllocations={setHasAllocations}
-                transactionType={transactionType}
+                transactionType={allocationTransactionType}
               />
             )}
             
