@@ -1,22 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { TransactionType, Transaction, CategoryType, ProjectAllocation } from '@/types/transaction';
+import { Transaction, TransactionType, ProjectAllocation } from '@/types/transaction';
 import { useTransactions } from '@/context/transaction';
-import TransactionTypeTabs from './TransactionTypeTabs';
-import TransactionDatePicker from './TransactionDatePicker';
-import ReimbursementFields from './ReimbursementFields';
-import CreatorField from './CreatorField';
-import CategorySelect from './CategorySelect';
-import CompanySelect from './CompanySelect';
-import ProjectSelect from './ProjectSelect';
-import ProjectAllocations from './ProjectAllocations';
 import { useIsMobile } from '@/hooks/use-mobile';
+import TransactionEditForm from './edit-dialog/TransactionEditForm';
+import { useTransactionFormValidator } from './edit-dialog/useTransactionFormValidator';
 
 interface TransactionEditDialogProps {
   transaction: Transaction | null;
@@ -45,6 +34,13 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
   const [hasAllocations, setHasAllocations] = useState(false);
   const [projectAllocations, setProjectAllocations] = useState<ProjectAllocation[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Use our custom hook for form validation
+  const { validateForm } = useTransactionFormValidator(
+    hasAllocations,
+    projectAllocations,
+    amount
+  );
   
   useEffect(() => {
     if (transaction) {
@@ -75,27 +71,10 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
     
     if (!transaction) return;
     
-    const numAmount = parseFloat(amount);
+    // Validate form
+    if (!validateForm()) return;
     
-    // Проверка корректности распределения по проектам
-    if (hasAllocations) {
-      const allocatedTotal = projectAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
-      if (allocatedTotal !== numAmount) {
-        toast("Ошибка", {
-          description: "Сумма распределений должна быть равна общей сумме транзакции",
-        });
-        return;
-      }
-      
-      // Проверка наличия дубликатов проектов
-      const projectsSet = new Set(projectAllocations.map(a => a.project));
-      if (projectAllocations.length !== projectsSet.size) {
-        toast("Ошибка", {
-          description: "Один проект используется несколько раз в распределении",
-        });
-        return;
-      }
-    }
+    const numAmount = parseFloat(amount);
     
     setIsSubmitting(true);
     
@@ -135,114 +114,45 @@ const TransactionEditDialog: React.FC<TransactionEditDialogProps> = ({
     }
   };
   
-  const categoryType: CategoryType = isReimbursement ? 'reimbursement' : transactionType;
-  
-  // For project allocations, ensure we pass only 'income' or 'expense' type
-  const allocationTransactionType = transactionType === 'transfer' ? 'expense' : transactionType;
-  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : 'sm:max-w-md max-h-[80vh] overflow-y-auto'}`}>
         <DialogHeader>
           <DialogTitle>Редактировать транзакцию</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <TransactionTypeTabs 
-            value={transactionType}
-            onChange={handleTransactionTypeChange}
-          />
+        
+        <TransactionEditForm
+          transaction={transaction}
+          transactionType={transactionType}
+          amount={amount}
+          description={description}
+          category={category}
+          date={date}
+          isReimbursement={isReimbursement}
+          reimbursedTo={reimbursedTo}
+          createdBy={createdBy}
+          company={company}
+          project={project}
+          hasAllocations={hasAllocations}
+          projectAllocations={projectAllocations}
+          isSubmitting={isSubmitting}
           
-          <div className="space-y-3">
-            <CreatorField 
-              value={createdBy}
-              onChange={setCreatedBy}
-            />
-
-            <CompanySelect
-              value={company}
-              onChange={setCompany}
-            />
-
-            {!hasAllocations && (
-              <ProjectSelect
-                value={project}
-                onChange={setProject}
-              />
-            )}
-
-            <div className="space-y-1">
-              <Label htmlFor="amount">Сумма</Label>
-              <Input
-                id="amount"
-                type="number"
-                placeholder="10000"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-1">
-              <Label htmlFor="description">Описание</Label>
-              <Input
-                id="description"
-                placeholder="Описание транзакции"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-              />
-            </div>
-            
-            <CategorySelect 
-              value={category}
-              onChange={setCategory}
-              type={categoryType}
-            />
-            
-            {transactionType === 'expense' && (
-              <ReimbursementFields 
-                isReimbursement={isReimbursement}
-                onReimbursementChange={setIsReimbursement}
-                reimbursedTo={reimbursedTo}
-                onReimbursedToChange={setReimbursedTo}
-              />
-            )}
-            
-            {amount && (
-              <ProjectAllocations
-                totalAmount={parseFloat(amount) || 0}
-                allocations={projectAllocations}
-                onChange={setProjectAllocations}
-                onToggleAllocations={setHasAllocations}
-                transactionType={allocationTransactionType}
-              />
-            )}
-            
-            <TransactionDatePicker 
-              date={date}
-              onDateChange={(newDate) => newDate && setDate(newDate)}
-            />
-          </div>
+          onTransactionTypeChange={handleTransactionTypeChange}
+          onAmountChange={setAmount}
+          onDescriptionChange={setDescription}
+          onCategoryChange={setCategory}
+          onDateChange={setDate}
+          onReimbursementChange={setIsReimbursement}
+          onReimbursedToChange={setReimbursedTo}
+          onCreatedByChange={setCreatedBy}
+          onCompanyChange={setCompany}
+          onProjectChange={setProject}
+          onHasAllocationsChange={setHasAllocations}
+          onProjectAllocationsChange={setProjectAllocations}
           
-          <div className="flex justify-end space-x-2 pt-2 sticky bottom-0 bg-background">
-            <Button variant="outline" type="button" onClick={onClose}>
-              Отмена
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Сохранение...
-                </>
-              ) : (
-                'Сохранить изменения'
-              )}
-            </Button>
-          </div>
-        </form>
+          onSubmit={handleSubmit}
+          onClose={onClose}
+        />
       </DialogContent>
     </Dialog>
   );
