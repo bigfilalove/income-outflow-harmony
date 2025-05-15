@@ -1,77 +1,27 @@
 
 import React from 'react';
-import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { checkAndNotifySupabaseConnection } from '@/utils/supabaseConnectionCheck';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import PasswordManagement from './PasswordManagement';
 
-interface SystemTabProps {
-  adminPassword: string;
-  updateAdminPassword: (newPassword: string) => void;
-}
-
-const SystemTab: React.FC<SystemTabProps> = ({ 
-  adminPassword, 
-  updateAdminPassword 
-}) => {
-  const handleCheckConnection = async () => {
-    const isConnected = await checkAndNotifySupabaseConnection();
-    if (isConnected) {
-      toast.success('Соединение с Supabase установлено');
-    } else {
-      toast.error('Ошибка соединения с Supabase');
-    }
-  };
-
+const SystemTab: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Управление паролем администратора */}
-      <PasswordManagement 
-        currentPassword={adminPassword} 
-        updatePassword={updateAdminPassword} 
-      />
-      
-      {/* Диагностика Supabase */}
-      <Card>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <Card className="col-span-full">
         <CardHeader>
-          <CardTitle>Диагностика Supabase</CardTitle>
-          <CardDescription>Проверка соединения с базой данных</CardDescription>
+          <CardTitle>Системные настройки</CardTitle>
+          <CardDescription>
+            Управление системными настройками приложения
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Нажмите кнопку ниже, чтобы проверить соединение с Supabase.
-          </p>
-          <Button onClick={handleCheckConnection}>
-            Проверить соединение
-          </Button>
-        </CardContent>
-      </Card>
-      
-      {/* Системная информация */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Системная информация</CardTitle>
-          <CardDescription>Информация о системе и окружении</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Режим:</span>
-              <span className="font-medium">{import.meta.env.MODE}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Версия:</span>
-              <span className="font-medium">1.0.0</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">База данных:</span>
-              <span className="font-medium">Supabase</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Проект:</span>
-              <span className="font-medium">rjumbzllcnboghomakdw</span>
-            </div>
+        <CardContent className="space-y-6">
+          <div>
+            <h3 className="text-lg font-medium">Управление паролем</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Изменение пароля администратора
+            </p>
+            <Separator className="my-4" />
+            <PasswordManagement />
           </div>
         </CardContent>
       </Card>
