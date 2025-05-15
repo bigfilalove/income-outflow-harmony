@@ -90,15 +90,18 @@ const InvestmentForm: React.FC = () => {
     setIsSubmitting(true);
     setConnectionError(null);
 
+    // Примечание: поля isInvestment и investor не будут сохранены в базе,
+    // но мы все равно отправляем их для поддержания совместимости с моделью Transaction
     const transaction = {
       amount: numAmount,
       description,
       category,
       date,
-      type: 'income' as 'income', // Investments are considered as income
+      type: 'income' as 'income', // Инвестиции считаются доходом
       createdBy: createdBy.trim() || undefined,
       company: company || undefined,
-      isInvestment: true,
+      // Эти поля не будут сохранены в Supabase из-за отсутствия колонок
+      isInvestment: true, 
       investor: investor.trim(),
       createdAt: new Date(),
     };

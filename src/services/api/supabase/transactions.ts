@@ -33,8 +33,9 @@ export const fetchTransactionsFromSupabase = async (): Promise<Transaction[]> =>
       isTransfer: transaction.is_transfer || false,
       fromCompany: transaction.from_company || undefined,
       toCompany: transaction.to_company || undefined,
-      isInvestment: transaction.is_investment || false,
-      investor: transaction.investor || undefined,
+      // Эти поля не хранятся в базе, но нужны для модели клиента
+      isInvestment: false, // По умолчанию не является инвестией
+      investor: undefined,
       hasAllocations: transaction.has_allocations || false,
     }));
   } catch (error) {
@@ -46,7 +47,10 @@ export const fetchTransactionsFromSupabase = async (): Promise<Transaction[]> =>
 // Создание новой транзакции
 export const createTransactionInSupabase = async (transaction: Omit<Transaction, 'id'>): Promise<Transaction> => {
   try {
+    console.log('Creating transaction:', transaction);
+    
     // Преобразуем данные из формата приложения в формат Supabase
+    // Исключаем поля, которых нет в таблице transactions
     const supabaseTransaction = {
       amount: transaction.amount,
       description: transaction.description,
@@ -62,10 +66,11 @@ export const createTransactionInSupabase = async (transaction: Omit<Transaction,
       is_transfer: transaction.isTransfer || false,
       from_company: transaction.fromCompany || null,
       to_company: transaction.toCompany || null,
-      is_investment: transaction.isInvestment || false,
-      investor: transaction.investor || null,
       has_allocations: transaction.hasAllocations || false,
+      // Заметка: поля is_investment и investor не сохраняются, так как их нет в таблице
     };
+
+    console.log('Supabase transaction data:', supabaseTransaction);
 
     const { data, error } = await supabase
       .from('transactions')
@@ -77,6 +82,8 @@ export const createTransactionInSupabase = async (transaction: Omit<Transaction,
       console.error('Error creating transaction in Supabase:', error);
       throw error;
     }
+
+    console.log('Transaction created successfully:', data);
 
     // Возвращаем созданную транзакцию в формате приложения
     return {
@@ -96,8 +103,9 @@ export const createTransactionInSupabase = async (transaction: Omit<Transaction,
       isTransfer: data.is_transfer || false,
       fromCompany: data.from_company || undefined,
       toCompany: data.to_company || undefined,
-      isInvestment: data.is_investment || false,
-      investor: data.investor || undefined,
+      // Добавляем поля, которые есть в модели, но не хранятся в базе
+      isInvestment: false, // Не храним в базе
+      investor: undefined,
       hasAllocations: data.has_allocations || false,
     };
   } catch (error) {
