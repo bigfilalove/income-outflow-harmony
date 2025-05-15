@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { InvestmentExpenseForm } from './index';
+import InvestmentExpenseForm from './InvestmentExpenseForm';
 import InvestmentExpensesList from './InvestmentExpensesList';
 import { Receipt } from "lucide-react";
 import { formatCurrency } from '@/lib/formatters';
@@ -27,6 +27,19 @@ const InvestmentExpensesDialog: React.FC<InvestmentExpensesDialogProps> = ({
   investmentDescription
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const handleAddSuccess = () => {
+    setIsFormOpen(false);
+  };
+
+  const handleAddExpense = () => {
+    setIsFormOpen(true);
+  };
+
+  const handleFormCancel = () => {
+    setIsFormOpen(false);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -46,10 +59,21 @@ const InvestmentExpensesDialog: React.FC<InvestmentExpensesDialogProps> = ({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <InvestmentExpenseForm 
-              investmentId={investmentId} 
-              onSuccess={() => {}}
-            />
+            <Button 
+              onClick={handleAddExpense} 
+              className="w-full mb-4"
+            >
+              Добавить новый расход
+            </Button>
+            
+            {isFormOpen && (
+              <InvestmentExpenseForm 
+                investmentId={investmentId}
+                onSuccess={handleAddSuccess}
+                onCancel={handleFormCancel}
+                isOpen={isFormOpen}
+              />
+            )}
           </div>
           
           <div>
