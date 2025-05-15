@@ -9,8 +9,12 @@ const AllocationActions: React.FC<AllocationActionsProps> = ({
   allocations,
   projects,
   onChange,
-  addAllocation
+  addAllocation,
+  transactionType = 'expense'
 }) => {
+  const isIncome = transactionType === 'income';
+  const buttonText = isIncome ? "Добавить оставшийся доход к последнему проекту" : "Добавить остаток к последнему проекту";
+  
   return (
     <>
       <Button
@@ -40,7 +44,7 @@ const AllocationActions: React.FC<AllocationActionsProps> = ({
             }
           }}
         >
-          Добавить остаток к последнему проекту
+          {buttonText}
         </Button>
       )}
     </>

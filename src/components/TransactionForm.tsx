@@ -8,7 +8,7 @@ import { TransactionType, ReimbursementStatus, ProjectAllocation } from '@/types
 import { useAuth } from '@/context/AuthContext';
 import { Label } from '@/components/ui/label';
 
-// Import our new components
+// Import our components
 import TransactionFormHeader from '@/components/transaction/form/TransactionFormHeader';
 import TransactionFormButton from '@/components/transaction/form/TransactionFormButton';
 import TransactionDetails from '@/components/transaction/form/TransactionDetails';
@@ -206,6 +206,7 @@ const TransactionForm: React.FC = () => {
                 allocations={projectAllocations}
                 onChange={setProjectAllocations}
                 onToggleAllocations={setHasAllocations}
+                transactionType={transactionType}
               />
             )}
 

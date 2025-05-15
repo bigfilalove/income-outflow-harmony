@@ -2,25 +2,26 @@
 import React from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-
-interface AllocationWarningsProps {
-  remainingAmount: number;
-  totalAmount: number;
-  hasDuplicateProjects: boolean;
-}
+import { AllocationWarningsProps } from './types';
 
 const AllocationWarnings: React.FC<AllocationWarningsProps> = ({
   remainingAmount,
   totalAmount,
-  hasDuplicateProjects
+  hasDuplicateProjects,
+  transactionType = 'expense'
 }) => {
+  const isIncome = transactionType === 'income';
+  const allocationMessage = isIncome 
+    ? `Общая сумма распределения дохода должна быть равна ${totalAmount.toLocaleString('ru-RU')} ₽`
+    : `Общая сумма распределений должна быть равна ${totalAmount.toLocaleString('ru-RU')} ₽`;
+
   return (
     <>
       {remainingAmount !== 0 && (
         <Alert variant="default" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Общая сумма распределений должна быть равна {totalAmount.toLocaleString('ru-RU')} ₽
+            {allocationMessage}
           </AlertDescription>
         </Alert>
       )}

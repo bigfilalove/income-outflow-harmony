@@ -13,8 +13,12 @@ const ProjectAllocationItem: React.FC<ProjectAllocationItemProps> = ({
   onUpdate,
   onRemove,
   disabled,
-  allocations
+  allocations,
+  transactionType = 'expense'
 }) => {
+  const isIncome = transactionType === 'income';
+  const placeholderText = isIncome ? "Сумма дохода" : "Сумма";
+  
   return (
     <div className="flex items-center gap-2">
       <Select
@@ -39,7 +43,7 @@ const ProjectAllocationItem: React.FC<ProjectAllocationItemProps> = ({
       
       <Input
         type="number"
-        placeholder="Сумма"
+        placeholder={placeholderText}
         className="w-28"
         min={0}
         max={allocation.amount}

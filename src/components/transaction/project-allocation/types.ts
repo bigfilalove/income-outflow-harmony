@@ -6,6 +6,7 @@ export interface ProjectAllocationsProps {
   allocations: ProjectAllocation[];
   onChange: (allocations: ProjectAllocation[]) => void;
   onToggleAllocations: (enabled: boolean) => void;
+  transactionType?: 'income' | 'expense' | 'transfer';
 }
 
 export interface ProjectAllocationItemProps {
@@ -16,12 +17,21 @@ export interface ProjectAllocationItemProps {
   onRemove: (index: number) => void;
   disabled: boolean;
   allocations: ProjectAllocation[];
+  transactionType?: 'income' | 'expense' | 'transfer';
 }
 
 export interface AllocationSummaryProps {
   allocatedTotal: number;
   remainingAmount: number;
   editMode: boolean;
+  transactionType?: 'income' | 'expense' | 'transfer';
+}
+
+export interface AllocationWarningsProps {
+  remainingAmount: number;
+  totalAmount: number;
+  hasDuplicateProjects: boolean;
+  transactionType?: 'income' | 'expense' | 'transfer';
 }
 
 export interface AllocationActionsProps {
@@ -30,4 +40,5 @@ export interface AllocationActionsProps {
   projects: string[];
   onChange: (allocations: ProjectAllocation[]) => void;
   addAllocation: () => void;
+  transactionType?: 'income' | 'expense' | 'transfer';
 }

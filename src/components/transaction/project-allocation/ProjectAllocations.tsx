@@ -14,7 +14,8 @@ const ProjectAllocations: React.FC<ProjectAllocationsProps> = ({
   totalAmount, 
   allocations, 
   onChange, 
-  onToggleAllocations 
+  onToggleAllocations,
+  transactionType = 'expense' 
 }) => {
   const [projects, setProjects] = useState<string[]>([]);
   const [editMode, setEditMode] = useState<boolean>(allocations.length > 0);
@@ -92,6 +93,10 @@ const ProjectAllocations: React.FC<ProjectAllocationsProps> = ({
   // Проверка наличия дублирующихся проектов
   const hasDuplicateProjects = allocations.length > new Set(allocations.map(a => a.project)).size;
 
+  const buttonText = transactionType === 'income' 
+    ? (editMode ? "Отключить распределение дохода" : "Распределить доход по проектам") 
+    : (editMode ? "Отключить распределение" : "Распределить по проектам");
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -102,7 +107,7 @@ const ProjectAllocations: React.FC<ProjectAllocationsProps> = ({
             size="sm" 
             onClick={toggleEditMode}
           >
-            {editMode ? "Отключить распределение" : "Распределить по проектам"}
+            {buttonText}
           </Button>
         </div>
         
@@ -110,6 +115,7 @@ const ProjectAllocations: React.FC<ProjectAllocationsProps> = ({
           allocatedTotal={allocatedTotal} 
           remainingAmount={remainingAmount}
           editMode={editMode}
+          transactionType={transactionType}
         />
       </div>
       
@@ -119,6 +125,7 @@ const ProjectAllocations: React.FC<ProjectAllocationsProps> = ({
             remainingAmount={remainingAmount}
             totalAmount={totalAmount}
             hasDuplicateProjects={hasDuplicateProjects}
+            transactionType={transactionType}
           />
           
           <div className="space-y-2">
@@ -132,6 +139,7 @@ const ProjectAllocations: React.FC<ProjectAllocationsProps> = ({
                 onRemove={removeAllocation}
                 disabled={allocations.length === 1}
                 allocations={allocations}
+                transactionType={transactionType}
               />
             ))}
             
@@ -141,6 +149,7 @@ const ProjectAllocations: React.FC<ProjectAllocationsProps> = ({
               projects={projects}
               onChange={onChange}
               addAllocation={addAllocation}
+              transactionType={transactionType}
             />
           </div>
         </Card>
