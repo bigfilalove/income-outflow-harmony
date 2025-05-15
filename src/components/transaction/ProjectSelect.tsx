@@ -1,4 +1,6 @@
+
 import React, { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Select,
   SelectContent,
@@ -6,7 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getProjects } from '@/types/transaction';
+import { Label } from '@/components/ui/label';
+import { fetchProjectsFromSupabase } from '@/services/api/supabase/projects';
 
 interface ProjectSelectProps {
   value: string;
@@ -15,6 +18,12 @@ interface ProjectSelectProps {
 }
 
 const ProjectSelect: React.FC<ProjectSelectProps> = ({ value, onChange, projects: propProjects }) => {
+  // Fetch projects from Supabase
+  const { data: fetchedProjects, isLoading, error } = useQuery({
+    queryKey: ['projects'],
+    queryFn: fetchProjectsFromSupabase,
+  });
+  
   const [projectsList, setProjectsList] = useState<string[]>([]);
   
   useEffect(() => {
@@ -23,44 +32,41 @@ const ProjectSelect: React.FC<ProjectSelectProps> = ({ value, onChange, projects
       if (typeof propProjects[0] === 'string') {
         setProjectsList(propProjects as string[]);
       } else {
-        // Handle object format projects if needed
+        // Handle object format projects
         const projectNames = (propProjects as { id: string, name: string }[]).map(p => p.name);
         setProjectsList(projectNames);
       }
-    } else {
-      // Otherwise fetch from localStorage
-      setProjectsList(getProjects());
+    } else if (fetchedProjects) {
+      // Use projects from Supabase
+      const projectNames = fetchedProjects.map(p => p.name);
+      setProjectsList(projectNames);
     }
-  }, [propProjects]);
+  }, [propProjects, fetchedProjects]);
 
-  // Listen for projects updates from other components
-  useEffect(() => {
-    const handleProjectsUpdate = () => {
-      if (!propProjects) {
-        setProjectsList(getProjects());
-      }
-    };
-    
-    window.addEventListener('projectsUpdated', handleProjectsUpdate);
-    
-    return () => {
-      window.removeEventListener('projectsUpdated', handleProjectsUpdate);
-    };
-  }, [propProjects]);
+  if (isLoading) {
+    return <div>Загрузка проектов...</div>;
+  }
+
+  if (error) {
+    return <div>Ошибка загрузки проектов: {(error as Error).message}</div>;
+  }
 
   return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger>
-        <SelectValue placeholder="Выберите проект" />
-      </SelectTrigger>
-      <SelectContent>
-        {projectsList.map((project, index) => (
-          <SelectItem key={index} value={project}>
-            {project}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="space-y-2">
+      <Label htmlFor="project">Проект</Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger id="project">
+          <SelectValue placeholder="Выберите проект" />
+        </SelectTrigger>
+        <SelectContent>
+          {projectsList.map((project, index) => (
+            <SelectItem key={index} value={project}>
+              {project}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 };
 

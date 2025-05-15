@@ -15,6 +15,8 @@ export { deleteTransactionFromSupabase as deleteTransaction } from './supabase/t
 export { updateTransactionStatusInSupabase as updateTransactionStatus } from './supabase/transactions';
 export { fetchCategoriesFromSupabase as fetchCategories } from './supabase/categories';
 export { fetchBudgetsFromSupabase as fetchBudgets } from './supabase/budgets';
+export { fetchCompaniesFromSupabase as fetchCompanies } from './supabase/companies';
+export { fetchProjectsFromSupabase as fetchProjects } from './supabase/projects';
 
 // Export auth functions
 export { checkAuthSupabase as checkAuth } from './supabase/auth';

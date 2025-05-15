@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchCompanies } from '@/lib/companies';
+import { fetchCompaniesFromSupabase } from '@/services/api/supabase/companies';
 
 interface CompanySelectProps {
   value: string;
@@ -16,10 +16,10 @@ interface CompanySelectProps {
 }
 
 const CompanySelect: React.FC<CompanySelectProps> = ({ value, onChange }) => {
-  // Загружаем компании через API
+  // Load companies from Supabase instead of the API
   const { data: companies, isLoading, error } = useQuery({
     queryKey: ['companies'],
-    queryFn: fetchCompanies,
+    queryFn: fetchCompaniesFromSupabase,
   });
 
   if (isLoading) {
@@ -27,7 +27,7 @@ const CompanySelect: React.FC<CompanySelectProps> = ({ value, onChange }) => {
   }
 
   if (error) {
-    return <div>Ошибка загрузки компаний: {error.message}</div>;
+    return <div>Ошибка загрузки компаний: {(error as Error).message}</div>;
   }
 
   return (
