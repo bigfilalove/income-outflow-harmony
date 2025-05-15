@@ -9,12 +9,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
-import { fetchProjectsFromSupabase } from '@/services/api/supabase/projects';
+import { fetchProjectsFromSupabase, Project } from '@/services/api/supabase/projects';
+import { toast } from 'sonner';
+import { AlertCircle } from 'lucide-react';
 
 interface ProjectSelectProps {
   value: string;
   onChange: (value: string) => void;
-  projects?: { id: string, name: string }[] | string[];
+  projects?: Project[] | string[];
 }
 
 const ProjectSelect: React.FC<ProjectSelectProps> = ({ value, onChange, projects: propProjects }) => {
@@ -24,31 +26,39 @@ const ProjectSelect: React.FC<ProjectSelectProps> = ({ value, onChange, projects
     queryFn: fetchProjectsFromSupabase,
   });
   
-  const [projectsList, setProjectsList] = useState<string[]>([]);
+  const [projectsList, setProjectsList] = useState<{id: string, name: string}[]>([]);
   
   useEffect(() => {
-    // If projects are provided via props, use them
     if (propProjects) {
+      // If projects are provided via props, use them
       if (typeof propProjects[0] === 'string') {
-        setProjectsList(propProjects as string[]);
+        // Handle string array format
+        const formattedProjects = (propProjects as string[]).map((name, index) => ({
+          id: String(index),
+          name
+        }));
+        setProjectsList(formattedProjects);
       } else {
-        // Handle object format projects
-        const projectNames = (propProjects as { id: string, name: string }[]).map(p => p.name);
-        setProjectsList(projectNames);
+        // Handle Project object format
+        setProjectsList(propProjects as Project[]);
       }
     } else if (fetchedProjects) {
       // Use projects from Supabase
-      const projectNames = fetchedProjects.map(p => p.name);
-      setProjectsList(projectNames);
+      setProjectsList(fetchedProjects);
     }
   }, [propProjects, fetchedProjects]);
 
   if (isLoading) {
-    return <div>Загрузка проектов...</div>;
+    return <div className="text-sm text-muted-foreground">Загрузка проектов...</div>;
   }
 
   if (error) {
-    return <div>Ошибка загрузки проектов: {(error as Error).message}</div>;
+    return (
+      <div className="flex items-center gap-2 text-sm text-destructive">
+        <AlertCircle className="h-4 w-4" />
+        <span>Ошибка загрузки проектов: {(error as Error).message}</span>
+      </div>
+    );
   }
 
   return (
@@ -59,11 +69,15 @@ const ProjectSelect: React.FC<ProjectSelectProps> = ({ value, onChange, projects
           <SelectValue placeholder="Выберите проект" />
         </SelectTrigger>
         <SelectContent>
-          {projectsList.map((project, index) => (
-            <SelectItem key={index} value={project}>
-              {project}
-            </SelectItem>
-          ))}
+          {projectsList.length === 0 ? (
+            <div className="p-2 text-center text-sm text-muted-foreground">Нет доступных проектов</div>
+          ) : (
+            projectsList.map((project) => (
+              <SelectItem key={project.id} value={project.name}>
+                {project.name}
+              </SelectItem>
+            ))
+          )}
         </SelectContent>
       </Select>
     </div>

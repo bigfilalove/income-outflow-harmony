@@ -1,7 +1,13 @@
 
 import { supabase } from '@/lib/supabase';
 
-export const fetchProjectsFromSupabase = async () => {
+export interface Project {
+  id: string;
+  name: string;
+  createdAt: Date;
+}
+
+export const fetchProjectsFromSupabase = async (): Promise<Project[]> => {
   try {
     const { data, error } = await supabase
       .from('projects')
@@ -13,14 +19,18 @@ export const fetchProjectsFromSupabase = async () => {
       throw error;
     }
     
-    return data || [];
+    return data?.map(project => ({
+      id: project.id,
+      name: project.name,
+      createdAt: new Date(project.created_at)
+    })) || [];
   } catch (error) {
     console.error('Error in fetchProjectsFromSupabase:', error);
     throw error;
   }
 };
 
-export const createProjectInSupabase = async (name: string) => {
+export const createProjectInSupabase = async (name: string): Promise<Project> => {
   try {
     const { data, error } = await supabase
       .from('projects')
@@ -33,14 +43,18 @@ export const createProjectInSupabase = async (name: string) => {
       throw error;
     }
     
-    return data;
+    return {
+      id: data.id,
+      name: data.name,
+      createdAt: new Date(data.created_at)
+    };
   } catch (error) {
     console.error('Error in createProjectInSupabase:', error);
     throw error;
   }
 };
 
-export const deleteProjectFromSupabase = async (id: string) => {
+export const deleteProjectFromSupabase = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
       .from('projects')

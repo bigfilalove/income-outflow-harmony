@@ -1,23 +1,50 @@
 
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, AlertCircle, Loader2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { fetchProjectsFromSupabase, createProjectInSupabase, deleteProjectFromSupabase } from '@/services/api/supabase/projects';
 
-interface ProjectsManagementProps {
-  projects: string[];
-  updateProjects: (projects: string[]) => void;
-}
-
-const ProjectsManagement: React.FC<ProjectsManagementProps> = ({ 
-  projects, 
-  updateProjects 
-}) => {
+const ProjectsManagement: React.FC = () => {
   const [newProject, setNewProject] = useState('');
+  const queryClient = useQueryClient();
+  
+  // Fetch projects
+  const { data: projects = [], isLoading, error } = useQuery({
+    queryKey: ['projects'],
+    queryFn: fetchProjectsFromSupabase
+  });
+
+  // Add project mutation
+  const addProjectMutation = useMutation({
+    mutationFn: createProjectInSupabase,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setNewProject('');
+      toast.success('Проект добавлен');
+    },
+    onError: (error: Error) => {
+      toast.error(`Ошибка при добавлении проекта: ${error.message}`);
+    }
+  });
+
+  // Delete project mutation
+  const deleteProjectMutation = useMutation({
+    mutationFn: deleteProjectFromSupabase,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Проект удален');
+    },
+    onError: (error: Error) => {
+      toast.error(`Ошибка при удалении проекта: ${error.message}`);
+    }
+  });
 
   const handleAddProject = () => {
     if (!newProject.trim()) {
@@ -25,22 +52,52 @@ const ProjectsManagement: React.FC<ProjectsManagementProps> = ({
       return;
     }
     
-    if (projects.includes(newProject.trim())) {
+    if (projects.some(p => p.name === newProject.trim())) {
       toast.error('Такой проект уже существует');
       return;
     }
     
-    const updatedProjects = [...projects, newProject.trim()];
-    updateProjects(updatedProjects);
-    setNewProject('');
-    toast.success('Проект добавлен');
+    addProjectMutation.mutate(newProject.trim());
   };
 
-  const handleRemoveProject = (project: string) => {
-    const updatedProjects = projects.filter(p => p !== project);
-    updateProjects(updatedProjects);
-    toast.success('Проект удален');
+  const handleRemoveProject = (id: string) => {
+    deleteProjectMutation.mutate(id);
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Управление проектами</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-6">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <span className="ml-2 text-muted-foreground">Загрузка проектов...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Управление проектами</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Ошибка</AlertTitle>
+            <AlertDescription>
+              Не удалось загрузить проекты: {(error as Error).message}
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -59,8 +116,13 @@ const ProjectsManagement: React.FC<ProjectsManagementProps> = ({
             <Button 
               onClick={handleAddProject}
               className="flex items-center gap-1"
+              disabled={addProjectMutation.isPending}
             >
-              <PlusCircle className="h-4 w-4" />
+              {addProjectMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <PlusCircle className="h-4 w-4" />
+              )}
               Добавить
             </Button>
           </div>
@@ -81,21 +143,26 @@ const ProjectsManagement: React.FC<ProjectsManagementProps> = ({
                     </TableCell>
                   </TableRow>
                 ) : (
-                  projects.map((project, index) => (
-                    <TableRow key={index}>
+                  projects.map((project) => (
+                    <TableRow key={project.id}>
                       <TableCell>
                         <Badge variant="outline" className="font-normal">
-                          {project}
+                          {project.name}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleRemoveProject(project)}
+                          onClick={() => handleRemoveProject(project.id)}
                           className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                          disabled={deleteProjectMutation.isPending}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {deleteProjectMutation.isPending && deleteProjectMutation.variables === project.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </Button>
                       </TableCell>
                     </TableRow>
