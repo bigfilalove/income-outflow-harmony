@@ -19,11 +19,14 @@ const transactionSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   company: { type: String, default: null },
   project: { type: String, default: null },
-  // New fields for transfer transactions
+  // Transfer fields
   toCompany: { type: String, default: null },
   fromCompany: { type: String, default: null },
   isTransfer: { type: Boolean, default: false },
-  // New field for project allocations
+  // Investment fields
+  isInvestment: { type: Boolean, default: false },
+  investor: { type: String, default: null },
+  // Project allocations
   projectAllocations: [projectAllocationSchema],
   hasAllocations: { type: Boolean, default: false }
 });

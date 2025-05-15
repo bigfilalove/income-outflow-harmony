@@ -11,32 +11,32 @@ export interface ProjectAllocationsProps {
   totalAmount: number;
   onChange: (allocations: ProjectAllocation[]) => void;
   onToggleAllocations: (enabled: boolean) => void;
-  transactionType?: TransactionType; // Updated to accept TransactionType
+  transactionType?: TransactionType | 'investment'; // Updated to also accept 'investment'
 }
 
 export interface ProjectAllocationItemProps {
   allocation: ProjectAllocation;
   index: number;
   projects: string[];
-  onUpdate: (index: number, field: keyof ProjectAllocation, value: string | number) => void; // Added the missing onUpdate
+  onUpdate: (index: number, field: keyof ProjectAllocation, value: string | number) => void;
   onRemove: (index: number) => void;
   disabled?: boolean;
   allocations: ProjectAllocation[];
-  transactionType?: TransactionType; // Updated to accept TransactionType
+  transactionType?: TransactionType | 'investment'; // Updated to also accept 'investment'
 }
 
 export interface AllocationSummaryProps {
   allocatedTotal: number;
   remainingAmount: number;
   editMode: boolean;
-  transactionType?: TransactionType; // Updated to accept TransactionType
+  transactionType?: TransactionType | 'investment'; // Updated to also accept 'investment'
 }
 
 export interface AllocationWarningsProps {
   remainingAmount: number;
   totalAmount: number;
   hasDuplicateProjects: boolean;
-  transactionType?: TransactionType; // Updated to accept TransactionType
+  transactionType?: TransactionType | 'investment'; // Updated to also accept 'investment'
 }
 
 export interface AllocationActionsProps {
@@ -45,5 +45,5 @@ export interface AllocationActionsProps {
   projects: string[];
   onChange: (allocations: ProjectAllocation[]) => void;
   addAllocation: () => void;
-  transactionType?: TransactionType; // Updated to accept TransactionType
+  transactionType?: TransactionType | 'investment'; // Updated to also accept 'investment'
 }

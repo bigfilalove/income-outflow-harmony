@@ -13,7 +13,13 @@ const AllocationActions: React.FC<AllocationActionsProps> = ({
   transactionType = 'expense'
 }) => {
   const isIncome = transactionType === 'income';
-  const buttonText = isIncome ? "Добавить оставшийся доход к последнему проекту" : "Добавить остаток к последнему проекту";
+  const isInvestment = transactionType === 'investment';
+  
+  let buttonText = isIncome ? "Добавить оставшийся доход к последнему проекту" : "Добавить остаток к последнему проекту";
+  
+  if (isInvestment) {
+    buttonText = "Добавить остаток инвестиции к последнему проекту";
+  }
   
   return (
     <>

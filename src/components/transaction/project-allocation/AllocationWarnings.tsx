@@ -11,9 +11,15 @@ const AllocationWarnings: React.FC<AllocationWarningsProps> = ({
   transactionType = 'expense'
 }) => {
   const isIncome = transactionType === 'income';
-  const allocationMessage = isIncome 
+  const isInvestment = transactionType === 'investment';
+  
+  let allocationMessage = isIncome 
     ? `Общая сумма распределения дохода должна быть равна ${totalAmount.toLocaleString('ru-RU')} ₽`
     : `Общая сумма распределений должна быть равна ${totalAmount.toLocaleString('ru-RU')} ₽`;
+    
+  if (isInvestment) {
+    allocationMessage = `Общая сумма распределения инвестиции должна быть равна ${totalAmount.toLocaleString('ru-RU')} ₽`;
+  }
 
   return (
     <>

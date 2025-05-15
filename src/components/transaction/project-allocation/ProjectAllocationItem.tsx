@@ -17,7 +17,13 @@ const ProjectAllocationItem: React.FC<ProjectAllocationItemProps> = ({
   transactionType = 'expense'
 }) => {
   const isIncome = transactionType === 'income';
-  const placeholderText = isIncome ? "Сумма дохода" : "Сумма";
+  const isInvestment = transactionType === 'investment';
+  
+  let placeholderText = isIncome ? "Сумма дохода" : "Сумма";
+  
+  if (isInvestment) {
+    placeholderText = "Сумма инвестиции";
+  }
   
   return (
     <div className="flex items-center gap-2">

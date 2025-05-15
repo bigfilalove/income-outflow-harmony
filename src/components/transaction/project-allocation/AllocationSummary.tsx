@@ -12,8 +12,15 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   if (!editMode) return null;
   
   const isIncome = transactionType === 'income';
-  const distributionText = isIncome ? 'Распределено дохода:' : 'Распределено:';
-  const remainingText = isIncome ? 'Нераспределенный доход:' : 'Остаток:';
+  const isInvestment = transactionType === 'investment';
+  
+  let distributionText = isIncome ? 'Распределено дохода:' : 'Распределено:';
+  let remainingText = isIncome ? 'Нераспределенный доход:' : 'Остаток:';
+  
+  if (isInvestment) {
+    distributionText = 'Распределено инвестиции:';
+    remainingText = 'Нераспределенная инвестиция:';
+  }
   
   return (
     <div className="flex items-center space-x-1">

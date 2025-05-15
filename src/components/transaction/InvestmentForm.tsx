@@ -20,6 +20,9 @@ import { toast } from 'sonner';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/context/AuthContext';
+import { ProjectAllocation } from '@/types/transaction';
+import ProjectAllocations from '@/components/transaction/project-allocation/ProjectAllocations';
+import InvestmentAllocationToggle from './form/InvestmentAllocationToggle';
 
 const InvestmentForm: React.FC = () => {
   const queryClient = useQueryClient();
@@ -33,6 +36,9 @@ const InvestmentForm: React.FC = () => {
   const [company, setCompany] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  // New state for project allocations
+  const [hasAllocations, setHasAllocations] = useState(false);
+  const [projectAllocations, setProjectAllocations] = useState<ProjectAllocation[]>([]);
 
   // Prefill creator field with current user when available
   React.useEffect(() => {
@@ -56,6 +62,8 @@ const InvestmentForm: React.FC = () => {
       setCategory('');
       setDate(new Date());
       setCompany('');
+      setHasAllocations(false);
+      setProjectAllocations([]);
       setConnectionError(null);
     },
     onError: (error: any) => {
@@ -87,11 +95,29 @@ const InvestmentForm: React.FC = () => {
 
     const numAmount = parseFloat(amount);
     
+    // Validate allocations if enabled
+    if (hasAllocations) {
+      const allocatedTotal = projectAllocations.reduce((sum, allocation) => sum + allocation.amount, 0);
+      if (allocatedTotal !== numAmount) {
+        toast("Ошибка", {
+          description: "Сумма распределений должна быть равна общей сумме инвестиции"
+        });
+        return;
+      }
+
+      // Check for duplicate projects
+      const projectsSet = new Set(projectAllocations.map(a => a.project));
+      if (projectAllocations.length !== projectsSet.size) {
+        toast("Ошибка", {
+          description: "Один проект используется несколько раз в распределении"
+        });
+        return;
+      }
+    }
+    
     setIsSubmitting(true);
     setConnectionError(null);
 
-    // Примечание: поля isInvestment и investor не будут сохранены в базе,
-    // но мы все равно отправляем их для поддержания совместимости с моделью Transaction
     const transaction = {
       amount: numAmount,
       description,
@@ -100,10 +126,11 @@ const InvestmentForm: React.FC = () => {
       type: 'income' as 'income', // Инвестиции считаются доходом
       createdBy: createdBy.trim() || undefined,
       company: company || undefined,
-      // Эти поля не будут сохранены в Supabase из-за отсутствия колонок
       isInvestment: true, 
       investor: investor.trim(),
       createdAt: new Date(),
+      hasAllocations,
+      projectAllocations: hasAllocations ? projectAllocations : undefined,
     };
 
     mutation.mutate(transaction);
@@ -182,6 +209,25 @@ const InvestmentForm: React.FC = () => {
                 type="investment"
               />
             </div>
+            
+            {/* New allocation toggle */}
+            <InvestmentAllocationToggle
+              hasAllocations={hasAllocations}
+              onToggleAllocations={setHasAllocations}
+              projectAllocations={projectAllocations}
+              amount={amount}
+            />
+            
+            {/* Project allocations */}
+            {amount && hasAllocations && (
+              <ProjectAllocations
+                totalAmount={parseFloat(amount) || 0}
+                allocations={projectAllocations}
+                onChange={setProjectAllocations}
+                onToggleAllocations={setHasAllocations}
+                transactionType="investment"
+              />
+            )}
 
             <TransactionDatePicker
               date={date}

@@ -30,7 +30,8 @@ router.patch('/:id/status', transactionStatus.updateTransactionStatus);
 router.get('/cash-flow', cashFlow.getCompanyCashFlow);
 router.get('/categories-stats', categoryStats.getCategoriesStats);
 
-// Project allocations (if needed in the future)
-// router.get('/project-allocations', projectAllocations.getProjectAllocations);
+// Project allocations routes
+router.get('/project-allocations', projectAllocations.getProjectAllocations);
+router.get('/project-allocations/summary', projectAllocations.getProjectAllocationsSummary);
 
 module.exports = router;
