@@ -1,3 +1,4 @@
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -37,14 +38,14 @@ const verifyToken = (req, res, next) => {
 
 // Import routes
 const authRoutes = require('./routes/auth');
-const transactionsRoutes = require('./routes/transactions');
+const transactionsRoutes = require('./routes/transactions'); // This now uses our modular structure
 const categoriesRoutes = require('./routes/categories');
 const companiesRoutes = require('./routes/companies');
 const budgetsRoutes = require('./routes/budgets');
 const predictionsRoutes = require('./routes/predictions');
 const employeesRoutes = require('./routes/employees');
 const usersRoutes = require('./routes/users');
-const projectsRoutes = require('./routes/projects'); // New route
+const projectsRoutes = require('./routes/projects');
 
 // Basic route
 app.get('/', (req, res) => {
@@ -60,7 +61,7 @@ app.use('/api/budgets', budgetsRoutes);
 app.use('/api/predictions', predictionsRoutes);
 app.use('/api/employees', employeesRoutes);
 app.use('/api/users', usersRoutes);
-app.use('/api/projects', projectsRoutes); // Apply new route
+app.use('/api/projects', projectsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

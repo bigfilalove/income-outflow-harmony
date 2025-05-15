@@ -1,42 +1,49 @@
 
-import { ProjectAllocation } from '@/types/transaction';
+import { TransactionType } from '@/types/transaction';
 
-export interface ProjectAllocationProps {
+export interface ProjectAllocation {
   project: string;
   amount: number;
-  onProjectChange: (project: string) => void;
-  onAmountChange: (amount: number) => void;
-  onDelete: () => void;
 }
 
 export interface ProjectAllocationsProps {
   allocations: ProjectAllocation[];
-  transactionAmount: number;
-  onAllocationsChange: (allocations: ProjectAllocation[]) => void;
-  transactionType?: 'income' | 'expense';
-}
-
-export interface AllocationSummaryProps {
-  allocations: ProjectAllocation[];
-  transactionAmount: number;
-  transactionType?: 'income' | 'expense';
-}
-
-export interface AllocationWarningsProps {
-  allocations: ProjectAllocation[];
-  transactionAmount: number;
-  transactionType?: 'income' | 'expense';
-}
-
-export interface AllocationActionsProps {
-  allocations: ProjectAllocation[];
-  transactionAmount: number;
-  onAllocationsChange: (allocations: ProjectAllocation[]) => void;
-  transactionType?: 'income' | 'expense';
+  totalAmount: number;
+  onChange: (allocations: ProjectAllocation[]) => void;
+  onToggleAllocations: (enabled: boolean) => void;
+  transactionType: 'income' | 'expense'; // Restricting to only income and expense
 }
 
 export interface ProjectAllocationItemProps {
   allocation: ProjectAllocation;
-  onUpdate: (updated: ProjectAllocation) => void;
-  onDelete: () => void;
+  index: number;
+  onChange: (index: number, field: keyof ProjectAllocation, value: string | number) => void;
+  onRemove: (index: number) => void;
+  disabled?: boolean;
+  allocations: ProjectAllocation[];
+  projects: string[];
+  transactionType: 'income' | 'expense';
+}
+
+export interface AllocationSummaryProps {
+  allocatedTotal: number;
+  remainingAmount: number;
+  editMode: boolean;
+  transactionType: 'income' | 'expense';
+}
+
+export interface AllocationWarningsProps {
+  remainingAmount: number;
+  totalAmount: number;
+  hasDuplicateProjects: boolean;
+  transactionType: 'income' | 'expense';
+}
+
+export interface AllocationActionsProps {
+  remainingAmount: number;
+  allocations: ProjectAllocation[];
+  projects: string[];
+  onChange: (allocations: ProjectAllocation[]) => void;
+  addAllocation: () => void;
+  transactionType: 'income' | 'expense';
 }
