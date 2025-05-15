@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
@@ -11,6 +10,8 @@ import CompaniesManagement from '@/components/admin/CompaniesManagement';
 import CategoriesManagement from '@/components/admin/CategoriesManagement';
 import ProjectsManagement from '@/components/admin/ProjectsManagement';
 import { checkAndNotifySupabaseConnection } from '@/utils/supabaseConnectionCheck';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('users');

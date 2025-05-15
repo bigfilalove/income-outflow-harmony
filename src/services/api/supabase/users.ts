@@ -11,7 +11,7 @@ export const setAdminRoleForUser = async (emailOrUsername: string): Promise<bool
     console.log('[Supabase Users] Attempting to assign admin role for:', emailOrUsername);
     
     // First try to find the user by listing users and filtering
-    const { data: usersList, error: listError } = await supabase.auth.admin.listUsers();
+    const { data, error: listError } = await supabase.auth.admin.listUsers();
     
     if (listError) {
       console.error('[Supabase Users] Error listing users:', listError);
@@ -19,7 +19,7 @@ export const setAdminRoleForUser = async (emailOrUsername: string): Promise<bool
     }
     
     // Find user by email or username (constructed email)
-    let user = usersList.users.find(u => 
+    let user = data?.users.find(u => 
       u.email === emailOrUsername || 
       (u.email && u.email.startsWith(emailOrUsername + '@'))
     );
