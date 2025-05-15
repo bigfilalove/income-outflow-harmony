@@ -8,6 +8,7 @@ import { ProjectAllocation } from '@/types/transaction';
 import InvestmentFormHeader from './InvestmentFormHeader';
 import InvestmentDetails from './InvestmentDetails';
 import InvestmentFormButton from './InvestmentFormButton';
+import InvestmentAllocationToggle from './InvestmentAllocationToggle';
 import { useInvestmentFormSubmit } from './useInvestmentFormSubmit';
 import { InvestmentFormProps } from './types';
 
@@ -17,7 +18,6 @@ import CreatorField from '@/components/transaction/CreatorField';
 import CategorySelect from '@/components/transaction/CategorySelect';
 import CompanySelect from '@/components/transaction/CompanySelect';
 import ProjectAllocations from '@/components/transaction/project-allocation/ProjectAllocations';
-import InvestmentAllocationToggle from '@/components/transaction/form/InvestmentAllocationToggle';
 
 const InvestmentForm: React.FC<InvestmentFormProps> = ({ initialValues, onSuccess }) => {
   const { currentUser } = useAuth();
