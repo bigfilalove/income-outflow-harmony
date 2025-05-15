@@ -23,18 +23,6 @@ const Admin = () => {
     updateAdminPassword 
   } = useAdmin();
   
-  const [projects, setProjects] = useState<string[]>([
-    'Лестница в дом', 
-    'Перила для веранды', 
-    'Навес для автомобиля', 
-    'Ограждение участка'
-  ]);
-
-  const updateProjects = (newProjects: string[]) => {
-    setProjects(newProjects);
-    // В реальном приложении здесь можно сохранять проекты в базу данных
-  };
-
   const handleCheckConnection = async () => {
     const isConnected = await checkAndNotifySupabaseConnection();
     if (isConnected) {
@@ -79,10 +67,7 @@ const Admin = () => {
           </TabsContent>
           
           <TabsContent value="projects" className="space-y-6">
-            <ProjectsManagement 
-              projects={projects}
-              updateProjects={updateProjects}
-            />
+            <ProjectsManagement />
           </TabsContent>
           
           <TabsContent value="system" className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
