@@ -1,88 +1,75 @@
-// Импорты и настройки
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const path = require('path');
+const jwt = require('jsonwebtoken');
 
-// Подключение middleware
-const logger = require('./middleware/logger');
-const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
-
-// Подключение маршрутов
-const authRoutes = require('./routes/auth');
-const transactionsRoutes = require('./routes/transactions');
-const predictionsRoutes = require('./routes/predictions');
-const usersRoutes = require('./routes/users');
-const budgetsRoutes = require('./routes/budgets');
-const companiesRoutes = require('./routes/companies');
-const categoriesRoutes = require('./routes/categories'); // Добавляем маршрут для категорий
-const employeeRoutes = require('./routes/employees');
-// Подключение к MongoDB
-const connectDB = require('./config/db');
-
-// Загрузка переменных окружения
 dotenv.config();
 
-// Инициализация Express
 const app = express();
-const PORT = process.env.PORT || 5050;
+const port = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(logger);
 
-// Маршруты API
-app.use('/api/auth', authRoutes);
-app.use('/api/transactions', transactionsRoutes);
-app.use('/api/employees', employeeRoutes);
-app.use('/api/predictions', predictionsRoutes);
-app.use('/api/users', usersRoutes);
-app.use('/api/budgets', budgetsRoutes);
-app.use('/api/companies', companiesRoutes);
-app.use('/api/categories', categoriesRoutes); // Подключаем маршрут
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('MongoDB connection error:', err));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+// Middleware to verify JWT token
+const verifyToken = (req, res, next) => {
+  const token = req.headers['authorization'];
+  if (!token) return res.status(401).send('Access Denied: No token provided.');
 
-// Статические файлы для production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../../dist')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../../dist', 'index.html'));
-  });
-}
-
-// 404 handler
-app.use(notFoundHandler);
-
-// Error handler
-app.use(errorHandler);
-
-// Запуск сервера после подключения к MongoDB
-const startServer = async () => {
   try {
-    await connectDB();
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error.message);
-    process.exit(1);
+    const verified = jwt.verify(token.split(' ')[1], process.env.JWT_SECRET || 'your-secret-key-123');
+    req.user = verified;
+    next();
+  } catch (err) {
+    res.status(400).send('Invalid Token');
   }
 };
 
-startServer();
+// Import routes
+const authRoutes = require('./routes/auth');
+const transactionsRoutes = require('./routes/transactions');
+const categoriesRoutes = require('./routes/categories');
+const companiesRoutes = require('./routes/companies');
+const budgetsRoutes = require('./routes/budgets');
+const predictionsRoutes = require('./routes/predictions');
+const employeesRoutes = require('./routes/employees');
+const usersRoutes = require('./routes/users');
+const projectsRoutes = require('./routes/projects'); // New route
 
-// Обработка необработанных отклонений промисов
-process.on('unhandledRejection', (err) => {
-  console.error('UNHANDLED REJECTION! Shutting down...');
-  console.error(err.name, err.message);
-  console.error(err.stack);
-  process.exit(1);
+// Basic route
+app.get('/', (req, res) => {
+  res.send('Hello, world!');
 });
 
-module.exports = app;
+// Apply routes
+app.use('/api/auth', authRoutes);
+app.use('/api/transactions', transactionsRoutes);
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/companies', companiesRoutes);
+app.use('/api/budgets', budgetsRoutes);
+app.use('/api/predictions', predictionsRoutes);
+app.use('/api/employees', employeesRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/projects', projectsRoutes); // Apply new route
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  const statusCode = err.statusCode || 500;
+  res.status(statusCode).json({ message: err.message || 'Internal Server Error' });
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});

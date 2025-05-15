@@ -48,4 +48,72 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
+// Create a new user (admin only)
+router.post('/', async (req, res, next) => {
+  try {
+    // Only admin can create users
+    if (req.user.role !== 'admin') {
+      const error = new Error('Forbidden');
+      error.statusCode = 403;
+      throw error;
+    }
+    
+    const { name, email, username, password, role } = req.body;
+    
+    // Check if username or email already exists
+    const existingUser = await User.findOne({ 
+      $or: [{ email }, { username }]
+    });
+    
+    if (existingUser) {
+      const error = new Error('User with this email or username already exists');
+      error.statusCode = 409;
+      throw error;
+    }
+    
+    // Create new user
+    const newUser = new User({
+      name,
+      email,
+      username,
+      password, // Will be hashed by the pre-save hook
+      role: role || 'basic'
+    });
+    
+    await newUser.save();
+    
+    // Don't send the password back
+    const userWithoutPassword = newUser.toObject();
+    delete userWithoutPassword.password;
+    
+    res.status(201).json(userWithoutPassword);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete user (admin only)
+router.delete('/:id', async (req, res, next) => {
+  try {
+    // Only admin can delete users
+    if (req.user.role !== 'admin') {
+      const error = new Error('Forbidden');
+      error.statusCode = 403;
+      throw error;
+    }
+    
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+    
+    if (!deletedUser) {
+      const error = new Error('User not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    
+    res.status(200).json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;

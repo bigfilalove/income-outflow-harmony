@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
@@ -5,10 +6,10 @@ import { useAdmin } from '@/context/AdminContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import UsersManagement from '@/components/admin/UsersManagement';
-import { checkSupabaseConnection } from '@/lib/supabase';
+import CompaniesManagement from '@/components/admin/CompaniesManagement';
+import CategoriesManagement from '@/components/admin/CategoriesManagement';
+import ProjectsManagement from '@/components/admin/ProjectsManagement';
 import { checkAndNotifySupabaseConnection } from '@/utils/supabaseConnectionCheck';
 
 const Admin = () => {
@@ -21,8 +22,16 @@ const Admin = () => {
     updateAdminPassword 
   } = useAdmin();
   
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
+  const [projects, setProjects] = useState<string[]>([
+    'Лестница в дом', 
+    'Перила для веранды', 
+    'Навес для автомобиля', 
+    'Ограждение участка'
+  ]);
+
+  const updateProjects = (newProjects: string[]) => {
+    setProjects(newProjects);
+    // В реальном приложении здесь можно сохранять проекты в базу данных
   };
 
   const handleCheckConnection = async () => {
@@ -43,64 +52,90 @@ const Admin = () => {
       <div className="container mx-auto p-6 space-y-8">
         <h1 className="text-3xl font-bold tracking-tight">Административная панель</h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Управление пользователями */}
-          <UsersManagement 
-            users={demoUsersList} 
-            addUser={addDemoUser} 
-            removeUser={removeDemoUser} 
-          />
+        <Tabs defaultValue="users" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-8">
+            <TabsTrigger value="users">Пользователи</TabsTrigger>
+            <TabsTrigger value="categories">Категории</TabsTrigger>
+            <TabsTrigger value="companies">Компании</TabsTrigger>
+            <TabsTrigger value="projects">Проекты</TabsTrigger>
+            <TabsTrigger value="system">Система</TabsTrigger>
+          </TabsList>
           
-          {/* Управление паролем администратора */}
-          <PasswordManagement 
-            currentPassword={adminPassword} 
-            updatePassword={updateAdminPassword} 
-          />
+          <TabsContent value="users" className="space-y-6">
+            <UsersManagement 
+              users={demoUsersList} 
+              addUser={addDemoUser} 
+              removeUser={removeDemoUser} 
+            />
+          </TabsContent>
           
-          {/* Диагностика Supabase */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Диагностика Supabase</CardTitle>
-              <CardDescription>Проверка соединения с базой данных</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Нажмите кнопку ниже, чтобы проверить соединение с Supabase.
-              </p>
-              <Button onClick={handleCheckConnection}>
-                Проверить соединение
-              </Button>
-            </CardContent>
-          </Card>
+          <TabsContent value="categories" className="space-y-6">
+            <CategoriesManagement />
+          </TabsContent>
           
-          {/* Системная информация */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Системная информация</CardTitle>
-              <CardDescription>Информация о системе и окружении</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Режим:</span>
-                  <span className="font-medium">{import.meta.env.MODE}</span>
+          <TabsContent value="companies" className="space-y-6">
+            <CompaniesManagement />
+          </TabsContent>
+          
+          <TabsContent value="projects" className="space-y-6">
+            <ProjectsManagement 
+              projects={projects}
+              updateProjects={updateProjects}
+            />
+          </TabsContent>
+          
+          <TabsContent value="system" className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Управление паролем администратора */}
+            <PasswordManagement 
+              currentPassword={adminPassword} 
+              updatePassword={updateAdminPassword} 
+            />
+            
+            {/* Диагностика Supabase */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Диагностика Supabase</CardTitle>
+                <CardDescription>Проверка соединения с базой данных</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Нажмите кнопку ниже, чтобы проверить соединение с Supabase.
+                </p>
+                <Button onClick={handleCheckConnection}>
+                  Проверить соединение
+                </Button>
+              </CardContent>
+            </Card>
+            
+            {/* Системная информация */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Системная информация</CardTitle>
+                <CardDescription>Информация о системе и окружении</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Режим:</span>
+                    <span className="font-medium">{import.meta.env.MODE}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Версия:</span>
+                    <span className="font-medium">1.0.0</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">База данных:</span>
+                    <span className="font-medium">Supabase</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Проект:</span>
+                    <span className="font-medium">rjumbzllcnboghomakdw</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Версия:</span>
-                  <span className="font-medium">1.0.0</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">База данных:</span>
-                  <span className="font-medium">Supabase</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Проект:</span>
-                  <span className="font-medium">rjumbzllcnboghomakdw</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
