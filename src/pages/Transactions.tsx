@@ -44,6 +44,38 @@ const Transactions = () => {
           )}
         </div>
         
+        {/* Mobile transaction form above reports */}
+        {isMobile && showForm && (
+          <div className="mb-6">
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "transaction" | "transfer" | "investment")}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="transaction">Доходы/Расходы</TabsTrigger>
+                <TabsTrigger value="transfer">Переводы</TabsTrigger>
+                <TabsTrigger value="investment">Инвестиции</TabsTrigger>
+              </TabsList>
+              <TabsContent value="transaction" className="mt-4">
+                <TransactionForm />
+              </TabsContent>
+              <TabsContent value="transfer" className="mt-4">
+                <TransferForm />
+              </TabsContent>
+              <TabsContent value="investment" className="mt-4">
+                <InvestmentForm />
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
+        
+        {isMobile && (
+          <Button 
+            onClick={toggleForm} 
+            className="w-full mb-6"
+            variant="outline"
+          >
+            {showForm ? "Скрыть форму" : "Показать форму"}
+          </Button>
+        )}
+        
         <div className="flex flex-wrap gap-2">
           <div className="flex flex-wrap gap-2 overflow-x-auto pb-2 w-full">
             <ReportDownloadDialog reportType="transactions" />
@@ -73,16 +105,6 @@ const Transactions = () => {
               </Button>
             )}
           </div>
-          
-          {isMobile && (
-            <Button 
-              onClick={toggleForm} 
-              className="w-full mt-2"
-              variant="outline"
-            >
-              {showForm ? "Скрыть форму" : "Показать форму"}
-            </Button>
-          )}
         </div>
         
         {/* Debug panel */}
@@ -93,34 +115,12 @@ const Transactions = () => {
         )}
         
         <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-3'}`}>
-          {/* For mobile, conditionally render the form first if showForm is true */}
-          {isMobile && showForm && (
-            <div>
-              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "transaction" | "transfer" | "investment")}>
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="transaction">Доходы/Расходы</TabsTrigger>
-                  <TabsTrigger value="transfer">Переводы</TabsTrigger>
-                  <TabsTrigger value="investment">Инвестиции</TabsTrigger>
-                </TabsList>
-                <TabsContent value="transaction" className="mt-4">
-                  <TransactionForm />
-                </TabsContent>
-                <TabsContent value="transfer" className="mt-4">
-                  <TransferForm />
-                </TabsContent>
-                <TabsContent value="investment" className="mt-4">
-                  <InvestmentForm />
-                </TabsContent>
-              </Tabs>
-            </div>
-          )}
-          
-          {/* Transaction list is always shown on mobile, or conditionally hidden when form is showing */}
-          <div className={isMobile && showForm ? "mt-6" : "md:col-span-2"}>
+          {/* Transaction list for mobile view */}
+          <div className={isMobile ? "" : "md:col-span-2"}>
             <TransactionList />
           </div>
           
-          {/* For desktop, always show the form in the right column */}
+          {/* Desktop transaction form */}
           {!isMobile && (
             <div>
               <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "transaction" | "transfer" | "investment")}>
