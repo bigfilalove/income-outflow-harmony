@@ -123,11 +123,18 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
               
               {/* Кнопка для управления расходами инвестиции */}
               {transaction.isInvestment && (
-                <InvestmentExpensesDialog 
-                  investmentId={transaction.id}
-                  investmentAmount={transaction.amount}
-                  investmentDescription={transaction.description}
-                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title="Управление расходами"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Здесь нет прямого вызова диалога, просто отслеживаем клик для отладки
+                    console.log('Клик по кнопке управления расходами', transaction.id);
+                  }}
+                >
+                  <Receipt className="h-4 w-4" />
+                </Button>
               )}
             </div>
           </div>

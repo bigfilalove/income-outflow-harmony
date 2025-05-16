@@ -6,12 +6,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { InvestmentExpenseForm, InvestmentExpensesList } from './index';
-import { Receipt } from "lucide-react";
 import { formatCurrency } from '@/lib/formatters';
 
 interface InvestmentExpensesDialogProps {
@@ -40,46 +37,57 @@ const InvestmentExpensesDialog: React.FC<InvestmentExpensesDialogProps> = ({
     setIsFormOpen(false);
   };
 
+  const handleOpenDialog = () => {
+    console.log('Открываем диалог для инвестиции:', investmentId);
+    setIsOpen(true);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="flex items-center gap-2" title="Управление расходами">
-          <Receipt className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Расходы по инвестиции</DialogTitle>
-          <DialogDescription>
-            Инвестиция: {investmentDescription} ({formatCurrency(investmentAmount)})
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Button 
-              onClick={handleAddExpense} 
-              className="w-full mb-4"
-            >
-              Добавить новый расход
-            </Button>
-            
-            {isFormOpen && (
-              <InvestmentExpenseForm 
-                investmentId={investmentId}
-                onSuccess={handleAddSuccess}
-                onCancel={handleFormCancel}
-                isOpen={isFormOpen}
-              />
-            )}
-          </div>
+    <>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleOpenDialog}
+        title="Управление расходами"
+      >
+        <Receipt className="h-4 w-4" />
+      </Button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Расходы по инвестиции</DialogTitle>
+            <DialogDescription>
+              Инвестиция: {investmentDescription} ({formatCurrency(investmentAmount)})
+            </DialogDescription>
+          </DialogHeader>
           
-          <div>
-            <InvestmentExpensesList investmentId={investmentId} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Button 
+                onClick={handleAddExpense} 
+                className="w-full mb-4"
+              >
+                Добавить новый расход
+              </Button>
+              
+              {isFormOpen && (
+                <InvestmentExpenseForm 
+                  investmentId={investmentId}
+                  onSuccess={handleAddSuccess}
+                  onCancel={handleFormCancel}
+                  isOpen={isFormOpen}
+                />
+              )}
+            </div>
+            
+            <div>
+              <InvestmentExpensesList investmentId={investmentId} />
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
