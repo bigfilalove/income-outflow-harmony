@@ -13,6 +13,7 @@ import Analytics from './pages/Analytics';
 import BasicTransactions from './pages/BasicTransactions';
 import Budgeting from './pages/Budgeting';
 import FinancialReports from './pages/FinancialReports';
+import InvestmentExpensesManagement from './pages/InvestmentExpensesManagement';
 import { TransactionProvider } from './context/transaction';
 
 // Root layout with providers
@@ -32,6 +33,7 @@ export const router = createBrowserRouter(
       <Route path="/admin" element={<Admin />} />
       <Route path="/admin-login" element={<AdminLogin />} />
       <Route path="/transactions" element={<Transactions />} />
+      <Route path="/investment-expenses" element={<InvestmentExpensesManagement />} />
       <Route path="/register" element={<Register />} />
       <Route path="/landing" element={<Landing />} />
       <Route path="/analytics" element={<Analytics />} />

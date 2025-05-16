@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Transaction } from '@/types/transaction';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,7 +11,7 @@ import {
   deleteTransactionFromSupabase, 
   updateTransactionStatusInSupabase 
 } from '@/services/api/supabase/transactions';
-import { InvestmentExpensesDialog } from './investment/expenses';
+import { Link } from 'react-router-dom';
 
 interface TransactionItemProps {
   transaction: Transaction;
@@ -120,13 +121,17 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
                 <Trash className="h-4 w-4" />
               </Button>
               
-              {/* Кнопка для управления расходами инвестиции */}
+              {/* Кнопка для управления расходами инвестиции - теперь это ссылка на отдельную страницу */}
               {transaction.isInvestment && (
-                <InvestmentExpensesDialog 
-                  investmentId={transaction.id}
-                  investmentAmount={transaction.amount}
-                  investmentDescription={transaction.description}
-                />
+                <Link to="/investment-expenses">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title="Управление расходами"
+                  >
+                    <Receipt className="h-4 w-4" />
+                  </Button>
+                </Link>
               )}
             </div>
           </div>
