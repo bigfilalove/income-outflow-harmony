@@ -130,7 +130,6 @@ const InvestmentExpenseForm: React.FC<InvestmentExpenseFormProps> = ({
               type="expense"
               value={category}
               onChange={setCategory}
-              required
             />
           </div>
           
