@@ -121,7 +121,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
                 <Trash className="h-4 w-4" />
               </Button>
               
-              {/* Добавляем отдельную кнопку для управления расходами инвестиции */}
+              {/* Кнопка для управления расходами инвестиции */}
               {transaction.isInvestment && (
                 <InvestmentExpensesDialog 
                   investmentId={transaction.id}
