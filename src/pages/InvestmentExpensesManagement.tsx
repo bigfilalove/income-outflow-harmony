@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,20 +17,21 @@ import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const InvestmentExpensesManagement: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [selectedInvestment, setSelectedInvestment] = useState<Transaction | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-
-  // Fetch all transactions that are of category "Инвестиции" or have isInvestment flag
+  
+  // Fetch all transactions that are owner contributions or company investments
   const { data: transactions = [], isLoading: isLoadingTransactions } = useQuery({
     queryKey: ['investments'],
     queryFn: async () => {
       const allTransactions = await fetchTransactionsFromSupabase();
       console.log("All transactions:", allTransactions);
-      // Filter for investments - check both the isInvestment flag and category field
+      // Filter for investments - specifically owner contributions and company investments
       const investments = allTransactions.filter(transaction => 
         transaction.isInvestment || 
-        transaction.category === 'Инвестиции' ||
-        transaction.category?.toLowerCase().includes('инвест')
+        transaction.category === 'Вклад собственника' ||
+        transaction.category === 'Инвестиции партнера'
       );
       console.log("Filtered investment transactions:", investments);
       return investments;
@@ -42,6 +44,17 @@ const InvestmentExpensesManagement: React.FC = () => {
     queryFn: () => selectedInvestment ? fetchInvestmentExpenses(selectedInvestment.id) : Promise.resolve([]),
     enabled: !!selectedInvestment
   });
+
+  // Auto-select investment if id is in URL
+  useEffect(() => {
+    const idParam = searchParams.get('id');
+    if (idParam && transactions.length > 0) {
+      const investment = transactions.find(t => t.id === idParam);
+      if (investment) {
+        setSelectedInvestment(investment);
+      }
+    }
+  }, [searchParams, transactions]);
 
   const handleInvestmentSelect = (investment: Transaction) => {
     setSelectedInvestment(investment);
@@ -97,7 +110,7 @@ const InvestmentExpensesManagement: React.FC = () => {
                   <>
                     {transactions.length === 0 ? (
                       <div className="text-center py-6 text-muted-foreground">
-                        Инвестиции не найдены. Добавьте транзакции с категорией "Инвестиции".
+                        Инвестиции не найдены. Добавьте транзакции с категорией "Вклад собственника" или "Инвестиции партнера".
                       </div>
                     ) : (
                       transactions.map((investment) => (

@@ -37,10 +37,10 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
     }
   };
 
-  // Check if transaction is an investment (either flagged or has a category related to investments)
+  // Check if transaction is a true investment (owner contribution or company investment)
   const isInvestment = transaction.isInvestment || 
-                      transaction.category === 'Инвестиции' ||
-                      transaction.category?.toLowerCase().includes('инвест');
+                      transaction.category === 'Вклад собственника' ||
+                      transaction.category === 'Инвестиции партнера';
 
   return (
     <Card className="overflow-hidden">

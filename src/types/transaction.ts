@@ -162,7 +162,7 @@ export const fetchCategoriesFromAPI = async (): Promise<CategoryList> => {
   } catch (error) {
     console.error('Ошибка при загрузке категорий из API:', error);
     const defaultCategories: CategoryList = {
-      income: ['Продажа лестницы', 'Продажа прочих изделий', 'Инвестиции', 'Возврат подотчетной суммы', 'Другое'],
+      income: ['Продажа лестницы', 'Продажа прочих изделий', 'Другое'],
       expense: ['ФОТ', 'Металл', 'IT-инфраструктура', 'Маркетинг', 'Комиссии банка – Т-Банк', 'Под отчетные средства', 'Аренда офисного помещения', 'Налоги', 'Другое'],
       reimbursement: ['Другое'],
       transfer: [],
