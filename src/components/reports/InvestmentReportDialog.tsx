@@ -11,6 +11,7 @@ import { CalendarIcon, Coins } from 'lucide-react';
 import InvestmentReport from './InvestmentReport';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface InvestmentReportDialogProps {
   className?: string;
@@ -22,6 +23,7 @@ const InvestmentReportDialog: React.FC<InvestmentReportDialogProps> = ({ classNa
   const [isCalendarOpen, setIsCalendarOpen] = useState<boolean>(false);
   const [company, setCompany] = useState<string>('');
   const [investor, setInvestor] = useState<string>('');
+  const isMobile = useIsMobile();
   
   return (
     <Dialog>
@@ -31,12 +33,12 @@ const InvestmentReportDialog: React.FC<InvestmentReportDialogProps> = ({ classNa
           Отчет по инвестициям
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className={cn("sm:max-w-[800px]", isMobile && "h-[90vh] flex flex-col")}>
         <DialogHeader>
           <DialogTitle>Отчет по инвестициям собственников</DialogTitle>
         </DialogHeader>
         
-        <div className="flex flex-col gap-4">
+        <div className={cn("flex flex-col gap-4", isMobile && "flex-1 overflow-hidden")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="dateRange">Период отчета</Label>
@@ -103,7 +105,7 @@ const InvestmentReportDialog: React.FC<InvestmentReportDialogProps> = ({ classNa
             </div>
           </div>
           
-          <div className="mt-4">
+          <div className={cn("mt-4", isMobile && "flex-1 overflow-auto")}>
             <InvestmentReport 
               startDate={startDate} 
               endDate={endDate} 

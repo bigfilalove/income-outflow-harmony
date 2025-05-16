@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTransactions } from '@/context/transaction';
@@ -18,6 +17,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowUpDown, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface InvestmentReportProps {
   startDate?: Date;
@@ -55,6 +56,7 @@ const InvestmentReport: React.FC<InvestmentReportProps> = ({
   const [filterInvestor, setFilterInvestor] = useState(initialInvestor || '');
   const [sortByInvestment, setSortByInvestment] = useState<'asc' | 'desc'>('desc');
   const [sortBySpending, setSortBySpending] = useState<'asc' | 'desc'>('desc');
+  const isMobile = useIsMobile();
   
   // Process transactions to calculate investment summaries
   useEffect(() => {
@@ -205,8 +207,8 @@ const InvestmentReport: React.FC<InvestmentReportProps> = ({
   };
   
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className={cn(isMobile && "h-full overflow-auto")}>
+      <CardHeader className="flex flex-row items-center justify-between sticky top-0 bg-card z-10">
         <div>
           <CardTitle>Отчет по инвестициям собственников</CardTitle>
           {startDate && endDate && (
@@ -220,7 +222,7 @@ const InvestmentReport: React.FC<InvestmentReportProps> = ({
           Экспорт в Excel
         </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className={cn(isMobile && "overflow-auto")}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="space-y-2">
             <Label htmlFor="filterCompany">Фильтр по компании</Label>
@@ -243,85 +245,89 @@ const InvestmentReport: React.FC<InvestmentReportProps> = ({
         </div>
         
         <div className="space-y-8">
-          <div>
+          <div className={cn(isMobile && "overflow-x-auto")}>
             <h3 className="text-lg font-medium mb-4">Инвестиции по собственникам</h3>
             {investmentsByInvestor.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Инвестор</TableHead>
-                    <TableHead>Компания</TableHead>
-                    <TableHead className="text-right" onClick={toggleSortInvestment} style={{ cursor: 'pointer' }}>
-                      Сумма инвестиций
-                      <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {investmentsByInvestor.flatMap((summary) => {
-                    const companies = Object.entries(summary.companies);
-                    return companies.map(([companyName, amount], idx) => (
-                      <TableRow key={`${summary.investor}-${companyName}`}>
-                        {idx === 0 ? (
-                          <TableCell rowSpan={companies.length} className="font-medium">
-                            {summary.investor}
-                          </TableCell>
-                        ) : null}
-                        <TableCell>{companyName}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(amount)}</TableCell>
-                      </TableRow>
-                    ));
-                  })}
-                  <TableRow>
-                    <TableCell colSpan={2} className="font-bold text-right">Итого:</TableCell>
-                    <TableCell className="text-right font-bold">
-                      {formatCurrency(investmentsByInvestor.reduce((sum, inv) => sum + inv.totalInvested, 0))}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-card z-10">
+                    <TableRow>
+                      <TableHead>Инвестор</TableHead>
+                      <TableHead>Компания</TableHead>
+                      <TableHead className="text-right" onClick={toggleSortInvestment} style={{ cursor: 'pointer' }}>
+                        Сумма инвестиций
+                        <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {investmentsByInvestor.flatMap((summary) => {
+                      const companies = Object.entries(summary.companies);
+                      return companies.map(([companyName, amount], idx) => (
+                        <TableRow key={`${summary.investor}-${companyName}`}>
+                          {idx === 0 ? (
+                            <TableCell rowSpan={companies.length} className="font-medium">
+                              {summary.investor}
+                            </TableCell>
+                          ) : null}
+                          <TableCell>{companyName}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(amount)}</TableCell>
+                        </TableRow>
+                      ));
+                    })}
+                    <TableRow>
+                      <TableCell colSpan={2} className="font-bold text-right">Итого:</TableCell>
+                      <TableCell className="text-right font-bold">
+                        {formatCurrency(investmentsByInvestor.reduce((sum, inv) => sum + inv.totalInvested, 0))}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
               <p className="text-center text-muted-foreground py-4">Инвестиции не найдены за выбранный период</p>
             )}
           </div>
           
-          <div>
+          <div className={cn(isMobile && "overflow-x-auto")}>
             <h3 className="text-lg font-medium mb-4">Расходы по компаниям</h3>
             {spendingByCompany.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Компания</TableHead>
-                    <TableHead>Категория</TableHead>
-                    <TableHead className="text-right" onClick={toggleSortSpending} style={{ cursor: 'pointer' }}>
-                      Сумма расходов
-                      <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {spendingByCompany.flatMap((summary) => {
-                    const categories = Object.entries(summary.categories);
-                    return categories.map(([categoryName, amount], idx) => (
-                      <TableRow key={`${summary.company}-${categoryName}`}>
-                        {idx === 0 ? (
-                          <TableCell rowSpan={categories.length} className="font-medium">
-                            {summary.company}
-                          </TableCell>
-                        ) : null}
-                        <TableCell>{categoryName}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(amount)}</TableCell>
-                      </TableRow>
-                    ));
-                  })}
-                  <TableRow>
-                    <TableCell colSpan={2} className="font-bold text-right">Итого:</TableCell>
-                    <TableCell className="text-right font-bold">
-                      {formatCurrency(spendingByCompany.reduce((sum, comp) => sum + comp.totalSpent, 0))}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-card z-10">
+                    <TableRow>
+                      <TableHead>Компания</TableHead>
+                      <TableHead>Категория</TableHead>
+                      <TableHead className="text-right" onClick={toggleSortSpending} style={{ cursor: 'pointer' }}>
+                        Сумма расходов
+                        <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {spendingByCompany.flatMap((summary) => {
+                      const categories = Object.entries(summary.categories);
+                      return categories.map(([categoryName, amount], idx) => (
+                        <TableRow key={`${summary.company}-${categoryName}`}>
+                          {idx === 0 ? (
+                            <TableCell rowSpan={categories.length} className="font-medium">
+                              {summary.company}
+                            </TableCell>
+                          ) : null}
+                          <TableCell>{categoryName}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(amount)}</TableCell>
+                        </TableRow>
+                      ));
+                    })}
+                    <TableRow>
+                      <TableCell colSpan={2} className="font-bold text-right">Итого:</TableCell>
+                      <TableCell className="text-right font-bold">
+                        {formatCurrency(spendingByCompany.reduce((sum, comp) => sum + comp.totalSpent, 0))}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
               <p className="text-center text-muted-foreground py-4">Расходы не найдены за выбранный период</p>
             )}
