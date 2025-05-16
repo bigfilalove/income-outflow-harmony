@@ -63,12 +63,12 @@ const CategorySelect: React.FC<CategorySelectProps> = ({ value, onChange, type }
       <SelectContent>
         {typeCategories.length > 0 ? (
           typeCategories.map((category) => (
-            <SelectItem key={category} value={category}>
-              {category}
+            <SelectItem key={category} value={category || `category-${Math.random().toString(36).substring(2, 9)}`}>
+              {category || "Категория без названия"}
             </SelectItem>
           ))
         ) : (
-          <SelectItem value="" disabled>
+          <SelectItem value="no-categories" disabled>
             Нет доступных категорий
           </SelectItem>
         )}

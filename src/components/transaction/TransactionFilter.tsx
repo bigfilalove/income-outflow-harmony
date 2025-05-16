@@ -66,8 +66,8 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({ setFilter }) => {
           <SelectGroup>
             <SelectLabel>Компания</SelectLabel>
             {companies.map((company) => (
-              <SelectItem key={company} value={`company:${company}`}>
-                {company}
+              <SelectItem key={company} value={`company:${company || 'unnamed-company'}`}>
+                {company || "Компания без названия"}
               </SelectItem>
             ))}
           </SelectGroup>
@@ -77,8 +77,8 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({ setFilter }) => {
           <SelectGroup>
             <SelectLabel>Проект</SelectLabel>
             {projects.map((project) => (
-              <SelectItem key={project} value={`project:${project}`}>
-                {project}
+              <SelectItem key={project} value={`project:${project || 'unnamed-project'}`}>
+                {project || "Проект без названия"}
               </SelectItem>
             ))}
           </SelectGroup>

@@ -38,10 +38,10 @@ const ProjectAllocationItem: React.FC<ProjectAllocationItemProps> = ({
           {projects.map((project) => (
             <SelectItem
               key={project}
-              value={project}
+              value={project || `project-${index}-${Math.random().toString(36).substring(2, 9)}`}
               disabled={allocations.some((a, i) => i !== index && a.project === project)}
             >
-              {project}
+              {project || "Проект без названия"}
             </SelectItem>
           ))}
         </SelectContent>

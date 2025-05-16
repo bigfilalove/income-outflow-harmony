@@ -31,8 +31,8 @@ const CategoryField: React.FC<CategoryFieldProps> = ({ control, categories, sele
             </FormControl>
             <SelectContent>
               {categories[selectedType].map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
+                <SelectItem key={category} value={category || `category-${Math.random().toString(36).substring(2, 9)}`}>
+                  {category || "Категория без названия"}
                 </SelectItem>
               ))}
             </SelectContent>

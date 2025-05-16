@@ -73,8 +73,8 @@ const ProjectSelect: React.FC<ProjectSelectProps> = ({ value, onChange, projects
             <div className="p-2 text-center text-sm text-muted-foreground">Нет доступных проектов</div>
           ) : (
             projectsList.map((project) => (
-              <SelectItem key={project.id} value={project.name}>
-                {project.name}
+              <SelectItem key={project.id} value={project.name || `project-${project.id}`}>
+                {project.name || `Проект ${project.id}`}
               </SelectItem>
             ))
           )}

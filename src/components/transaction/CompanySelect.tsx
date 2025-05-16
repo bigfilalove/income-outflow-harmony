@@ -37,8 +37,8 @@ const CompanySelect: React.FC<CompanySelectProps> = ({ value, onChange }) => {
       </SelectTrigger>
       <SelectContent>
         {companies && companies.map((company) => (
-          <SelectItem key={company.id} value={company.name}>
-            {company.name}
+          <SelectItem key={company.id} value={company.name || `company-${company.id}`}>
+            {company.name || `Компания ${company.id}`}
           </SelectItem>
         ))}
       </SelectContent>
