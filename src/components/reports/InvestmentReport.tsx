@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTransactions } from '@/context/transaction';
@@ -69,18 +70,33 @@ const InvestmentReport: React.FC<InvestmentReportProps> = ({
       
       const matchesCompanyFilter = !filterCompany || transaction.company === filterCompany;
       const matchesInvestorFilter = !filterInvestor || 
-                                   (transaction.isInvestment && transaction.investor === filterInvestor);
+                                   (transaction.isInvestment && transaction.investor === filterInvestor) ||
+                                   (transaction.category === 'Вклад собственника' && transaction.description.includes(filterInvestor));
       
-      return dateInRange && matchesCompanyFilter && (transaction.isInvestment ? matchesInvestorFilter : true);
+      // Включаем все транзакции с isInvestment=true, а также транзакции с категорией "Вклад собственника"
+      const isInvestmentTransaction = transaction.isInvestment || 
+                                     transaction.category === 'Вклад собственника' ||
+                                     transaction.category === 'Инвестиции партнера';
+      
+      return dateInRange && matchesCompanyFilter && isInvestmentTransaction && 
+            (matchesInvestorFilter || !filterInvestor);
     });
+    
+    console.log("Filtered transactions for investment report:", filteredTransactions);
     
     // Calculate investments by investor
     const investmentMap: Record<string, InvestmentSummary> = {};
     
     filteredTransactions.forEach(transaction => {
-      if (transaction.isInvestment && transaction.investor && transaction.company) {
-        const investor = transaction.investor;
-        
+      // Определяем инвестора - используем поле investor или извлекаем из description для "Вклад собственника"
+      let investor = transaction.investor || '';
+      
+      if (!investor && transaction.category === 'Вклад собственника') {
+        // Пытаемся извлечь имя инвестора из описания
+        investor = transaction.description.split(' от ')[1] || 'Неизвестный инвестор';
+      }
+      
+      if (investor && transaction.company) {
         if (!investmentMap[investor]) {
           investmentMap[investor] = {
             investor,
