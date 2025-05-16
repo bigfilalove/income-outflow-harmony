@@ -93,10 +93,35 @@ const Transactions = () => {
         )}
         
         <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-3'}`}>
-          <div className={isMobile && showForm ? "hidden" : "md:col-span-2"}>
+          {/* For mobile, conditionally render the form first if showForm is true */}
+          {isMobile && showForm && (
+            <div>
+              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "transaction" | "transfer" | "investment")}>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="transaction">Доходы/Расходы</TabsTrigger>
+                  <TabsTrigger value="transfer">Переводы</TabsTrigger>
+                  <TabsTrigger value="investment">Инвестиции</TabsTrigger>
+                </TabsList>
+                <TabsContent value="transaction" className="mt-4">
+                  <TransactionForm />
+                </TabsContent>
+                <TabsContent value="transfer" className="mt-4">
+                  <TransferForm />
+                </TabsContent>
+                <TabsContent value="investment" className="mt-4">
+                  <InvestmentForm />
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+          
+          {/* Transaction list is always shown on mobile, or conditionally hidden when form is showing */}
+          <div className={isMobile && showForm ? "mt-6" : "md:col-span-2"}>
             <TransactionList />
           </div>
-          {(!isMobile || showForm) && (
+          
+          {/* For desktop, always show the form in the right column */}
+          {!isMobile && (
             <div>
               <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "transaction" | "transfer" | "investment")}>
                 <TabsList className="grid w-full grid-cols-3">
