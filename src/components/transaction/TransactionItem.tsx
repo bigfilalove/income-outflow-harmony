@@ -37,6 +37,11 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
     }
   };
 
+  // Check if transaction is an investment (either flagged or has a category related to investments)
+  const isInvestment = transaction.isInvestment || 
+                      transaction.category === 'Инвестиции' ||
+                      transaction.category?.toLowerCase().includes('инвест');
+
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-0">
@@ -73,7 +78,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
                 </span>
               </div>
             )}
-            {transaction.isInvestment && (
+            {isInvestment && (
               <div className="text-xs flex items-center">
                 <Badge variant="outline" className="mr-2">Инвестиция</Badge>
                 {transaction.investor && (
@@ -121,9 +126,9 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
                 <Trash className="h-4 w-4" />
               </Button>
               
-              {/* Кнопка для управления расходами инвестиции - теперь это ссылка на отдельную страницу */}
-              {transaction.isInvestment && (
-                <Link to="/investment-expenses">
+              {/* Кнопка для управления расходами инвестиции */}
+              {isInvestment && (
+                <Link to={`/investment-expenses?id=${transaction.id}`}>
                   <Button
                     variant="ghost"
                     size="icon"

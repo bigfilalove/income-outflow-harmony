@@ -19,12 +19,20 @@ const InvestmentExpensesManagement: React.FC = () => {
   const [selectedInvestment, setSelectedInvestment] = useState<Transaction | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  // Fetch all investment transactions
+  // Fetch all transactions that are of category "Инвестиции" or have isInvestment flag
   const { data: transactions = [], isLoading: isLoadingTransactions } = useQuery({
     queryKey: ['investments'],
     queryFn: async () => {
       const allTransactions = await fetchTransactionsFromSupabase();
-      return allTransactions.filter(transaction => transaction.isInvestment);
+      console.log("All transactions:", allTransactions);
+      // Filter for investments - check both the isInvestment flag and category field
+      const investments = allTransactions.filter(transaction => 
+        transaction.isInvestment || 
+        transaction.category === 'Инвестиции' ||
+        transaction.category?.toLowerCase().includes('инвест')
+      );
+      console.log("Filtered investment transactions:", investments);
+      return investments;
     }
   });
 
@@ -89,7 +97,7 @@ const InvestmentExpensesManagement: React.FC = () => {
                   <>
                     {transactions.length === 0 ? (
                       <div className="text-center py-6 text-muted-foreground">
-                        Инвестиции не найдены
+                        Инвестиции не найдены. Добавьте транзакции с категорией "Инвестиции".
                       </div>
                     ) : (
                       transactions.map((investment) => (
