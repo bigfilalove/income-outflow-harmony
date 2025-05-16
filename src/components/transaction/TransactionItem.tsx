@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Transaction } from '@/types/transaction';
 import { Card, CardContent } from '@/components/ui/card';
@@ -123,18 +122,11 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
               
               {/* Кнопка для управления расходами инвестиции */}
               {transaction.isInvestment && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  title="Управление расходами"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Здесь нет прямого вызова диалога, просто отслеживаем клик для отладки
-                    console.log('Клик по кнопке управления расходами', transaction.id);
-                  }}
-                >
-                  <Receipt className="h-4 w-4" />
-                </Button>
+                <InvestmentExpensesDialog 
+                  investmentId={transaction.id}
+                  investmentAmount={transaction.amount}
+                  investmentDescription={transaction.description}
+                />
               )}
             </div>
           </div>

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { InvestmentExpenseForm, InvestmentExpensesList } from './index';
+import { Receipt } from "lucide-react"; // Added missing import
 import { formatCurrency } from '@/lib/formatters';
 
 interface InvestmentExpensesDialogProps {
