@@ -19,6 +19,8 @@ export const toSupabaseTransaction = (transaction: Omit<Transaction, 'id'>) => {
     from_company: transaction.fromCompany || null,
     to_company: transaction.toCompany || null,
     has_allocations: transaction.hasAllocations || false,
+    is_investment: transaction.isInvestment || false, // Добавляем поле is_investment
+    investor: transaction.investor || null,          // Добавляем поле investor
   };
 };
 
@@ -41,9 +43,9 @@ export const fromSupabaseTransaction = (data: any): Transaction => {
     isTransfer: data.is_transfer || false,
     fromCompany: data.from_company || undefined,
     toCompany: data.to_company || undefined,
-    // Fields that are not stored in the database but needed for the client model
-    isInvestment: false,
-    investor: undefined,
+    // Получаем поля investment из базы данных
+    isInvestment: data.is_investment || false,
+    investor: data.investor || undefined,
     hasAllocations: data.has_allocations || false,
   };
 };

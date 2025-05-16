@@ -95,7 +95,7 @@ export const useInvestmentFormSubmit = (resetForm: () => void, currentUserName?:
       type: 'income' as 'income', // Инвестиции считаются доходом
       createdBy: createdBy.trim() || undefined,
       company: company || undefined,
-      isInvestment: true, 
+      isInvestment: true, // Явно устанавливаем флаг инвестиции
       investor: investor.trim(),
       createdAt: new Date(),
       hasAllocations,

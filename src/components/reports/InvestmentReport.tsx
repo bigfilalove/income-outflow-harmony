@@ -89,25 +89,27 @@ const InvestmentReport: React.FC<InvestmentReportProps> = ({
     
     filteredTransactions.forEach(transaction => {
       // Определяем инвестора на основе доступной информации
-      let investor = transaction.investor || '';
+      let investor = '';
       
-      // Если инвестор не указан явно, пытаемся определить его из описания
-      if (!investor) {
-        if (transaction.category === 'Вклад собственника' || transaction.category === 'Инвестиции партнера') {
-          // Проверяем различные форматы описания
-          if (transaction.description.includes(' от ')) {
-            investor = transaction.description.split(' от ')[1] || '';
-          } else if (transaction.description.includes(' - ')) {
-            investor = transaction.description.split(' - ')[1] || '';
-          } else if (transaction.description.includes(':')) {
-            investor = transaction.description.split(':')[1]?.trim() || '';
-          }
+      // Первый приоритет: явно указанное поле investor (для транзакций, созданных через форму инвестиций)
+      if (transaction.isInvestment && transaction.investor) {
+        investor = transaction.investor;
+      } 
+      // Второй приоритет: извлечение имени инвестора из описания для категорий "Вклад собственника" или "Инвестиции партнера"
+      else if (transaction.category === 'Вклад собственника' || transaction.category === 'Инвестиции партнера') {
+        // Проверяем различные форматы описания
+        if (transaction.description.includes(' от ')) {
+          investor = transaction.description.split(' от ')[1] || '';
+        } else if (transaction.description.includes(' - ')) {
+          investor = transaction.description.split(' - ')[1] || '';
+        } else if (transaction.description.includes(':')) {
+          investor = transaction.description.split(':')[1]?.trim() || '';
         }
+      }
         
-        // Если всё ещё не удалось определить инвестора, используем "Неуказанный инвестор"
-        if (!investor) {
-          investor = 'Неуказанный инвестор';
-        }
+      // Если всё ещё не удалось определить инвестора, используем "Неуказанный инвестор"
+      if (!investor) {
+        investor = 'Неуказанный инвестор';
       }
       
       if (transaction.company) {
