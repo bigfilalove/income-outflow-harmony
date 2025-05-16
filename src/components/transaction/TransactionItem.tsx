@@ -1,16 +1,17 @@
+
 import React from 'react';
 import { Transaction } from '@/types/transaction';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash, Check } from 'lucide-react';
+import { Edit, Trash, Check, Receipt } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import classNames from 'classnames';
 import { 
   deleteTransactionFromSupabase, 
   updateTransactionStatusInSupabase 
 } from '@/services/api/supabase/transactions';
-import InvestmentExpensesDialog from './investment/expenses/InvestmentExpensesDialog';
+import { InvestmentExpensesDialog } from './investment/expenses';
 
 interface TransactionItemProps {
   transaction: Transaction;
@@ -120,7 +121,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
                 <Trash className="h-4 w-4" />
               </Button>
               
-              {/* Добавляем кнопку для управления расходами инвестиции */}
+              {/* Добавляем отдельную кнопку для управления расходами инвестиции */}
               {transaction.isInvestment && (
                 <InvestmentExpensesDialog 
                   investmentId={transaction.id}

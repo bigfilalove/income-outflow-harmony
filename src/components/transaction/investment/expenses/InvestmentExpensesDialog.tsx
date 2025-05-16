@@ -10,8 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import InvestmentExpenseForm from './InvestmentExpenseForm';
-import InvestmentExpensesList from './InvestmentExpensesList';
+import { InvestmentExpenseForm, InvestmentExpensesList } from './index';
 import { Receipt } from "lucide-react";
 import { formatCurrency } from '@/lib/formatters';
 
@@ -44,7 +43,7 @@ const InvestmentExpensesDialog: React.FC<InvestmentExpensesDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="flex items-center gap-2">
           <Receipt className="h-4 w-4" />
           <span>Управление расходами</span>
         </Button>
