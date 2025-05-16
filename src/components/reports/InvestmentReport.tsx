@@ -73,7 +73,7 @@ const InvestmentReport: React.FC<InvestmentReportProps> = ({
                                    (transaction.isInvestment && transaction.investor === filterInvestor) ||
                                    (transaction.category === 'Вклад собственника' && transaction.description.includes(filterInvestor));
       
-      // Включаем все транзакции с isInvestment=true, а также транзакции с категорией "Вклад собственника"
+      // Включаем все транзакции с isInvestment=true, а также транзакции с категорией "Вклад собственника" или "Инвестиции партнера"
       const isInvestmentTransaction = transaction.isInvestment || 
                                      transaction.category === 'Вклад собственника' ||
                                      transaction.category === 'Инвестиции партнера';
@@ -88,15 +88,29 @@ const InvestmentReport: React.FC<InvestmentReportProps> = ({
     const investmentMap: Record<string, InvestmentSummary> = {};
     
     filteredTransactions.forEach(transaction => {
-      // Определяем инвестора - используем поле investor или извлекаем из description для "Вклад собственника"
+      // Определяем инвестора на основе доступной информации
       let investor = transaction.investor || '';
       
-      if (!investor && transaction.category === 'Вклад собственника') {
-        // Пытаемся извлечь имя инвестора из описания
-        investor = transaction.description.split(' от ')[1] || 'Неизвестный инвестор';
+      // Если инвестор не указан явно, пытаемся определить его из описания
+      if (!investor) {
+        if (transaction.category === 'Вклад собственника') {
+          // Проверяем различные форматы описания
+          if (transaction.description.includes(' от ')) {
+            investor = transaction.description.split(' от ')[1] || '';
+          } else if (transaction.description.includes(' - ')) {
+            investor = transaction.description.split(' - ')[1] || '';
+          } else if (transaction.description.includes(':')) {
+            investor = transaction.description.split(':')[1]?.trim() || '';
+          }
+        }
+        
+        // Если всё ещё не удалось определить инвестора, используем описание транзакции
+        if (!investor) {
+          investor = transaction.description || 'Неуказанный инвестор';
+        }
       }
       
-      if (investor && transaction.company) {
+      if (transaction.company) {
         if (!investmentMap[investor]) {
           investmentMap[investor] = {
             investor,
