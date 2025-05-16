@@ -4,6 +4,7 @@ import { CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Transaction } from '@/types/transaction';
 import TransactionItem from '../TransactionItem';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TransactionListContentProps {
   isLoading: boolean;
@@ -20,9 +21,11 @@ const TransactionListContent: React.FC<TransactionListContentProps> = ({
   onEditTransaction,
   onUpdateStatus
 }) => {
+  const isMobile = useIsMobile();
+  
   return (
     <CardContent>
-      <div className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
+      <div className={`space-y-4 ${isMobile ? 'max-h-[calc(100vh-220px)]' : 'max-h-[calc(100vh-280px)]'} overflow-y-auto pr-1`}>
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map(i => (

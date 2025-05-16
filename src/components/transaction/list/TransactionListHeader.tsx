@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import TransactionFilter, { FilterType } from '../TransactionFilter';
 import TransactionSearch from '../TransactionSearch';
 import TransactionConnectionStatus from './TransactionConnectionStatus';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TransactionListHeaderProps {
   searchTerm: string;
@@ -28,9 +29,11 @@ const TransactionListHeader: React.FC<TransactionListHeaderProps> = ({
   transactionsEmpty,
   isLoading
 }) => {
+  const isMobile = useIsMobile();
+  
   return (
     <CardHeader>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <CardTitle>Транзакции</CardTitle>
           <CardDescription>История всех операций</CardDescription>
@@ -38,7 +41,9 @@ const TransactionListHeader: React.FC<TransactionListHeaderProps> = ({
         <TransactionFilter setFilter={setFilter} />
       </div>
       
-      <TransactionSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <div className="mt-4">
+        <TransactionSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      </div>
       
       <TransactionConnectionStatus 
         isChecking={isCheckingConnection}

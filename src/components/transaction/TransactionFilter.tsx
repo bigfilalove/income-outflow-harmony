@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { getCompanies } from '@/types/transaction';
 import { getProjects } from '@/types/transaction';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export type FilterType = 'all' | 'income' | 'expense' | 'transfer' | 'reimbursement' | 'pending' | 'investment' | string;
 
@@ -21,6 +22,7 @@ interface TransactionFilterProps {
 const TransactionFilter: React.FC<TransactionFilterProps> = ({ setFilter }) => {
   const [companies, setCompanies] = useState<string[]>([]);
   const [projects, setProjects] = useState<string[]>([]);
+  const isMobile = useIsMobile();
 
   // Get companies and projects from local storage
   useEffect(() => {
@@ -47,7 +49,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({ setFilter }) => {
 
   return (
     <Select onValueChange={setFilter} defaultValue="all">
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger className={isMobile ? "w-full" : "w-[180px]"}>
         <SelectValue placeholder="Фильтр" />
       </SelectTrigger>
       <SelectContent>

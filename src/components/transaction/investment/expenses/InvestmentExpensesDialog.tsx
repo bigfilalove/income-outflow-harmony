@@ -12,6 +12,7 @@ import { InvestmentExpenseForm, InvestmentExpensesList } from './index';
 import { Receipt, Plus, FileText } from "lucide-react";
 import { formatCurrency } from '@/lib/formatters';
 import ExistingExpensesToInvestmentDialog from './ExistingExpensesToInvestmentDialog';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface InvestmentExpensesDialogProps {
   investmentId: string;
@@ -27,6 +28,7 @@ const InvestmentExpensesDialog: React.FC<InvestmentExpensesDialogProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isExistingExpensesDialogOpen, setIsExistingExpensesDialogOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleAddSuccess = () => {
     setIsFormOpen(false);
@@ -73,7 +75,7 @@ const InvestmentExpensesDialog: React.FC<InvestmentExpensesDialogProps> = ({
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <div className="flex gap-2 mb-4">
+              <div className="flex flex-col sm:flex-row gap-2 mb-4">
                 <Button 
                   onClick={handleAddExpense} 
                   className="flex-1"
@@ -110,7 +112,7 @@ const InvestmentExpensesDialog: React.FC<InvestmentExpensesDialogProps> = ({
               )}
             </div>
             
-            <div>
+            <div className={isMobile && (isFormOpen || isExistingExpensesDialogOpen) ? "hidden" : ""}>
               <InvestmentExpensesList investmentId={investmentId} />
             </div>
           </div>
