@@ -9,8 +9,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { InvestmentExpenseForm, InvestmentExpensesList } from './index';
-import { Receipt } from "lucide-react"; // Added missing import
+import { Receipt, Plus, FileText } from "lucide-react";
 import { formatCurrency } from '@/lib/formatters';
+import ExistingExpensesToInvestmentDialog from './ExistingExpensesToInvestmentDialog';
 
 interface InvestmentExpensesDialogProps {
   investmentId: string;
@@ -25,6 +26,7 @@ const InvestmentExpensesDialog: React.FC<InvestmentExpensesDialogProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isExistingExpensesDialogOpen, setIsExistingExpensesDialogOpen] = useState(false);
 
   const handleAddSuccess = () => {
     setIsFormOpen(false);
@@ -32,6 +34,12 @@ const InvestmentExpensesDialog: React.FC<InvestmentExpensesDialogProps> = ({
 
   const handleAddExpense = () => {
     setIsFormOpen(true);
+    setIsExistingExpensesDialogOpen(false);
+  };
+
+  const handleAddExistingExpenses = () => {
+    setIsExistingExpensesDialogOpen(true);
+    setIsFormOpen(false);
   };
 
   const handleFormCancel = () => {
@@ -65,12 +73,23 @@ const InvestmentExpensesDialog: React.FC<InvestmentExpensesDialogProps> = ({
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <Button 
-                onClick={handleAddExpense} 
-                className="w-full mb-4"
-              >
-                Добавить новый расход
-              </Button>
+              <div className="flex gap-2 mb-4">
+                <Button 
+                  onClick={handleAddExpense} 
+                  className="flex-1"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Новый расход
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={handleAddExistingExpenses} 
+                  className="flex-1"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Из существующих
+                </Button>
+              </div>
               
               {isFormOpen && (
                 <InvestmentExpenseForm 
@@ -78,6 +97,15 @@ const InvestmentExpensesDialog: React.FC<InvestmentExpensesDialogProps> = ({
                   onSuccess={handleAddSuccess}
                   onCancel={handleFormCancel}
                   isOpen={isFormOpen}
+                />
+              )}
+              
+              {isExistingExpensesDialogOpen && (
+                <ExistingExpensesToInvestmentDialog
+                  isOpen={isExistingExpensesDialogOpen}
+                  onClose={() => setIsExistingExpensesDialogOpen(false)}
+                  investmentId={investmentId}
+                  onSuccess={handleAddSuccess}
                 />
               )}
             </div>
