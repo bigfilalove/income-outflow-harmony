@@ -93,7 +93,7 @@ const InvestmentReport: React.FC<InvestmentReportProps> = ({
       
       // Если инвестор не указан явно, пытаемся определить его из описания
       if (!investor) {
-        if (transaction.category === 'Вклад собственника') {
+        if (transaction.category === 'Вклад собственника' || transaction.category === 'Инвестиции партнера') {
           // Проверяем различные форматы описания
           if (transaction.description.includes(' от ')) {
             investor = transaction.description.split(' от ')[1] || '';
@@ -104,9 +104,9 @@ const InvestmentReport: React.FC<InvestmentReportProps> = ({
           }
         }
         
-        // Если всё ещё не удалось определить инвестора, используем описание транзакции
+        // Если всё ещё не удалось определить инвестора, используем "Неуказанный инвестор"
         if (!investor) {
-          investor = transaction.description || 'Неуказанный инвестор';
+          investor = 'Неуказанный инвестор';
         }
       }
       
