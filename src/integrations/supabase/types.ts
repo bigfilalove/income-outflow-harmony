@@ -359,6 +359,7 @@ export type Database = {
           from_company: string | null
           has_allocations: boolean | null
           id: string
+          investment_expense_id: string | null
           is_reimbursement: boolean | null
           is_transfer: boolean | null
           project: string | null
@@ -378,6 +379,7 @@ export type Database = {
           from_company?: string | null
           has_allocations?: boolean | null
           id?: string
+          investment_expense_id?: string | null
           is_reimbursement?: boolean | null
           is_transfer?: boolean | null
           project?: string | null
@@ -397,6 +399,7 @@ export type Database = {
           from_company?: string | null
           has_allocations?: boolean | null
           id?: string
+          investment_expense_id?: string | null
           is_reimbursement?: boolean | null
           is_transfer?: boolean | null
           project?: string | null
@@ -405,7 +408,15 @@ export type Database = {
           to_company?: string | null
           type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transactions_investment_expense_id_fkey"
+            columns: ["investment_expense_id"]
+            isOneToOne: false
+            referencedRelation: "investment_expenses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

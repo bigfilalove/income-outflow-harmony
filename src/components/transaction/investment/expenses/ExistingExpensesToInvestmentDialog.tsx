@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useQuery } from '@tanstack/react-query';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import { Transaction } from '@/types/transaction';
 import { fetchTransactionsFromSupabase } from '@/services/api/supabase/transactions';

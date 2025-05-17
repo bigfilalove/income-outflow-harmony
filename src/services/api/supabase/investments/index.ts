@@ -1,3 +1,3 @@
 
-// Re-export all investment-related functionality
+// Main index file for investments exports
 export * from './expenses';

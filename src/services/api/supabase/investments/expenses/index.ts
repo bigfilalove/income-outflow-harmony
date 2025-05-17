@@ -1,6 +1,6 @@
 
-// Export all functions from investment expenses module
-export { fetchInvestmentExpenses } from './fetchExpenses';
-export { addInvestmentExpense } from './addExpense';
-export { deleteInvestmentExpense } from './deleteExpense';
-export { updateInvestmentExpense } from './updateExpense';
+// Re-export all expense-related functions
+export * from './fetchExpenses';
+export * from './addExpense';
+export * from './updateExpense';
+export * from './deleteExpense';
