@@ -36,6 +36,7 @@ export interface Transaction {
   investor?: string;
   projectAllocations?: ProjectAllocation[];
   hasAllocations?: boolean;
+  investmentExpenseId?: string; // Added for tracking investment expenses
 }
 
 export interface ServerTransaction {

@@ -11,6 +11,7 @@ import FilterBar from './FilterBar';
 import InvestmentsTable from './InvestmentsTable';
 import SpendingTable from './SpendingTable';
 import ExportButton from './ExportButton';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const InvestmentReport: React.FC<InvestmentReportProps> = ({ 
   startDate, 
@@ -44,7 +45,7 @@ const InvestmentReport: React.FC<InvestmentReportProps> = ({
   };
   
   return (
-    <Card className={cn(isMobile && "h-full overflow-auto")}>
+    <Card className="max-h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between sticky top-0 bg-card z-10">
         <div>
           <CardTitle>Отчет по инвестициям собственников</CardTitle>
@@ -59,31 +60,35 @@ const InvestmentReport: React.FC<InvestmentReportProps> = ({
           spendingByCompany={spendingByCompany}
         />
       </CardHeader>
-      <CardContent className={cn(isMobile && "overflow-auto")}>
-        <FilterBar
-          filterCompany={filterCompany}
-          setFilterCompany={setFilterCompany}
-          filterInvestor={filterInvestor}
-          setFilterInvestor={setFilterInvestor}
-        />
-        
-        <div className="space-y-8">
-          <div className={cn(isMobile && "overflow-x-auto")}>
-            <h3 className="text-lg font-medium mb-4">Инвестиции по собственникам</h3>
-            <InvestmentsTable 
-              investmentsByInvestor={investmentsByInvestor}
-              toggleSortInvestment={toggleSortInvestment}
+      <CardContent className="flex-1 overflow-auto pb-8">
+        <ScrollArea className="h-full w-full">
+          <div className="space-y-6">
+            <FilterBar
+              filterCompany={filterCompany}
+              setFilterCompany={setFilterCompany}
+              filterInvestor={filterInvestor}
+              setFilterInvestor={setFilterInvestor}
             />
+            
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-lg font-medium mb-4">Инвестиции по собственникам</h3>
+                <InvestmentsTable 
+                  investmentsByInvestor={investmentsByInvestor}
+                  toggleSortInvestment={toggleSortInvestment}
+                />
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-medium mb-4">Расходы по компаниям</h3>
+                <SpendingTable 
+                  spendingByCompany={spendingByCompany}
+                  toggleSortSpending={toggleSortSpending}
+                />
+              </div>
+            </div>
           </div>
-          
-          <div className={cn(isMobile && "overflow-x-auto")}>
-            <h3 className="text-lg font-medium mb-4">Расходы по компаниям</h3>
-            <SpendingTable 
-              spendingByCompany={spendingByCompany}
-              toggleSortSpending={toggleSortSpending}
-            />
-          </div>
-        </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
