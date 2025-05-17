@@ -60,6 +60,7 @@ export interface ServerTransaction {
   investor: string | null;
   projectAllocations?: ProjectAllocation[];
   hasAllocations: boolean;
+  investmentExpenseId?: string; // Added for tracking expenses created from investment expenses
 }
 
 const defaultCompanies: string[] = [];
