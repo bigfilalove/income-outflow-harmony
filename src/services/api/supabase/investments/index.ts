@@ -1,2 +1,3 @@
 
-export * from './investment-expenses';
+// Re-export all investment-related functionality
+export * from './expenses';
