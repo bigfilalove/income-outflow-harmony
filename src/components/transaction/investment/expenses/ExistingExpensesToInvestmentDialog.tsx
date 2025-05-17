@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import { Transaction } from '@/types/transaction';
 import { fetchTransactionsFromSupabase } from '@/services/api/supabase/transactions';
-import { addInvestmentExpense } from '@/services/api/supabase/investments/investment-expenses';
+import { addInvestmentExpense } from '@/services/api/supabase/investments';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';

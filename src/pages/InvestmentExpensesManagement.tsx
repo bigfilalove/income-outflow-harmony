@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { fetchTransactionsFromSupabase } from '@/services/api/supabase/transactions';
-import { fetchInvestmentExpenses } from '@/services/api/supabase/investments/investment-expenses';
+import { fetchInvestmentExpenses } from '@/services/api/supabase/investments';
 import { Transaction } from '@/types/transaction';
 import { InvestmentExpense } from '@/types/investment';
 import { formatCurrency, formatDate } from '@/lib/formatters';

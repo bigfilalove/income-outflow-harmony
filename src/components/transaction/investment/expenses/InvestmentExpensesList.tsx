@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { InvestmentExpense } from '@/types/investment';
-import { fetchInvestmentExpenses, deleteInvestmentExpense } from '@/services/api/supabase/investments/investment-expenses';
+import { fetchInvestmentExpenses, deleteInvestmentExpense } from '@/services/api/supabase/investments';
 import InvestmentExpenseItem from './InvestmentExpenseItem';
 import { toast } from 'sonner';
 import { AlertCircle, Trash2, Plus, FileText } from 'lucide-react';

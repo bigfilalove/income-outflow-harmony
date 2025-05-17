@@ -9,7 +9,7 @@ import ProjectSelect from '@/components/transaction/ProjectSelect';
 import { getTransactionCategories } from '@/types/transaction';
 import { InvestmentExpense } from '@/types/investment';
 import { useQueryClient } from '@tanstack/react-query';
-import { addInvestmentExpense, updateInvestmentExpense } from '@/services/api/supabase/investments/investment-expenses';
+import { addInvestmentExpense, updateInvestmentExpense } from '@/services/api/supabase/investments';
 import { toast } from 'sonner';
 import { DatePicker } from '@/components/ui/date-picker';
 
