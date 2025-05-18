@@ -1,6 +1,11 @@
 
 import { ProjectAllocation } from '@/types/transaction';
 
+export interface InvestmentFormProps {
+  initialValues?: InvestmentFormValues;
+  onSuccess?: () => void;
+}
+
 export interface InvestmentFormValues {
   amount: string;
   description: string;
@@ -11,9 +16,4 @@ export interface InvestmentFormValues {
   company: string;
   hasAllocations: boolean;
   projectAllocations: ProjectAllocation[];
-}
-
-export interface InvestmentFormProps {
-  initialValues?: Partial<InvestmentFormValues>;
-  onSuccess?: () => void;
 }
