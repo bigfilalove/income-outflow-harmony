@@ -55,6 +55,9 @@ const Navbar = () => {
               <Link to="/investment-expenses" className={`${isActive('/investment-expenses') ? activeClass : ''} flex items-center text-lg font-medium`}>
                 Расходы инвестиций
               </Link>
+              <Link to="/investment-report" className={`${isActive('/investment-report') ? activeClass : ''} flex items-center text-lg font-medium`}>
+                Отчет по инвестициям
+              </Link>
               <Link to="/analytics" className={`${isActive('/analytics') ? activeClass : ''} flex items-center text-lg font-medium`}>
                 Аналитика
               </Link>

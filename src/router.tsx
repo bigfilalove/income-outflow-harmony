@@ -14,6 +14,7 @@ import BasicTransactions from './pages/BasicTransactions';
 import Budgeting from './pages/Budgeting';
 import FinancialReports from './pages/FinancialReports';
 import InvestmentExpensesManagement from './pages/InvestmentExpensesManagement';
+import InvestmentReportPage from './pages/InvestmentReport';
 import { TransactionProvider } from './context/transaction';
 
 // Root layout with providers
@@ -34,6 +35,7 @@ export const router = createBrowserRouter(
       <Route path="/admin-login" element={<AdminLogin />} />
       <Route path="/transactions" element={<Transactions />} />
       <Route path="/investment-expenses" element={<InvestmentExpensesManagement />} />
+      <Route path="/investment-report" element={<InvestmentReportPage />} />
       <Route path="/register" element={<Register />} />
       <Route path="/landing" element={<Landing />} />
       <Route path="/analytics" element={<Analytics />} />
