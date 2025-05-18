@@ -87,6 +87,19 @@ export const useInvestmentFormSubmit = (resetForm: () => void, currentUserName?:
     setIsSubmitting(true);
     setConnectionError(null);
 
+    console.log('Creating investment transaction with is_investment flag:', {
+      amount: numAmount,
+      description,
+      category,
+      date,
+      type: 'income',
+      isInvestment: true,
+      investor,
+      company,
+      hasAllocations,
+      projectAllocations: hasAllocations ? projectAllocations : undefined,
+    });
+
     const transaction = {
       amount: numAmount,
       description,

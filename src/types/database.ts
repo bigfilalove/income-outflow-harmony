@@ -21,6 +21,8 @@ export type Database = {
           from_company: string | null;
           to_company: string | null;
           has_allocations: boolean;
+          is_investment: boolean;
+          investor: string | null;
         };
       };
       categories: {

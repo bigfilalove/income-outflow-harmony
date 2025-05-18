@@ -361,6 +361,7 @@ export type Database = {
           id: string
           investment_expense_id: string | null
           investor: string | null
+          is_investment: boolean | null
           is_reimbursement: boolean | null
           is_transfer: boolean | null
           project: string | null
@@ -382,6 +383,7 @@ export type Database = {
           id?: string
           investment_expense_id?: string | null
           investor?: string | null
+          is_investment?: boolean | null
           is_reimbursement?: boolean | null
           is_transfer?: boolean | null
           project?: string | null
@@ -403,6 +405,7 @@ export type Database = {
           id?: string
           investment_expense_id?: string | null
           investor?: string | null
+          is_investment?: boolean | null
           is_reimbursement?: boolean | null
           is_transfer?: boolean | null
           project?: string | null
