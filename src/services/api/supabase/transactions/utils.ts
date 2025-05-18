@@ -1,3 +1,4 @@
+
 import { Transaction, TransactionType, ReimbursementStatus } from '@/types/transaction';
 
 // Convert Supabase transaction to app transaction model
@@ -50,8 +51,11 @@ export const toSupabaseTransaction = (transaction: Omit<Transaction, 'id'> | Tra
   };
 
   // Add ID only if it exists (for updates)
-  if ('id' in transaction) {
-    supabaseTransaction.id = (transaction as Transaction).id;
+  if ('id' in transaction && transaction.id) {
+    return {
+      ...supabaseTransaction,
+      id: transaction.id
+    };
   }
 
   return supabaseTransaction;
