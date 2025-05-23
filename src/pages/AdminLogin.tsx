@@ -1,9 +1,8 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { useAdmin } from '@/context/AdminContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,31 +12,52 @@ import { Label } from '@/components/ui/label';
 const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const { loginWithCredentials } = useAuth();
-  const { verifyAdminPassword, demoUsersList } = useAdmin();
   const navigate = useNavigate();
+  
+  // Фиксированный пароль для доступа к админ панели
+  const adminPassword = '123456';
+  
+  // Демо учетные данные администратора
+  const adminCredentials = {
+    username: 'ivanp',
+    password: 'password123'
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (verifyAdminPassword(password)) {
-      // Находим пользователя с ролью админа для автоматического входа
-      const adminUser = demoUsersList.find(user => user.role === 'admin');
-      
-      if (adminUser) {
-        // Выполняем логин как админ
-        const success = await loginWithCredentials(adminUser.username, adminUser.password);
+    if (password === adminPassword) {
+      try {
+        // Выполняем логин как администратор с предустановленными учетными данными
+        const success = await loginWithCredentials(adminCredentials.username, adminCredentials.password);
         
         if (success) {
-          toast.success('Вход выполнен успешно');
+          toast({
+            title: "Вход выполнен успешно",
+            description: "Вы вошли как администратор"
+          });
           navigate('/admin');
         } else {
-          toast.error('Ошибка при входе как администратор');
+          toast({
+            title: "Ошибка при входе",
+            description: "Не удалось войти с учетными данными администратора",
+            variant: "destructive"
+          });
         }
-      } else {
-        toast.error('Ошибка: администратор не найден в системе');
+      } catch (error) {
+        console.error('Ошибка входа:', error);
+        toast({
+          title: "Ошибка при входе",
+          description: "Произошла ошибка при попытке входа",
+          variant: "destructive"
+        });
       }
     } else {
-      toast.error('Неверный пароль');
+      toast({
+        title: "Неверный пароль",
+        description: "Пароль администратора неверен",
+        variant: "destructive"
+      });
     }
   };
 
