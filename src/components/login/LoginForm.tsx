@@ -49,20 +49,29 @@ export const LoginForm = () => {
     }
 
     try {
+      console.log('Attempting login with:', username, 'password: [HIDDEN]');
       const success = await loginWithCredentials(username, password);
+      
       if (success) {
-        // The AuthContext should handle navigation based on user role
-        console.log('Login successful, navigating...');
+        toast({
+          title: "Вход выполнен успешно",
+          description: "Добро пожаловать в систему"
+        });
+        navigate('/');
       } else {
-        // loginWithCredentials should handle error messages via toast
-        console.log('Login failed, check credentials.');
+        setError('Неверные учетные данные. Пожалуйста, проверьте логин и пароль.');
+        toast({
+          title: "Ошибка при входе в систему",
+          description: "Неверные учетные данные",
+          variant: "destructive"
+        });
       }
     } catch (err: any) {
       console.error('Login error:', err);
       setError('Не удалось войти в систему. Пожалуйста, попробуйте позже.');
       toast({
         title: "Ошибка при входе в систему",
-        description: "Неверные учетные данные",
+        description: err.message || "Произошла ошибка при входе",
         variant: "destructive"
       });
     }

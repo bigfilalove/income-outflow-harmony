@@ -72,6 +72,110 @@ export const useAuthProvider = () => {
   const loginWithCredentials = useCallback(async (username: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      
+      // Поддержка для тестовых учетных данных
+      if (username === 'ivanp' && password === 'password123') {
+        // Имитация успешного входа для тестового администратора
+        const mockUser: User = {
+          id: 'admin-id-123',
+          name: 'Иван Петров',
+          email: 'ivan@example.com',
+          username: 'ivanp',
+          password: '',
+          role: 'admin',
+          createdAt: new Date()
+        };
+        
+        setCurrentUser(mockUser);
+        setIsAuthenticated(true);
+        
+        // Сохраняем пользователя в localStorage для имитации сессии
+        localStorage.setItem('finance-tracker-user', JSON.stringify(mockUser));
+        localStorage.setItem('finance-tracker-token', 'mock-token-admin-123');
+        
+        toast({
+          title: "Вход выполнен успешно",
+          description: `Добро пожаловать, ${mockUser.name}!`,
+        });
+        
+        return true;
+      }
+      
+      // Добавляем другие тестовые учетные данные
+      if (username === 'marias' && password === 'password456') {
+        const mockUser: User = {
+          id: 'user-id-456',
+          name: 'Мария Сидорова',
+          email: 'maria@example.com',
+          username: 'marias',
+          password: '',
+          role: 'user',
+          createdAt: new Date()
+        };
+        
+        setCurrentUser(mockUser);
+        setIsAuthenticated(true);
+        localStorage.setItem('finance-tracker-user', JSON.stringify(mockUser));
+        localStorage.setItem('finance-tracker-token', 'mock-token-user-456');
+        
+        toast({
+          title: "Вход выполнен успешно",
+          description: `Добро пожаловать, ${mockUser.name}!`,
+        });
+        
+        return true;
+      }
+      
+      if (username === 'alexeyi' && password === 'password789') {
+        const mockUser: User = {
+          id: 'basic-id-789',
+          name: 'Алексей Иванов',
+          email: 'alexey@example.com',
+          username: 'alexeyi',
+          password: '',
+          role: 'basic',
+          createdAt: new Date()
+        };
+        
+        setCurrentUser(mockUser);
+        setIsAuthenticated(true);
+        localStorage.setItem('finance-tracker-user', JSON.stringify(mockUser));
+        localStorage.setItem('finance-tracker-token', 'mock-token-basic-789');
+        
+        toast({
+          title: "Вход выполнен успешно",
+          description: `Добро пожаловать, ${mockUser.name}!`,
+        });
+        
+        return true;
+      }
+      
+      // Еще один тестовый пользователь
+      if (username === 'eremkin' && password === '123456') {
+        const mockUser: User = {
+          id: 'user-id-101112',
+          name: 'Еремкин',
+          email: 'eremkin@example.com',
+          username: 'eremkin',
+          password: '',
+          role: 'user',
+          createdAt: new Date()
+        };
+        
+        setCurrentUser(mockUser);
+        setIsAuthenticated(true);
+        localStorage.setItem('finance-tracker-user', JSON.stringify(mockUser));
+        localStorage.setItem('finance-tracker-token', 'mock-token-user-101112');
+        
+        toast({
+          title: "Вход выполнен успешно",
+          description: `Добро пожаловать, ${mockUser.name}!`,
+        });
+        
+        return true;
+      }
+      
+      // Если учетные данные не соответствуют тестовым, пытаемся выполнить вход через Supabase
       const result = await loginWithSupabase(username, password);
       
       if (result) {
@@ -109,6 +213,11 @@ export const useAuthProvider = () => {
   const logout = useCallback(async () => {
     try {
       setIsLoading(true);
+      
+      // Очищаем локальное хранилище для тестовых пользователей
+      localStorage.removeItem('finance-tracker-user');
+      localStorage.removeItem('finance-tracker-token');
+      
       const success = await logoutSupabase();
       
       if (success) {
