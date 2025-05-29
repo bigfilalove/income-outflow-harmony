@@ -17,13 +17,16 @@ import InvestmentExpensesManagement from './pages/InvestmentExpensesManagement';
 import InvestmentReportPage from './pages/InvestmentReport';
 import { TransactionProvider } from './context/transaction';
 import { EmployeeProvider } from './context/employee';
+import { BudgetProvider } from './context/BudgetContext';
 
 // Root layout with providers
 const RootLayout = () => {
   return (
     <TransactionProvider>
       <EmployeeProvider>
-        <Outlet />
+        <BudgetProvider>
+          <Outlet />
+        </BudgetProvider>
       </EmployeeProvider>
     </TransactionProvider>
   );
