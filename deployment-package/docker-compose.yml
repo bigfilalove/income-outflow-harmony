@@ -1,0 +1,62 @@
+
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: finance-tracker-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: finance_tracker
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - finance-tracker-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  finance-tracker:
+    build: .
+    container_name: finance-tracker-app
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/finance_tracker?authSource=admin
+      - JWT_SECRET=${JWT_SECRET:-finance-tracker-production-secret-change-this}
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    networks:
+      - finance-tracker-network
+    volumes:
+      - ./logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  finance-tracker-network:
+    driver: bridge

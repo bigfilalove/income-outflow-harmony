@@ -1,0 +1,33 @@
+
+{
+  "name": "finance-tracker-local",
+  "version": "1.0.0",
+  "description": "Finance Tracker - Local Autonomous Deployment",
+  "main": "src/server/standalone-server.js",
+  "scripts": {
+    "start": "node src/server/standalone-server.js",
+    "dev": "nodemon src/server/standalone-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^8.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "finance",
+    "tracker",
+    "local",
+    "autonomous",
+    "mongodb",
+    "docker"
+  ],
+  "author": "Finance Tracker Team",
+  "license": "MIT"
+}

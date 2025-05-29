@@ -2,84 +2,31 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
-const Category = require('../models/Category');
 
-// GET /api/categories - Получить список всех категорий с возможной фильтрацией по типу
-router.get('/', authenticate, async (req, res) => {
+// Применяем middleware аутентификации
+router.use(authenticate);
+
+// Получить все категории
+router.get('/', async (req, res, next) => {
   try {
-    const { type } = req.query;
-    const query = type ? { type } : {};
-    const categories = await Category.find(query);
+    // Возвращаем предопределенные категории
+    const categories = [
+      { id: '1', name: 'Продажи', type: 'income' },
+      { id: '2', name: 'Инвестиции', type: 'income' },
+      { id: '3', name: 'Прочие доходы', type: 'income' },
+      { id: '4', name: 'Зарплата', type: 'expense' },
+      { id: '5', name: 'Аренда', type: 'expense' },
+      { id: '6', name: 'Коммунальные услуги', type: 'expense' },
+      { id: '7', name: 'Реклама и маркетинг', type: 'expense' },
+      { id: '8', name: 'Канцелярские товары', type: 'expense' },
+      { id: '9', name: 'Транспорт', type: 'expense' },
+      { id: '10', name: 'Питание', type: 'expense' },
+      { id: '11', name: 'Прочие расходы', type: 'expense' }
+    ];
+    
     res.json(categories);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// POST /api/categories - Добавить новую категорию
-router.post('/', authenticate, async (req, res) => {
-  try {
-    const { name, type } = req.body;
-    if (!name || !type) {
-      return res.status(400).json({ message: 'Name and type are required' });
-    }
-
-    // Проверка на дубликат
-    const existingCategory = await Category.findOne({ name, type });
-    if (existingCategory) {
-      return res.status(409).json({ message: 'Category already exists' });
-    }
-
-    // Проверка валидности type
-    if (!['income', 'expense', 'reimbursement', 'transfer'].includes(type)) {
-      return res.status(400).json({ message: 'Invalid category type' });
-    }
-
-    const category = new Category({ name, type });
-    await category.save();
-    res.status(201).json(category);
-  } catch (error) {
-    res.status(400).json({ message: 'Invalid category data' });
-  }
-});
-
-// PUT /api/categories/:id - Обновить категорию
-router.put('/:id', authenticate, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name, type } = req.body;
-
-    if (!name || !type) {
-      return res.status(400).json({ message: 'Name and type are required' });
-    }
-
-    // Проверка валидности type
-    if (!['income', 'expense', 'reimbursement', 'transfer'].includes(type)) {
-      return res.status(400).json({ message: 'Invalid category type' });
-    }
-
-    const category = await Category.findByIdAndUpdate(id, { name, type }, { new: true });
-    if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
-    }
-
-    res.json(category);
-  } catch (error) {
-    res.status(400).json({ message: 'Invalid category data' });
-  }
-});
-
-// DELETE /api/categories/:id - Удалить категорию
-router.delete('/:id', authenticate, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const category = await Category.findByIdAndDelete(id);
-    if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
-    }
-    res.status(200).json({ success: true }); // Изменяем для совместимости с клиентом
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    next(error);
   }
 });
 
